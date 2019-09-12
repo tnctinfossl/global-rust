@@ -51,6 +51,6 @@ fn receive(args: &[String]) {
 
     let file = File::open(filename).expect(&format!("Error:Cannot Read {}",filename));
     let reader = BufReader::new(file);
-    let mut json:Settings=serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}",filename));
+    let json:Settings=serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}",filename));
     println!("{:?}",json);
 }
