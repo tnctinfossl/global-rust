@@ -1,11 +1,11 @@
 mod settings;
 mod subprograms;
-
+use settings::Settings;
 use std::env;
 use std::fs::File;
-use std::io::{BufWriter,BufReader};
+use std::io::{BufReader, BufWriter};
+use std::net::UdpSocket;
 use subprograms::{SubProgram, SubPrograms, SubProgramsTrait};
-use settings::Settings;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -35,10 +35,10 @@ fn init(args: &[String]) {
         "setting.json"
     };
 
-    let file = File::create(filename).expect(&format!("Error:Cannot Create {}",filename));
+    let file = File::create(filename).expect(&format!("Error:Cannot Create {}", filename));
     let writer = BufWriter::new(file);
     let default = Settings::default();
-    serde_json::to_writer(writer, &default).expect(&format!("Error:Cannot Write {}",filename));
+    serde_json::to_writer(writer, &default).expect(&format!("Error:Cannot Write {}", filename));
 }
 
 fn receive(args: &[String]) {
@@ -49,8 +49,17 @@ fn receive(args: &[String]) {
         "setting.json"
     };
 
-    let file = File::open(filename).expect(&format!("Error:Cannot Read {}",filename));
+    let file = File::open(filename).expect(&format!("Error:Cannot Read {}", filename));
     let reader = BufReader::new(file);
-    let json:Settings=serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}",filename));
-    println!("{:?}",json);
+    let setting: Settings =
+        serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}", filename));
+    let address = format!("{}:{}", setting.vision_address, setting.vision_port);
+    println!("bind {}", &address);
+    let socket = UdpSocket::bind(&address).unwrap();
+    let mut buf = [0; 16];
+    let (size, src) = socket.recv_from(&mut buf).unwrap();
+    println!("src={},size={}", src, size);
+    for i in 0..size {
+        print!("{}", buf[i]);
+    }
 }
