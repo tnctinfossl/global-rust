@@ -1,11 +1,9 @@
-use std::env;
 use serde_derive::{Serialize,Deserialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
-    command:String,
-    port: u16,
-    host: String,
-
+    pub command:String,
+    pub port: u16,
+    pub host: String,
 }
 
 impl Default for Settings {
