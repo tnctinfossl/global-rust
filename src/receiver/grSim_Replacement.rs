@@ -17,7 +17,7 @@
 #![allow(unsafe_code)]
 #![allow(unused_imports)]
 #![allow(unused_results)]
-//! Generated file from `src/proto/grSim_Replacement.proto`
+//! Generated file from `grSim_Replacement.proto`
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -931,17 +931,17 @@ impl ::protobuf::reflect::ProtobufValue for grSim_Replacement {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n!src/proto/grSim_Replacement.proto\"\x8e\x01\n\x16grSim_RobotReplaceme\
-    nt\x12\x0c\n\x01x\x18\x01\x20\x02(\x01R\x01x\x12\x0c\n\x01y\x18\x02\x20\
-    \x02(\x01R\x01y\x12\x10\n\x03dir\x18\x03\x20\x02(\x01R\x03dir\x12\x0e\n\
-    \x02id\x18\x04\x20\x02(\rR\x02id\x12\x1e\n\nyellowteam\x18\x05\x20\x02(\
-    \x08R\nyellowteam\x12\x16\n\x06turnon\x18\x06\x20\x01(\x08R\x06turnon\"S\
-    \n\x15grSim_BallReplacement\x12\x0c\n\x01x\x18\x01\x20\x02(\x01R\x01x\
-    \x12\x0c\n\x01y\x18\x02\x20\x02(\x01R\x01y\x12\x0e\n\x02vx\x18\x03\x20\
-    \x02(\x01R\x02vx\x12\x0e\n\x02vy\x18\x04\x20\x02(\x01R\x02vy\"p\n\x11grS\
-    im_Replacement\x12*\n\x04ball\x18\x01\x20\x01(\x0b2\x16.grSim_BallReplac\
-    ementR\x04ball\x12/\n\x06robots\x18\x02\x20\x03(\x0b2\x17.grSim_RobotRep\
-    lacementR\x06robots\
+    \n\x17grSim_Replacement.proto\"\x8e\x01\n\x16grSim_RobotReplacement\x12\
+    \x0c\n\x01x\x18\x01\x20\x02(\x01R\x01x\x12\x0c\n\x01y\x18\x02\x20\x02(\
+    \x01R\x01y\x12\x10\n\x03dir\x18\x03\x20\x02(\x01R\x03dir\x12\x0e\n\x02id\
+    \x18\x04\x20\x02(\rR\x02id\x12\x1e\n\nyellowteam\x18\x05\x20\x02(\x08R\n\
+    yellowteam\x12\x16\n\x06turnon\x18\x06\x20\x01(\x08R\x06turnon\"S\n\x15g\
+    rSim_BallReplacement\x12\x0c\n\x01x\x18\x01\x20\x02(\x01R\x01x\x12\x0c\n\
+    \x01y\x18\x02\x20\x02(\x01R\x01y\x12\x0e\n\x02vx\x18\x03\x20\x02(\x01R\
+    \x02vx\x12\x0e\n\x02vy\x18\x04\x20\x02(\x01R\x02vy\"p\n\x11grSim_Replace\
+    ment\x12*\n\x04ball\x18\x01\x20\x01(\x0b2\x16.grSim_BallReplacementR\x04\
+    ball\x12/\n\x06robots\x18\x02\x20\x03(\x0b2\x17.grSim_RobotReplacementR\
+    \x06robots\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {
