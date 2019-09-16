@@ -1,7 +1,7 @@
-
 use std::io;
 use std::net::{UdpSocket,Ipv4Addr,SocketAddr};
 use super::grSim_Replacement::grSim_Replacement;
+
 pub struct Receiver {
     socket :UdpSocket,
 }
@@ -23,7 +23,7 @@ impl Receiver {
         let mut buffer=[0;1024];
         let size=self.socket.recv(&mut buffer)?;
         let mut replacement=grSim_Replacement::new();
-        //replacement.merge_from(buffer);
+        //replacement.merge_from(&buffer[..size]);
 
 
 
