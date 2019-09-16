@@ -1,8 +1,8 @@
 use std::io;
 use std::net::{UdpSocket,Ipv4Addr,SocketAddr};
 use super::grSim_Packet::grSim_Packet;
-
 use super::grSim_Replacement::grSim_Replacement;
+use super::packet::*;
 pub struct Receiver {
     socket :UdpSocket,
 }
@@ -25,8 +25,8 @@ impl Receiver {
         let mut buffer=[0;1024];
         let size=self.socket.recv(&mut buffer)?;
         //解読
-        let proto:grSim_Replacement=protobuf::parse_from_bytes(&buffer[..])?;
-        //let replacement=P::from(&proto);
+        let proto=protobuf::parse_from_bytes(&buffer)?;
+        let replacement=Packet::from(&proto);
         //println!("{:?}",replacement);
         //Ok(replacement)
         Ok(())
