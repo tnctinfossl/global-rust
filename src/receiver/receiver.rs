@@ -1,12 +1,7 @@
-//use super::messages::messages_robocup_ssl_detection as direction;
-//use super::messages::messages_robocup_ssl_geometry as geometry;
-//use super::messages::messages_robocup_ssl_refbox_log as refbox;
-//use super::messages::messages_robocup_ssl_wrapper as wrapper;
+
 use std::io;
 use std::net::{UdpSocket,Ipv4Addr,SocketAddr};
-
-
-
+use super::grSim_Replacement::grSim_Replacement;
 pub struct Receiver {
     socket :UdpSocket,
 }
@@ -27,11 +22,11 @@ impl Receiver {
     pub fn recv(&mut self)->io::Result<()>{
         let mut buffer=[0;1024];
         let size=self.socket.recv(&mut buffer)?;
-        println!("size:{}",size);
-        for idx in 0..size{
-            print!("{},",buffer[idx]);
-        }  
-        println!();
+        let mut replacement=grSim_Replacement::new();
+        //replacement.merge_from(buffer);
+
+
+
         Ok(())
     }
 }
