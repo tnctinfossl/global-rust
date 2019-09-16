@@ -5,8 +5,11 @@
 //use super::messages::messages_robocup_ssl_wrapper as wrapper;
 
 pub struct Receiver{
-    
+
 }
+
+
+
 
 
 

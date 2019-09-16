@@ -4,7 +4,7 @@ use settings::Settings;
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use std::net::UdpSocket;
+use std::net::{UdpSocket,Ipv4Addr,SocketAddr};
 use subprograms::{SubProgram, SubPrograms, SubProgramsTrait};
 
 fn main() {
@@ -51,15 +51,25 @@ fn receive(args: &[String]) {
 
     let file = File::open(filename).expect(&format!("Error:Cannot Read {}", filename));
     let reader = BufReader::new(file);
-    let setting: Settings =
+    let settings: Settings =
         serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}", filename));
-    let address = format!("{}:{}", setting.vision_address, setting.vision_port);
-    println!("bind {}", &address);
-    let socket = UdpSocket::bind(&address).unwrap();
-    let mut buf = [0; 16];
-    let (size, src) = socket.recv_from(&mut buf).unwrap();
-    println!("src={},size={}", src, size);
-    for i in 0..size {
-        print!("{}", buf[i]);
-    }
+/*
+    let ipv4= {
+        let ip=&settings.vision_ip4;
+        Ipv4Addr::new(ip[0],ip[1],ip[2],ip[3])
+    };
+*/
+    let vision_mount =SocketAddr::from((settings.vision_ip4,settings.vision_port));
+    let socket = UdpSocket::bind(&vision_mount).expect("Error:Cannot Bind");
+    socket.join_multicast_v4(&Ipv4Addr::new(224,5,23,2), &Ipv4Addr::new(0,0,0,0)).expect("Error:Cannot: multicast");
+
+    let mut buf= [0;1024];
+    let (amt,_)=socket.recv_from(&mut buf).expect("Error:Cannot recv");
+    println!("size:{}",amt);
+    for idx in 0..amt{
+        print!("{},",buf[idx]);
+    }  
+
+
+
 }
