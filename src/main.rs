@@ -1,42 +1,58 @@
+//TODO 整理する
+#[macro_use]
 mod receiver;
 mod settings;
 mod viewer;
-mod subprograms;
-use receiver::receiver::Receiver;
+use env_logger;
+use log::{debug, error, info, warn};
+use receiver::receiver::Listener;
 use settings::Settings;
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::net::Ipv4Addr;
-use subprograms::{SubProgram, SubPrograms, SubProgramsTrait};
-use viewer::Viewer;
+
+use gtk::prelude::*;
+use gtk::{Button, Label, Window, WindowType};
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let subprograms: SubPrograms = vec![
-        SubProgram::new(
-            "init".to_string(),
-            "[filename]".to_string(),
-            "create settings file".to_string(),
-            Box::new(init),
-        ),
-        SubProgram::new(
-            "receive".to_string(),
-            "[filename]".to_string(),
-            "receive test from servers".to_string(),
-            Box::new(receive),
-        ),
-        SubProgram::new(
-            "run".to_string(),
-            "[filename]".to_string(),
-            "run".to_string(),
-            Box::new(run),
-        ),
-    ];
+    //init logger
+    env::set_var("RUST_LOG", "info");
+    env_logger::init();
+    //load settings
+    let settings=Settings::load_or_create("settings.json");
+    //fix log level
+    env::set_var("RUST_LOG", settings.logger.level);
+    //connect server
+    let receiver = Listener::new(&settings.receiver);
 
-    subprograms.run(&args[1..]);
+
+
+    //init gtk
+    if gtk::init().is_err(){
+        error!("init gtk");
+        return;
+    }
+    //init window
+    {
+        let settings=settings.viewer;
+        let window = Window::new(WindowType::Toplevel);
+        window.set_title("globa-rust");
+        window.set_default_size(settings.window_x,settings.window_y);
+        window.show_all();
+        gtk::main();
+    }
+
+
+
+
+
+
+
+    return;
+
 }
-
+/*
 fn init(args: &[String]) {
     //TODO きれいに書く
     let filename: &str = if let Some(name) = args.iter().nth(1) {
@@ -67,8 +83,8 @@ fn receive(args: &[String]) {
         let [a, b, c, d] = settings.net.vision_ip4;
         Ipv4Addr::new(a, b, c, d)
     };
-    let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
-    r.recv().unwrap();
+    //let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
+   // r.recv().unwrap();
 }
 
 fn run(args: &[String]) {
@@ -82,17 +98,10 @@ fn run(args: &[String]) {
     let reader = BufReader::new(file);
     let settings: Settings =
         serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}", filename));
-
     let ip = {
         let [a, b, c, d] = settings.net.vision_ip4;
         Ipv4Addr::new(a, b, c, d)
     };
-    let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
-
-
-    Viewer::new(&settings.viewer);
-
-
-
-
+  //  let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
 }
+*/

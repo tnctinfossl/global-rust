@@ -1,6 +1,6 @@
 pub mod receiver;
-pub mod messages_robocup_ssl_detection;
-pub mod messages_robocup_ssl_geometry;
-pub mod messages_robocup_ssl_refbox_log;
-pub mod messages_robocup_ssl_wrapper;
+mod messages_robocup_ssl_detection;
+mod messages_robocup_ssl_geometry;
+mod messages_robocup_ssl_refbox_log;
+mod messages_robocup_ssl_wrapper;
 pub mod messages;
