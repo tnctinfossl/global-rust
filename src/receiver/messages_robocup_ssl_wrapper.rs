@@ -17,7 +17,7 @@
 #![allow(unsafe_code)]
 #![allow(unused_imports)]
 #![allow(unused_results)]
-//! Generated file from `grSim_Packet.proto`
+//! Generated file from `messages_robocup_ssl_wrapper.proto`
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -27,101 +27,101 @@ use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_2_8_1;
 
 #[derive(PartialEq,Clone,Default)]
-pub struct grSim_Packet {
+pub struct SSL_WrapperPacket {
     // message fields
-    commands: ::protobuf::SingularPtrField<super::grSim_Commands::grSim_Commands>,
-    replacement: ::protobuf::SingularPtrField<super::grSim_Replacement::grSim_Replacement>,
+    detection: ::protobuf::SingularPtrField<super::messages_robocup_ssl_detection::SSL_DetectionFrame>,
+    geometry: ::protobuf::SingularPtrField<super::messages_robocup_ssl_geometry::SSL_GeometryData>,
     // special fields
     pub unknown_fields: ::protobuf::UnknownFields,
     pub cached_size: ::protobuf::CachedSize,
 }
 
-impl<'a> ::std::default::Default for &'a grSim_Packet {
-    fn default() -> &'a grSim_Packet {
-        <grSim_Packet as ::protobuf::Message>::default_instance()
+impl<'a> ::std::default::Default for &'a SSL_WrapperPacket {
+    fn default() -> &'a SSL_WrapperPacket {
+        <SSL_WrapperPacket as ::protobuf::Message>::default_instance()
     }
 }
 
-impl grSim_Packet {
-    pub fn new() -> grSim_Packet {
+impl SSL_WrapperPacket {
+    pub fn new() -> SSL_WrapperPacket {
         ::std::default::Default::default()
     }
 
-    // optional .grSim_Commands commands = 1;
+    // optional .SSL_DetectionFrame detection = 1;
 
 
-    pub fn get_commands(&self) -> &super::grSim_Commands::grSim_Commands {
-        self.commands.as_ref().unwrap_or_else(|| super::grSim_Commands::grSim_Commands::default_instance())
+    pub fn get_detection(&self) -> &super::messages_robocup_ssl_detection::SSL_DetectionFrame {
+        self.detection.as_ref().unwrap_or_else(|| super::messages_robocup_ssl_detection::SSL_DetectionFrame::default_instance())
     }
-    pub fn clear_commands(&mut self) {
-        self.commands.clear();
+    pub fn clear_detection(&mut self) {
+        self.detection.clear();
     }
 
-    pub fn has_commands(&self) -> bool {
-        self.commands.is_some()
+    pub fn has_detection(&self) -> bool {
+        self.detection.is_some()
     }
 
     // Param is passed by value, moved
-    pub fn set_commands(&mut self, v: super::grSim_Commands::grSim_Commands) {
-        self.commands = ::protobuf::SingularPtrField::some(v);
+    pub fn set_detection(&mut self, v: super::messages_robocup_ssl_detection::SSL_DetectionFrame) {
+        self.detection = ::protobuf::SingularPtrField::some(v);
     }
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_commands(&mut self) -> &mut super::grSim_Commands::grSim_Commands {
-        if self.commands.is_none() {
-            self.commands.set_default();
+    pub fn mut_detection(&mut self) -> &mut super::messages_robocup_ssl_detection::SSL_DetectionFrame {
+        if self.detection.is_none() {
+            self.detection.set_default();
         }
-        self.commands.as_mut().unwrap()
+        self.detection.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_commands(&mut self) -> super::grSim_Commands::grSim_Commands {
-        self.commands.take().unwrap_or_else(|| super::grSim_Commands::grSim_Commands::new())
+    pub fn take_detection(&mut self) -> super::messages_robocup_ssl_detection::SSL_DetectionFrame {
+        self.detection.take().unwrap_or_else(|| super::messages_robocup_ssl_detection::SSL_DetectionFrame::new())
     }
 
-    // optional .grSim_Replacement replacement = 2;
+    // optional .SSL_GeometryData geometry = 2;
 
 
-    pub fn get_replacement(&self) -> &super::grSim_Replacement::grSim_Replacement {
-        self.replacement.as_ref().unwrap_or_else(|| super::grSim_Replacement::grSim_Replacement::default_instance())
+    pub fn get_geometry(&self) -> &super::messages_robocup_ssl_geometry::SSL_GeometryData {
+        self.geometry.as_ref().unwrap_or_else(|| super::messages_robocup_ssl_geometry::SSL_GeometryData::default_instance())
     }
-    pub fn clear_replacement(&mut self) {
-        self.replacement.clear();
+    pub fn clear_geometry(&mut self) {
+        self.geometry.clear();
     }
 
-    pub fn has_replacement(&self) -> bool {
-        self.replacement.is_some()
+    pub fn has_geometry(&self) -> bool {
+        self.geometry.is_some()
     }
 
     // Param is passed by value, moved
-    pub fn set_replacement(&mut self, v: super::grSim_Replacement::grSim_Replacement) {
-        self.replacement = ::protobuf::SingularPtrField::some(v);
+    pub fn set_geometry(&mut self, v: super::messages_robocup_ssl_geometry::SSL_GeometryData) {
+        self.geometry = ::protobuf::SingularPtrField::some(v);
     }
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_replacement(&mut self) -> &mut super::grSim_Replacement::grSim_Replacement {
-        if self.replacement.is_none() {
-            self.replacement.set_default();
+    pub fn mut_geometry(&mut self) -> &mut super::messages_robocup_ssl_geometry::SSL_GeometryData {
+        if self.geometry.is_none() {
+            self.geometry.set_default();
         }
-        self.replacement.as_mut().unwrap()
+        self.geometry.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_replacement(&mut self) -> super::grSim_Replacement::grSim_Replacement {
-        self.replacement.take().unwrap_or_else(|| super::grSim_Replacement::grSim_Replacement::new())
+    pub fn take_geometry(&mut self) -> super::messages_robocup_ssl_geometry::SSL_GeometryData {
+        self.geometry.take().unwrap_or_else(|| super::messages_robocup_ssl_geometry::SSL_GeometryData::new())
     }
 }
 
-impl ::protobuf::Message for grSim_Packet {
+impl ::protobuf::Message for SSL_WrapperPacket {
     fn is_initialized(&self) -> bool {
-        for v in &self.commands {
+        for v in &self.detection {
             if !v.is_initialized() {
                 return false;
             }
         };
-        for v in &self.replacement {
+        for v in &self.geometry {
             if !v.is_initialized() {
                 return false;
             }
@@ -134,10 +134,10 @@ impl ::protobuf::Message for grSim_Packet {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.commands)?;
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.detection)?;
                 },
                 2 => {
-                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.replacement)?;
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.geometry)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -151,11 +151,11 @@ impl ::protobuf::Message for grSim_Packet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        if let Some(ref v) = self.commands.as_ref() {
+        if let Some(ref v) = self.detection.as_ref() {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         }
-        if let Some(ref v) = self.replacement.as_ref() {
+        if let Some(ref v) = self.geometry.as_ref() {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         }
@@ -165,12 +165,12 @@ impl ::protobuf::Message for grSim_Packet {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::ProtobufResult<()> {
-        if let Some(ref v) = self.commands.as_ref() {
+        if let Some(ref v) = self.detection.as_ref() {
             os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         }
-        if let Some(ref v) = self.replacement.as_ref() {
+        if let Some(ref v) = self.geometry.as_ref() {
             os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
@@ -205,8 +205,8 @@ impl ::protobuf::Message for grSim_Packet {
         Self::descriptor_static()
     }
 
-    fn new() -> grSim_Packet {
-        grSim_Packet::new()
+    fn new() -> SSL_WrapperPacket {
+        SSL_WrapperPacket::new()
     }
 
     fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -217,18 +217,18 @@ impl ::protobuf::Message for grSim_Packet {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::grSim_Commands::grSim_Commands>>(
-                    "commands",
-                    |m: &grSim_Packet| { &m.commands },
-                    |m: &mut grSim_Packet| { &mut m.commands },
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::messages_robocup_ssl_detection::SSL_DetectionFrame>>(
+                    "detection",
+                    |m: &SSL_WrapperPacket| { &m.detection },
+                    |m: &mut SSL_WrapperPacket| { &mut m.detection },
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::grSim_Replacement::grSim_Replacement>>(
-                    "replacement",
-                    |m: &grSim_Packet| { &m.replacement },
-                    |m: &mut grSim_Packet| { &mut m.replacement },
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::messages_robocup_ssl_geometry::SSL_GeometryData>>(
+                    "geometry",
+                    |m: &SSL_WrapperPacket| { &m.geometry },
+                    |m: &mut SSL_WrapperPacket| { &mut m.geometry },
                 ));
-                ::protobuf::reflect::MessageDescriptor::new::<grSim_Packet>(
-                    "grSim_Packet",
+                ::protobuf::reflect::MessageDescriptor::new::<SSL_WrapperPacket>(
+                    "SSL_WrapperPacket",
                     fields,
                     file_descriptor_proto()
                 )
@@ -236,42 +236,43 @@ impl ::protobuf::Message for grSim_Packet {
         }
     }
 
-    fn default_instance() -> &'static grSim_Packet {
-        static mut instance: ::protobuf::lazy::Lazy<grSim_Packet> = ::protobuf::lazy::Lazy {
+    fn default_instance() -> &'static SSL_WrapperPacket {
+        static mut instance: ::protobuf::lazy::Lazy<SSL_WrapperPacket> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const grSim_Packet,
+            ptr: 0 as *const SSL_WrapperPacket,
         };
         unsafe {
-            instance.get(grSim_Packet::new)
+            instance.get(SSL_WrapperPacket::new)
         }
     }
 }
 
-impl ::protobuf::Clear for grSim_Packet {
+impl ::protobuf::Clear for SSL_WrapperPacket {
     fn clear(&mut self) {
-        self.commands.clear();
-        self.replacement.clear();
+        self.detection.clear();
+        self.geometry.clear();
         self.unknown_fields.clear();
     }
 }
 
-impl ::std::fmt::Debug for grSim_Packet {
+impl ::std::fmt::Debug for SSL_WrapperPacket {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for grSim_Packet {
+impl ::protobuf::reflect::ProtobufValue for SSL_WrapperPacket {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x12grSim_Packet.proto\x1a\x14grSim_Commands.proto\x1a\x17grSim_Replac\
-    ement.proto\"q\n\x0cgrSim_Packet\x12+\n\x08commands\x18\x01\x20\x01(\x0b\
-    2\x0f.grSim_CommandsR\x08commands\x124\n\x0breplacement\x18\x02\x20\x01(\
-    \x0b2\x12.grSim_ReplacementR\x0breplacement\
+    \n\"messages_robocup_ssl_wrapper.proto\x1a$messages_robocup_ssl_detectio\
+    n.proto\x1a#messages_robocup_ssl_geometry.proto\"u\n\x11SSL_WrapperPacke\
+    t\x121\n\tdetection\x18\x01\x20\x01(\x0b2\x13.SSL_DetectionFrameR\tdetec\
+    tion\x12-\n\x08geometry\x18\x02\x20\x01(\x0b2\x11.SSL_GeometryDataR\x08g\
+    eometry\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

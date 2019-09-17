@@ -1,6 +1,7 @@
 extern crate protobuf;
 extern crate glm;
-pub mod grSim_Replacement;
-pub mod packet;
-pub mod grSim_Packet;
-pub mod grSim_Commands;
+pub mod messages_robocup_ssl_detection;
+pub mod messages_robocup_ssl_geometry;
+pub mod messages_robocup_ssl_refbox_log;
+pub mod messages_robocup_ssl_wrapper;
+pub mod messages;

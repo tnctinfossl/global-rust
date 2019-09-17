@@ -1,8 +1,8 @@
 use std::io;
 use std::net::{UdpSocket,Ipv4Addr,SocketAddr};
-use super::grSim_Packet::grSim_Packet;
-use super::grSim_Replacement::grSim_Replacement;
-use super::packet::*;
+use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
+use super::messages::World;
+
 pub struct Receiver {
     socket :UdpSocket,
 }
@@ -24,11 +24,16 @@ impl Receiver {
         //受信
         let mut buffer=[0;1024];
         let size=self.socket.recv(&mut buffer)?;
+        /*
+        for i in 0..size {
+            print!("{} ",buffer[i]);
+        }
+        */
         //解読
-        let proto=protobuf::parse_from_bytes(&buffer)?;
-        let replacement=Packet::from(&proto);
-        //println!("{:?}",replacement);
-        //Ok(replacement)
+        let packet:SSL_WrapperPacket=protobuf::parse_from_bytes(&buffer[..size])?;
+        let world=World::from_message(&packet);
+        println!("{:?}",world);
+        //Ok(replacement)*/
         Ok(())
     }
 }
