@@ -20,25 +20,12 @@ impl Receiver {
         )
     }
 
-    pub fn recv(&mut self)->io::Result</*Replacement*/()>{
+    pub fn recv(&mut self)->io::Result<Option<World>>{
         //受信
         let mut buffer=[0;1024];
         let size=self.socket.recv(&mut buffer)?;
-        /*
-        for i in 0..size {
-            print!("{} ",buffer[i]);
-        }
-        */
         //解読
         let packet:SSL_WrapperPacket=protobuf::parse_from_bytes(&buffer[..size])?;
-        let world=World::from_message(&packet);
-        println!("{:?}",world);
-        //Ok(replacement)*/
-        Ok(())
+        Ok(World::from_message(&packet))
     }
-}
-
-#[test]
-fn test() {
-    println!("test");
 }

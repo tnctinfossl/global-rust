@@ -1,13 +1,15 @@
-mod settings;
-mod subprograms;
 mod receiver;
+mod settings;
+mod viewer;
+mod subprograms;
+use receiver::receiver::Receiver;
 use settings::Settings;
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::net::Ipv4Addr;
 use subprograms::{SubProgram, SubPrograms, SubProgramsTrait};
-use receiver::receiver::Receiver;
+use viewer::Viewer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -24,6 +26,12 @@ fn main() {
             "receive test from servers".to_string(),
             Box::new(receive),
         ),
+        SubProgram::new(
+            "run".to_string(),
+            "[filename]".to_string(),
+            "run".to_string(),
+            Box::new(run),
+        ),
     ];
 
     subprograms.run(&args[1..]);
@@ -36,7 +44,6 @@ fn init(args: &[String]) {
     } else {
         "setting.json"
     };
-
     let file = File::create(filename).expect(&format!("Error:Cannot Create {}", filename));
     let writer = BufWriter::new(file);
     let default = Settings::default();
@@ -56,10 +63,36 @@ fn receive(args: &[String]) {
     let settings: Settings =
         serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}", filename));
 
-    let ip={
-        let [a,b,c,d]=settings.vision_ip4;
-        Ipv4Addr::new(a,b,c,d)
+    let ip = {
+        let [a, b, c, d] = settings.net.vision_ip4;
+        Ipv4Addr::new(a, b, c, d)
     };
-    let mut r=Receiver::open(ip,settings.vision_port).unwrap();
+    let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
     r.recv().unwrap();
+}
+
+fn run(args: &[String]) {
+    let filename: &str = if let Some(name) = args.iter().nth(1) {
+        name
+    } else {
+        "setting.json"
+    };
+
+    let file = File::open(filename).expect(&format!("Error:Cannot Read {}", filename));
+    let reader = BufReader::new(file);
+    let settings: Settings =
+        serde_json::from_reader(reader).expect(&format!("Error:Cannot Parse {}", filename));
+
+    let ip = {
+        let [a, b, c, d] = settings.net.vision_ip4;
+        Ipv4Addr::new(a, b, c, d)
+    };
+    let mut r = Receiver::open(ip, settings.net.vision_port).unwrap();
+
+
+    Viewer::new(&settings.viewer);
+
+
+
+
 }

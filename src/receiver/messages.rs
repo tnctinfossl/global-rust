@@ -1,5 +1,5 @@
 use super::messages_robocup_ssl_detection::{
-    SSL_DetectionBall, SSL_DetectionFrame, SSL_DetectionRobot,
+    SSL_DetectionBall,  SSL_DetectionRobot,
 };
 //use super::messages_robocup_ssl_geometry::
 use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
