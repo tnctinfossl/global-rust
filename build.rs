@@ -14,7 +14,7 @@ fn main ()->Result<(),Box<dyn Error>>{
     let includes =vec!["src/proto"];
     protoc_rust::run(protoc_rust::Args{
         input:&proto_files[..],
-        out_dir:"src/receiver",
+        out_dir:"src/listener",
         includes:&includes[..],
         customize: Customize {
             ..Default::default()

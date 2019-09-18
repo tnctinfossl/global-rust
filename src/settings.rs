@@ -2,10 +2,10 @@ use log::{debug, error, info, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use crate::receiver::receiver;
+use crate::listener::listener;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
-    pub receiver:receiver::Settings,
+    pub listener:listener::Settings,
     pub viewer: Viewer,
     pub logger: Logger,
 }
@@ -26,7 +26,7 @@ pub struct Logger {
 impl Default for Settings {
     fn default() -> Settings {
         Settings {
-            receiver:receiver::Settings::default(),
+            listener:listener::Settings::default(),
             viewer: Viewer {
                 window_x: 640,
                 window_y: 480,
@@ -34,7 +34,7 @@ impl Default for Settings {
             logger: Logger {
                 level: "info".to_owned(),
             },
-        }
+        } 
     }
 }
 

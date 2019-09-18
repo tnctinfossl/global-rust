@@ -1,11 +1,11 @@
 //TODO 整理する
 #[macro_use]
-mod receiver;
+mod listener;
 mod settings;
 mod viewer;
 use env_logger;
 use log::{debug, error, info, warn};
-use receiver::receiver::Listener;
+use listener::listener::Listener;
 use settings::Settings;
 use std::env;
 use std::fs::File;
@@ -24,28 +24,14 @@ fn main() {
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
     //connect server
-    let receiver = Listener::new(&settings.receiver);
-
-
+    let (tx,rx)=std::sync::mpsc::channel();
+    let listener = Listener::run(&settings.listener,tx);
 
     //init gtk
     if gtk::init().is_err(){
         error!("init gtk");
         return;
     }
-    //init window
-    {
-        let settings=settings.viewer;
-        let window = Window::new(WindowType::Toplevel);
-        window.set_title("globa-rust");
-        window.set_default_size(settings.window_x,settings.window_y);
-        window.show_all();
-        gtk::main();
-    }
-
-
-
-
 
 
 
