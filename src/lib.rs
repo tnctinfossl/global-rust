@@ -1,8 +1,8 @@
-extern crate gio;
-extern crate gtk;
 extern crate log;
 extern crate env_logger;
 extern crate azul;
+extern crate gleam;
+extern crate glm;
 pub mod listener;
 pub mod settings;
 pub mod subprograms;

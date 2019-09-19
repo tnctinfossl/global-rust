@@ -16,10 +16,5 @@ glm = "0.2.3"
 env_logger = "0.6.2"
 log = "0.4.8"
 azul = { git = "https://github.com/maps4print/azul" }
-[dependencies.gtk]
-version = "0.7.0"
-features = ["v3_16"]
+gleam = "0.7.0"
 
-[dependencies.gio]
-version = ""
-features = ["v2_44"]

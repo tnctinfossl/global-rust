@@ -18,3 +18,18 @@ sudo apt install libprotobuf-dev libprotoc-dev protobuf-compiler
 sudo apt install cmake libxcb-xkb-dev libfontconfig1-dev libgles2-mesa-dev \
     libfreetype6-dev libexpat-dev
 ```
+
+## 入れとくと便利
+```
+sudo apt update
+sudo apt upgrade -y
+sudo apt install libssl-dev -y
+cargo install cargo-edit
+cargo install cargo-bench
+```
+
+# 設定
+初回起動時にsettings.jsonが作られるのでそれを弄ってください。
+
+# 起動
+`cargo run`か`cargo build`してできた生成物を実行すること
