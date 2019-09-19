@@ -24,8 +24,8 @@ fn main() {
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
     //connect server
-    let (tx,rx)=std::sync::mpsc::channel();
-    let listener = Listener::run(&settings.listener,tx);
+    //let (tx,rx)=std::sync::mpsc::channel();
+    //let listener = Listener::run(&settings.listener,tx);
 
     //init gtk
     if gtk::init().is_err(){

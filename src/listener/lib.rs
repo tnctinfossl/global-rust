@@ -8,3 +8,7 @@ mod messages;
 
 use messages::{Ball,Robot,World};
 use listener::{Settings,listener};
+
+#[macro_use]
+extern crate log;
+extern crate env_logger;
