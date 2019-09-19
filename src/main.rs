@@ -1,6 +1,6 @@
 //TODO 整理する
 #[macro_use]
-extern crate azul;
+
 mod listener;
 mod settings;
 mod viewer;
@@ -13,7 +13,7 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::net::Ipv4Addr;
 
-use azul::{prelude::*, widgets::{label::Label, button::Button}};
+
 
 fn main() {
     //init logger
@@ -26,48 +26,8 @@ fn main() {
     //connect server
     //let (tx,rx)=std::sync::mpsc::channel();
     //let listener = Listener::run(&settings.listener,tx);
-    run();
+    viewer::run();
 }
-
-
-
-
-struct DataModel {
-  counter: usize,
-}
-
-impl Layout for DataModel {
-    fn layout(&self, _info: LayoutInfo<Self>) -> Dom<Self> {
-        let label = Label::new(format!("{}", self.counter)).dom();
-        let button = Button::with_label("Update counter").dom()
-            .with_callback(On::MouseUp, |cb_info: CallbackInfo<Self>| { cb_info.state.data.counter += 1; Redraw });
-
-        let dom = Dom::div()
-            .with_child(label)
-            .with_child(button);
-
-        println!("dom:\r\n{}", dom.debug_dump());
-        dom
-    }
-}
-
-fn run() {
-    let mut app = App::new(DataModel { counter: 0 }, AppConfig::default()).unwrap();
-    let window = app.create_window(WindowCreateOptions::default(), css::native()).unwrap();
-    app.run(window).unwrap();
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
