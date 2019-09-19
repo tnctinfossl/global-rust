@@ -1,12 +1,11 @@
 use super::messages::World;
 use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
-use log::{debug, error, info, warn};
+use log::{error,warn};
 use serde_derive::{Deserialize, Serialize};
-use std::io;
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{channel, Receiver};
+use std::sync::{Arc};
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -84,7 +83,13 @@ impl Listener {
     pub fn get_world(&self) -> &Receiver<Box<World>> {
         &self.vision_receiver
     }
+
+    fn stop(self){
+        self.killer.store(true,Ordering::Relaxed);
+        self.vision_handler.join();
+    }
 }
+
 /*
 
 

@@ -12,8 +12,7 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::net::Ipv4Addr;
 
-use gtk::prelude::*;
-use gtk::{Button, Label, Window, WindowType};
+
 
 fn main() {
     //init logger
@@ -26,15 +25,7 @@ fn main() {
     //connect server
     //let (tx,rx)=std::sync::mpsc::channel();
     //let listener = Listener::run(&settings.listener,tx);
-
-    //init gtk
-    if gtk::init().is_err(){
-        error!("init gtk");
-        return;
-    }
-
-
-
+    viewer::run();
     return;
 
 }
