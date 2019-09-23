@@ -30,7 +30,7 @@ fn main() {
         return;
     }
 
-    let _main_window = viewer::MainWindow::new(&settings.viewer);
+    let _main_window = viewer::Viewer::new(&settings.viewer);
     gtk::main();
 
     return;
