@@ -1,5 +1,6 @@
 //TODO *を直す
 use crate::viewer::field::Field;
+use crate::viewer::size_mode::SizeMode;
 use cairo::Context;
 use gio::prelude::*;
 use glm::*;
@@ -7,7 +8,7 @@ use gtk::prelude::*;
 use gtk::{DrawingArea, Window};
 use serde_derive::{Deserialize, Serialize};
 use std::rc::Rc;
-
+use std::cell::Cell;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -27,9 +28,12 @@ impl Default for Settings {
 
 pub struct Viewer {
     main_window: gtk::Window,
+    size_mode:Cell< SizeMode>,
     field_drawing: gtk::DrawingArea,
     field_settings: Field,
 }
+
+
 
 impl Viewer {
     pub fn new(settings: &Settings) -> Rc<Viewer> {
@@ -42,6 +46,7 @@ impl Viewer {
         //create instance
         let viewer = Rc::new(Viewer {
             main_window: main_window,
+            size_mode: Cell::new(SizeMode::default()),
             field_drawing: field_drawing,
             field_settings: settings.field.clone(),
         });
@@ -51,14 +56,58 @@ impl Viewer {
             Inhibit(false)
         });
         {
+            //key press
+            let mut clone = viewer.clone();
+            viewer
+                .main_window
+                .connect_key_press_event(move |winwdow, key| clone.press_key(winwdow, key));
+        }
+
+        {
             //drawing
             let clone = viewer.clone();
             viewer
                 .field_drawing
                 .connect_draw(move |widget, cairo| clone.draw_field(widget, cairo));
         }
+
         viewer.main_window.show_all();
         viewer
+    }
+
+    fn press_key(&self, window: &gtk::Window, key: &gdk::EventKey) -> Inhibit {
+        
+        match key.get_hardware_keycode(){
+            //F1 size down
+            67=>{
+                if let Some(back)=self.size_mode.get().back(){
+                    let size= back.size();
+                    window.resize(size.0,size.1);
+                    self.size_mode.set(back);
+                }
+            },
+            //F2 size reset
+            68=>{
+                let default = SizeMode::default();
+                if self.size_mode.get()!=default{
+                    let size = default.size();
+                    window.resize(size.0,size.1);
+                    self.size_mode.set(default);
+                }
+            },
+            //F3 size up
+            69=>{
+                if let Some(next)=self.size_mode.get().next(){
+                    let size= next.size();
+                    window.resize(size.0,size.1);
+                    self.size_mode.set(next);
+                }
+            },
+            _=>()
+        }
+
+        //println!("group={},key={}",key.get_group(),key.get_hardware_keycode());
+        Inhibit(true)
     }
 
     fn draw_field(&self, widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
@@ -71,27 +120,26 @@ impl Viewer {
         let [fx, fy] = settings.full_size;
         let bc = settings.back_color;
         let lc = settings.line_color;
-        let scale = min(wx / fx, wy / fy); //適切な変換係数[pixel/mm]を求める
-                                           //draw begin
+        let scale = min(wx / fx, wy / fy); //適切な変換係数を求める
+        let gain = 10.0; //大きさの拡大率(表示用)
         context.save();
         //clear
         context.set_source_rgb(bc[0], bc[1], bc[2]);
         context.rectangle(0.0, 0.0, wx, wy);
         context.fill();
         //draw lines
-        /*context.set_line_width(3.0);
+        context.set_line_width(gain * 10.0);
         context.set_source_rgb(lc[0], lc[1], lc[2]);
-        
-        context.stroke();
-        */
-        context.set_source_rgb(lc[0], lc[1], lc[2]);
-        context.translate(wx/2.0, wy/2.0);
-        context.arc(0.0, 0.0,100.0 , 0.0,2.0*std::f64::consts::PI);
+        context.translate(wx / 2.0, wy / 2.0);
+        context.scale(scale, scale);
+        context.arc(0.0, 0.0, 100.0, 0.0, 2.0 * std::f64::consts::PI);
+        //context.arc(0.0, 0.0,100.0 , 0.0,2.0*std::f64::consts::PI);
         //context.rectangle(10.0, 10.0, 100.0, 100.0);
-        context.fill();
+        context.stroke();
         //context.move_to(scale*700,scale );
         //draw end
         context.restore();
+        println!("{}", scale);
         Inhibit(false)
     }
 }

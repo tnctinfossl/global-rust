@@ -1,6 +1,7 @@
-pub mod viewer;
 pub mod field;
-
+mod size_mode;
+pub mod viewer;
+pub use field::Field;
 pub use viewer::Settings;
 pub use viewer::Viewer;
-pub use field::Field;
+use size_mode::SizeMode;

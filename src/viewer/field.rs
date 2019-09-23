@@ -9,6 +9,7 @@ pub struct Field{
     pub goal_size:[f64;2],
     pub goal_length:f64,
     pub center_diameter:f64,
+    pub line_width:f64,
 }
 
 impl Default for Field{
@@ -21,7 +22,8 @@ impl Default for Field{
             field_size:[12000.0,9000.0],
             goal_size:[1200.0,2400.0],
             goal_length:1200.0,
-            center_diameter:1000.0
+            center_diameter:1000.0,
+            line_width:10.0
         }
     }
 }
