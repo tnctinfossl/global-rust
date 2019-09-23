@@ -3,20 +3,15 @@ use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use crate::listener::listener;
+use crate::viewer;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub listener:listener::Settings,
-    pub viewer: Viewer,
+    pub viewer: viewer::Settings,
     pub logger: Logger,
 }
 
 
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Viewer {
-    pub window_x: i32,
-    pub window_y: i32,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Logger {
@@ -27,10 +22,7 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             listener:listener::Settings::default(),
-            viewer: Viewer {
-                window_x: 640,
-                window_y: 480,
-            },
+            viewer: viewer::Settings::default(),
             logger: Logger {
                 level: "info".to_owned(),
             },

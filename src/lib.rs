@@ -1,5 +1,6 @@
 extern crate gio;
 extern crate gtk;
+extern crate cairo;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
