@@ -6,4 +6,4 @@ pub mod field;
 pub mod viewer;
 mod size_mode;
 pub use field::Field;
-use size_mode::SizeMode;
+pub use size_mode::SizeMode;

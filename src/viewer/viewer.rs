@@ -7,8 +7,8 @@ use glm::*;
 use gtk::prelude::*;
 use gtk::{DrawingArea, Window};
 use serde_derive::{Deserialize, Serialize};
-use std::rc::Rc;
 use std::cell::Cell;
+use std::rc::Rc;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -28,12 +28,10 @@ impl Default for Settings {
 
 pub struct Viewer {
     main_window: gtk::Window,
-    size_mode:Cell< SizeMode>,
+    size_mode: Cell<SizeMode>,
     field_drawing: gtk::DrawingArea,
     field_settings: Field,
 }
-
-
 
 impl Viewer {
     pub fn new(settings: &Settings) -> Rc<Viewer> {
@@ -76,34 +74,33 @@ impl Viewer {
     }
 
     fn press_key(&self, window: &gtk::Window, key: &gdk::EventKey) -> Inhibit {
-        
-        match key.get_hardware_keycode(){
+        match key.get_hardware_keycode() {
             //F1 size down
-            67=>{
-                if let Some(back)=self.size_mode.get().back(){
-                    let size= back.size();
-                    window.resize(size.0,size.1);
+            67 => {
+                if let Some(back) = self.size_mode.get().back() {
+                    let size = back.size();
+                    window.resize(size.0, size.1);
                     self.size_mode.set(back);
                 }
-            },
+            }
             //F2 size reset
-            68=>{
+            68 => {
                 let default = SizeMode::default();
-                if self.size_mode.get()!=default{
+                if self.size_mode.get() != default {
                     let size = default.size();
-                    window.resize(size.0,size.1);
+                    window.resize(size.0, size.1);
                     self.size_mode.set(default);
                 }
-            },
+            }
             //F3 size up
-            69=>{
-                if let Some(next)=self.size_mode.get().next(){
-                    let size= next.size();
-                    window.resize(size.0,size.1);
+            69 => {
+                if let Some(next) = self.size_mode.get().next() {
+                    let size = next.size();
+                    window.resize(size.0, size.1);
                     self.size_mode.set(next);
                 }
-            },
-            _=>()
+            }
+            _ => (),
         }
 
         //println!("group={},key={}",key.get_group(),key.get_hardware_keycode());
@@ -113,30 +110,54 @@ impl Viewer {
     fn draw_field(&self, widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         let settings = self.field_settings;
         //省略名
-        let (wx, wy) = (
+        let (pixel_x, pixel_y) = (
             widget.get_allocated_width() as f64,
             widget.get_allocated_height() as f64,
         );
-        let [fx, fy] = settings.full_size;
-        let bc = settings.back_color;
-        let lc = settings.line_color;
-        let scale = min(wx / fx, wy / fy); //適切な変換係数を求める
+        let [full_x, full_y] = settings.full_size;
+        let scale = min(pixel_x / full_x, pixel_y / full_y); //適切な変換係数を求める
         let gain = 10.0; //大きさの拡大率(表示用)
         context.save();
         //clear
-        context.set_source_rgb(bc[0], bc[1], bc[2]);
-        context.rectangle(0.0, 0.0, wx, wy);
+        let [back_red, back_green, back_blue] = settings.back_color;
+        context.set_source_rgb(back_red, back_green, back_blue);
+        context.rectangle(0.0, 0.0, pixel_x, pixel_y);
         context.fill();
-        //draw lines
+        //configurate for field
+        let [line_red, line_green, line_blue] = settings.line_color;
         context.set_line_width(gain * 10.0);
-        context.set_source_rgb(lc[0], lc[1], lc[2]);
-        context.translate(wx / 2.0, wy / 2.0);
-        context.scale(scale, scale);
-        context.arc(0.0, 0.0, 100.0, 0.0, 2.0 * std::f64::consts::PI);
-        //context.arc(0.0, 0.0,100.0 , 0.0,2.0*std::f64::consts::PI);
-        //context.rectangle(10.0, 10.0, 100.0, 100.0);
+        context.set_source_rgb(line_red, line_green, line_blue);
+        context.translate(pixel_x / 2.0, pixel_y / 2.0);
+        context.scale(scale, -scale);
+        //draw field rectangle
+        let [field_x, field_y] = settings.field_size;
+        let center_diameter = settings.center_diameter;
+        context.rectangle(-field_x / 2.0, -field_y / 2.0, field_x, field_y);
         context.stroke();
-        //context.move_to(scale*700,scale );
+        context.arc(
+            0.0,
+            0.0,
+            center_diameter / 2.0,
+            0.0,
+            2.0 * std::f64::consts::PI,
+        );
+        context.move_to(0.0, -field_y / 2.0);
+        context.line_to(0.0, field_y / 2.0);
+        context.move_to(-field_x / 2.0, 0.0);
+        context.line_to(field_x / 2.0, 0.0);
+        //draw left goal
+        let [goal_x, goal_y] = settings.goal_size;
+        context.move_to(-field_x / 2.0, goal_y / 2.0);
+        context.rel_line_to(goal_x, 0.0);
+        context.rel_line_to(0.0, -goal_y);
+        context.rel_line_to(-goal_x, 0.0);
+        //draw right goal
+        context.move_to(field_x / 2.0, goal_y / 2.0);
+        context.rel_line_to(-goal_x, 0.0);
+        context.rel_line_to(0.0, -goal_y);
+        context.rel_line_to(goal_x, 0.0);
+
+        context.stroke();
         //draw end
         context.restore();
         println!("{}", scale);
