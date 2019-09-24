@@ -1,5 +1,5 @@
 //TODO *を直す
-use crate::viewer::field::Field;
+use crate::viewer::field;
 use crate::viewer::size_mode::SizeMode;
 use cairo::Context;
 use gio::prelude::*;
@@ -13,7 +13,7 @@ use std::rc::Rc;
 pub struct Settings {
     pub height: i32,
     pub width: i32,
-    pub field: Field,
+    pub field: field::Settings,
 }
 
 impl Default for Settings {
@@ -21,7 +21,7 @@ impl Default for Settings {
         Settings {
             height: 480,
             width: 640,
-            field: Field::default(),
+            field: field::Settings::default(),
         }
     }
 }
@@ -30,7 +30,8 @@ pub struct Viewer {
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
     field_drawing: gtk::DrawingArea,
-    field_settings: Field,
+    field_settings: field::Settings,
+    //blue_robots:World,
 }
 
 impl Viewer {
@@ -139,7 +140,7 @@ impl Viewer {
         Inhibit(false)
     }
 
-    fn draw_stage(context:&Context,settings:&Field){
+    fn draw_stage(context:&Context,settings:&field::Settings){
         //draw field rectangle
         let [field_x, field_y] = settings.field_size;
         let center_diameter = settings.center_diameter;

@@ -4,6 +4,5 @@ extern crate cairo;
 extern crate glm;
 pub mod field;
 pub mod viewer;
-mod size_mode;
-pub use field::Field;
+pub mod size_mode;
 pub use size_mode::SizeMode;

@@ -4,7 +4,6 @@ mod listener;
 mod settings;
 mod viewer;
 use env_logger;
-use listener::listener::Listener;
 use log::{debug, error, info, warn};
 use settings::Settings;
 use std::env;
@@ -22,13 +21,15 @@ fn main() {
     let settings = Settings::load_or_create("settings.json");
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
-    //connect server
-
     //gtk init
     if gtk::init().is_err() {
         error!("gtk cannot initialize");
         return;
     }
+    //connect server
+    let listener= listener::Listener::new(&settings.listener);
+    
+
 
     let _main_window = viewer::Viewer::new(&settings.viewer);
     gtk::main();
