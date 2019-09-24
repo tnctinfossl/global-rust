@@ -106,6 +106,8 @@ impl Viewer {
         //println!("group={},key={}",key.get_group(),key.get_hardware_keycode());
         Inhibit(true)
     }
+    
+
 
     fn draw_field(&self, widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         let settings = self.field_settings;
@@ -123,17 +125,27 @@ impl Viewer {
         context.set_source_rgb(back_red, back_green, back_blue);
         context.rectangle(0.0, 0.0, pixel_x, pixel_y);
         context.fill();
-        //configurate for field
+        //scaling for 
         let [line_red, line_green, line_blue] = settings.line_color;
-        context.set_line_width(gain * 10.0);
         context.set_source_rgb(line_red, line_green, line_blue);
         context.translate(pixel_x / 2.0, pixel_y / 2.0);
         context.scale(scale, -scale);
+        //draw field
+        context.set_line_width(gain * 10.0);
+        Viewer::draw_stage(context, &settings);
+        //draw end
+        context.restore();
+        println!("{}", scale);
+        Inhibit(false)
+    }
+
+    fn draw_stage(context:&Context,settings:&Field){
         //draw field rectangle
         let [field_x, field_y] = settings.field_size;
         let center_diameter = settings.center_diameter;
         context.rectangle(-field_x / 2.0, -field_y / 2.0, field_x, field_y);
         context.stroke();
+        //center cicle
         context.arc(
             0.0,
             0.0,
@@ -141,26 +153,25 @@ impl Viewer {
             0.0,
             2.0 * std::f64::consts::PI,
         );
+        context.stroke();
+        //center line
         context.move_to(0.0, -field_y / 2.0);
         context.line_to(0.0, field_y / 2.0);
         context.move_to(-field_x / 2.0, 0.0);
         context.line_to(field_x / 2.0, 0.0);
+        context.stroke();
         //draw left goal
         let [goal_x, goal_y] = settings.goal_size;
         context.move_to(-field_x / 2.0, goal_y / 2.0);
         context.rel_line_to(goal_x, 0.0);
         context.rel_line_to(0.0, -goal_y);
         context.rel_line_to(-goal_x, 0.0);
+        context.stroke();
         //draw right goal
         context.move_to(field_x / 2.0, goal_y / 2.0);
         context.rel_line_to(-goal_x, 0.0);
         context.rel_line_to(0.0, -goal_y);
         context.rel_line_to(goal_x, 0.0);
-
         context.stroke();
-        //draw end
-        context.restore();
-        println!("{}", scale);
-        Inhibit(false)
     }
 }
