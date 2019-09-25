@@ -1,4 +1,4 @@
-use log::{debug, error, info, warn};
+use log::{info, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};

@@ -6,3 +6,4 @@ pub mod field;
 pub mod viewer;
 pub mod size_mode;
 pub use size_mode::SizeMode;
+pub use field::{Ball,Robot,Items};

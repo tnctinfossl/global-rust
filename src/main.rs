@@ -27,12 +27,19 @@ fn main() {
         return;
     }
     //connect server
-    let listener= listener::Listener::new(&settings.listener);
-    
+    let listener = listener::Listener::new(&settings.listener);
+    let main_window = viewer::Viewer::new(&settings.viewer);
 
-
-    let _main_window = viewer::Viewer::new(&settings.viewer);
+    let world_recv = listener.world_receiver;
+    gtk::idle_add(move||{
+        if let Ok(world)=world_recv.try_recv(){
+            let mut items=main_window.items_borrow_mut();
+            items.balls=world.balls.iter().map(|r|viewer::Ball{position:r.position}).collect();
+            items.blues=world.blues.iter().map(|r|viewer::Robot{id:r.id,position:r.position,angle:r.angle}).collect();
+            items.yellows=world.yellows.iter().map(|r|viewer::Robot{id:r.id,position:r.position,angle:r.angle}).collect();
+            println!("{:?}",items);
+        }
+        gtk::Continue(true)
+    });
     gtk::main();
-
-    return;
 }

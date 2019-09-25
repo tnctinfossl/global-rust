@@ -1,12 +1,12 @@
 use super::messages::World;
 use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
-use log::{debug, error, info, warn};
+use log::{ error,  warn};
 use serde_derive::{Deserialize, Serialize};
-use std::io;
+
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::sync::{Arc, Mutex};
+
+use std::sync::mpsc::{channel, Receiver};
+
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -27,7 +27,7 @@ impl Default for Settings {
 
 pub struct Listener {
     vision_handler: thread::JoinHandle<()>,
-    world_receiver: Receiver<Box<World>>,
+    pub world_receiver: Receiver<Box<World>>,
 }
 
 impl Listener {
@@ -63,7 +63,14 @@ impl Listener {
                             continue;
                         }
                     };
-                    let packet: SSL_WrapperPacket = protobuf::parse_from_bytes(&buffer[..size]).unwrap();
+                    let packet =match protobuf::parse_from_bytes(&buffer[..size]){
+                        Ok(s)=>s,
+                        Err(e)=>{
+                            warn!("Parse from vision server;{:?}", e);
+                            continue;
+                        }
+                    };
+
                     if let Some(w)=World::from_message(&packet){
                         world_sender.send(Box::new(w)).unwrap();
                     }
@@ -77,9 +84,7 @@ impl Listener {
         }
     }
 
-    pub fn get_world(&self) -> &Receiver<Box<World>> {
-        &self.world_receiver
-    }
+
 
 
 }
