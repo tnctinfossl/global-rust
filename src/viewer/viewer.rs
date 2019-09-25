@@ -1,10 +1,11 @@
 //TODO *を直す
-use crate::viewer::field;
-use crate::viewer::size_mode::SizeMode;
+use super::field;
+use super::size_mode::SizeMode;
 use gtk::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell,RefMut,Ref};
 use std::rc::Rc;
+use super::model;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -95,11 +96,11 @@ impl Viewer {
         Inhibit(true)
     }
     
-    pub fn items_borrow(&self)-> Ref<field::Items>{
+    pub fn items_borrow(&self)-> Ref<model::Items>{
         self.field_drawing.items_borrow()
     }
 
-    pub fn items_borrow_mut(&self)-> RefMut<field::Items>{
+    pub fn items_borrow_mut(&self)-> RefMut<model::Items>{
         self.field_drawing.items_borrow_mut()
     }
 }
