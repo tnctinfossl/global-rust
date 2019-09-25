@@ -1,8 +1,9 @@
 pub mod field;
+pub mod model;
 mod size_mode;
 pub mod viewer;
-pub mod model;
 pub use self::viewer::Settings;
 pub use self::viewer::Viewer;
+pub use model::{Ball, Items, Robot};
 pub use size_mode::SizeMode;
-pub use model::{Ball,Robot,Items};
+

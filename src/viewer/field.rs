@@ -1,10 +1,11 @@
+use super::model::Items;
 use cairo::Context;
 use glm::{min, Vec2};
 use gtk::{Inhibit, WidgetExt};
 use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::rc::Rc;
-use super::model::Items;
+use std::f64::consts::PI;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -64,8 +65,6 @@ impl Default for Flags {
     }
 }
 
-
-
 pub struct FieldDrawing {
     settings: Settings,
     drawing_area: gtk::DrawingArea,
@@ -73,8 +72,15 @@ pub struct FieldDrawing {
     pub items: RefCell<Items>,
 }
 
+fn set_color(context:&Context,rgb:&[f64;3]){
+    let [r,g,b]=rgb;
+    context.set_source_rgb(*r,*g,*b);
+}
+
+
 impl FieldDrawing {
     pub fn new(settings: &Settings, drawing_area: gtk::DrawingArea) -> Rc<FieldDrawing> {
+        
         let field = Rc::new(FieldDrawing {
             settings: settings.clone(),
             drawing_area: drawing_area,
@@ -86,7 +92,13 @@ impl FieldDrawing {
         field
             .drawing_area
             .connect_draw(move |widget, cairo| field_drawing.draw(widget, cairo));
+        
         field
+
+    }
+
+    pub fn refresh(&self){
+        self.drawing_area.queue_draw();
     }
 
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
@@ -105,34 +117,31 @@ impl FieldDrawing {
         Inhibit(false)
     }
 
+    fn pixel_size(&self)->(f64,f64){
+        (self.drawing_area.get_allocated_width() as f64,
+            self.drawing_area.get_allocated_height() as f64)
+    }
+
     fn transform_real(&self, context: &Context) {
         let settings = &self.settings;
         //scaling
-        let (pixel_x, pixel_y) = (
-            self.drawing_area.get_allocated_width() as f64,
-            self.drawing_area.get_allocated_height() as f64,
-        );
+        let (pixel_x, pixel_y) = self.pixel_size();
         let [full_x, full_y] = settings.full_size;
         let scale = min(pixel_x / full_x, pixel_y / full_y); //適切な変換係数を求める
         context.translate(pixel_x / 2.0, pixel_y / 2.0);
         context.scale(scale, -scale);
     }
-    
+
     fn draw_clear(&self, context: &Context) {
         let settings = &self.settings;
         let [back_red, back_green, back_blue] = settings.back_color;
-        let (pixel_x, pixel_y) = (
-            self.drawing_area.get_allocated_width() as f64,
-            self.drawing_area.get_allocated_height() as f64,
-        );
-
+        let (pixel_x, pixel_y) = self.pixel_size();
         context.save();
         context.set_source_rgb(back_red, back_green, back_blue);
         context.rectangle(0.0, 0.0, pixel_x, pixel_y);
         context.fill();
         context.restore();
     }
-
 
     fn draw_stage(&self, context: &Context) {
         let settings = &self.settings;
@@ -151,7 +160,7 @@ impl FieldDrawing {
             0.0,
             center_diameter / 2.0,
             0.0,
-            2.0 * std::f64::consts::PI,
+            2.0 * PI,
         );
         context.stroke();
         //center line
@@ -177,13 +186,16 @@ impl FieldDrawing {
     }
 
     fn draw_balls(&self, context: &Context) {
+        let radius=self.flags.gain.get()*self.settings.ball_diameter/2.0;
         context.save();
         self.transform_real(context);
-        
-
-
-        for ball in self.items.borrow().balls.iter(){
-
+        set_color(context,&self.settings.ball_color);
+        println!("ref");
+        for ball in self.items.borrow().balls.iter() {
+            let (x,y)=(ball.position.x as f64,ball.position.y as f64);
+            context.arc(x, y, radius,0.0, 2.0*PI);
+            println!("{},{}",x,y);
+            context.fill();
         }
         context.restore();
     }
@@ -194,7 +206,7 @@ impl FieldDrawing {
     pub fn items_borrow(&self) -> Ref<Items> {
         self.items.borrow()
     }
-
+    //TODO 設計を再度考える
     pub fn items_borrow_mut(&self) -> RefMut<Items> {
         self.items.borrow_mut()
     }

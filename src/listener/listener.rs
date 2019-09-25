@@ -54,7 +54,7 @@ impl Listener {
                         error!("{}", message);
                         panic!(message);
                     });
-                let mut buffer = [0u8; 1024];
+                let mut buffer = [0u8; 4096];
                 loop {
                     let size = match socket.recv(&mut buffer) {
                         Ok(s) => s,
@@ -66,7 +66,7 @@ impl Listener {
                     let packet =match protobuf::parse_from_bytes(&buffer[..size]){
                         Ok(s)=>s,
                         Err(e)=>{
-                            warn!("Parse from vision server;{:?}", e);
+                            warn!("Parse from vision server;size={},{:?}",size, e);
                             continue;
                         }
                     };

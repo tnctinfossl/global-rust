@@ -5,5 +5,6 @@ extern crate glm;
 pub mod field;
 pub mod viewer;
 pub mod size_mode;
+pub mod context_extra;
 pub use size_mode::SizeMode;
 pub use model::{Ball,Robot,Items};

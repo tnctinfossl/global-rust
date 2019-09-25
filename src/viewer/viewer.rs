@@ -103,4 +103,7 @@ impl Viewer {
     pub fn items_borrow_mut(&self)-> RefMut<model::Items>{
         self.field_drawing.items_borrow_mut()
     }
+    pub fn update(&self){
+        self.field_drawing.refresh();
+    }
 }
