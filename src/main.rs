@@ -37,8 +37,6 @@ fn main() {
             items.balls=world.balls.iter().map(|r|viewer::Ball{position:r.position}).collect();
             items.blues=world.blues.iter().map(|r|viewer::Robot{id:r.id,position:r.position,angle:r.angle}).collect();
             items.yellows=world.yellows.iter().map(|r|viewer::Robot{id:r.id,position:r.position,angle:r.angle}).collect();
-            //println!("received{:?}",world);
-            main_window.update();
         }
         gtk::Continue(true)
     });

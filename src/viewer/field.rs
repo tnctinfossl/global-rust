@@ -6,6 +6,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::rc::Rc;
 use std::f64::consts::PI;
+use std::time;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -70,6 +71,7 @@ pub struct FieldDrawing {
     drawing_area: gtk::DrawingArea,
     pub flags: Flags,
     pub items: RefCell<Items>,
+    fps_last:Cell<time::Instant>,
 }
 
 fn set_color(context:&Context,rgb:&[f64;3]){
@@ -86,6 +88,7 @@ impl FieldDrawing {
             drawing_area: drawing_area,
             flags: Flags::default(),
             items: RefCell::new(Items::default()),
+            fps_last:Cell::new(time::Instant::now())
         });
         //assign event
         let field_drawing = field.clone();
@@ -98,7 +101,7 @@ impl FieldDrawing {
     }
 
     pub fn refresh(&self){
-        self.drawing_area.queue_draw();
+        //self.drawing_area.queue_draw();
     }
 
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
@@ -113,7 +116,15 @@ impl FieldDrawing {
         if self.flags.is_drawing_robots.get() {
             self.draw_robots(context)
         }
-
+        //draw fps
+        context.set_font_size(24.0);
+        context.move_to(10.0,100.0);
+        let fps_now= time::Instant::now();
+        let diff=fps_now-self.fps_last.get();
+        context.show_text(&format!("{:?}",diff));
+        self.fps_last.set(fps_now);
+        
+        self.drawing_area.queue_draw();
         Inhibit(false)
     }
 
@@ -190,7 +201,6 @@ impl FieldDrawing {
         context.save();
         self.transform_real(context);
         set_color(context,&self.settings.ball_color);
-        println!("ref");
         for ball in self.items.borrow().balls.iter() {
             let (x,y)=(ball.position.x as f64,ball.position.y as f64);
             context.arc(x, y, radius,0.0, 2.0*PI);
