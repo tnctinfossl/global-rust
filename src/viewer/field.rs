@@ -1,13 +1,14 @@
 use super::model;
 use crate::listener;
 use cairo::Context;
-use glm::{distance, min, Vec2};
+use glm::{cos, min, sin, Vec2};
 use gtk::{Inhibit, WidgetExt};
 use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::f64::consts::PI;
 use std::rc::Rc;
 use std::time;
+use super::fps_counter::FPSCounter;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -15,6 +16,8 @@ pub struct Settings {
     pub ball_color: [f64; 3],
     pub yellow_color: [f64; 3],
     pub blue_color: [f64; 3],
+    pub front_color: [f64; 3],
+    pub font_color: [f64; 3],
     pub full_size: [f64; 2],
     pub field_size: [f64; 2],
     pub goal_size: [f64; 2],
@@ -35,6 +38,8 @@ impl Default for Settings {
             ball_color: [1.0, 0.7, 0.0],
             yellow_color: [0.8, 0.6, 0.3],
             blue_color: [0.2, 0.2, 0.95],
+            front_color: [0.3, 0.0, 0.0],
+            font_color: [0.9, 0.9, 0.9],
             full_size: [13400.0, 10400.0],
             field_size: [12000.0, 9000.0],
             goal_size: [1200.0, 2400.0],
@@ -43,7 +48,7 @@ impl Default for Settings {
             line_width: 10.0,
             ball_diameter: 43.0,
             robot_diameter: 170.0,
-            gain_default: 10.0,
+            gain_default: 2.0,
         }
     }
 }
@@ -59,7 +64,7 @@ pub struct Flags {
 impl Default for Flags {
     fn default() -> Flags {
         Flags {
-            gain: Cell::new(10.0),
+            gain: Cell::new(1.0),
             is_drawing_stage: Cell::new(true),
             is_drawing_balls: Cell::new(true),
             is_drawing_robots: Cell::new(true),
@@ -72,7 +77,7 @@ pub struct FieldDrawing {
     drawing_area: gtk::DrawingArea,
     pub flags: Flags,
     pub items: RefCell<model::Items>,
-    fps_last: Cell<time::Instant>,
+    fps: FPSCounter,
 }
 
 fn set_color(context: &Context, rgb: &[f64; 3]) {
@@ -82,12 +87,16 @@ fn set_color(context: &Context, rgb: &[f64; 3]) {
 
 impl FieldDrawing {
     pub fn new(settings: &Settings, drawing_area: gtk::DrawingArea) -> Rc<FieldDrawing> {
+        let flags = Flags {
+            gain: Cell::new(settings.gain_default),
+            ..Flags::default()
+        };
         let field = Rc::new(FieldDrawing {
             settings: settings.clone(),
             drawing_area: drawing_area,
-            flags: Flags::default(),
+            flags: flags,
             items: RefCell::new(model::Items::default()),
-            fps_last: Cell::new(time::Instant::now()),
+            fps:FPSCounter::new()
         });
         //assign event
         let field_drawing = field.clone();
@@ -108,7 +117,8 @@ impl FieldDrawing {
         self.draw_clear(context);
         if self.flags.is_drawing_stage.get() {
             self.draw_stage(context)
-        }extern crate listener;
+        }
+        extern crate listener;
         if self.flags.is_drawing_balls.get() {
             self.draw_balls(context)
         }
@@ -116,16 +126,11 @@ impl FieldDrawing {
             self.draw_robots(context)
         }
         //draw fps
+        context.save();
         context.set_font_size(24.0);
         context.move_to(10.0, 100.0);
-        let fps_now = time::Instant::now();
-        let diff = fps_now - self.fps_last.get();
-        context.show_text(&format!(
-            "{:?},items={}",
-            diff,
-            self.items.borrow().blues.len()
-        ));
-        //self.fps_last.set(fps_now);
+        context.show_text(&format!("fps={}",self.fps.count()));
+        context.restore();
         Inhibit(false)
     }
 
@@ -142,8 +147,9 @@ impl FieldDrawing {
         let (pixel_x, pixel_y) = self.pixel_size();
         let [full_x, full_y] = settings.full_size;
         let scale = min(pixel_x / full_x, pixel_y / full_y); //適切な変換係数を求める
+        context.identity_matrix();
         context.translate(pixel_x / 2.0, pixel_y / 2.0);
-        context.scale(scale, -scale);
+        context.scale(scale, scale);
     }
 
     fn draw_clear(&self, context: &Context) {
@@ -207,20 +213,67 @@ impl FieldDrawing {
     }
 
     fn draw_robots(&self, context: &Context) {
-        let radius =self.flags.gain.get()*self.settings.robot_diameter/2.0;
+        let radius = self.flags.gain.get() * self.settings.robot_diameter / 2.0;
         context.save();
         self.transform_real(context);
-        for blue in self.items.borrow().blues.iter(){
-            let (x,y,rad)=(blue.position.x as f64,blue.position.y as f64,blue.angle as f64);
-            let (rad_begin,rad_end)=(rad+ PI/6.0,rad- PI/6.0);
+        for blue in self.items.borrow().blues.iter() {
+            let (x, y, rad) = (
+                blue.position.x as f64,
+                blue.position.y as f64,
+                blue.angle as f64,
+            );
+            let (rad_begin, rad_end) = (rad + PI / 6.0, rad - PI / 6.0);
+            //筐体
             context.move_to(x, y);
-            set_color(context,&self.settings.blue_color);
-            context.arc(x,y, radius,rad_begin,rad_end);
+            set_color(context, &self.settings.blue_color);
+            context.arc(x, y, radius, 0.0, PI * 2.0);
             context.fill();
-            //println!("{:?}",blue);
-        } 
-
-
+            context.set_line_width(radius * 0.2);
+            //向き
+            context.move_to(x + radius * cos(rad_end), y + radius * sin(rad_end));
+            set_color(context, &self.settings.front_color);
+            context.arc(x, y, radius, rad_end, rad_begin);
+            context.stroke();
+            //ID
+            context.move_to(x, y);
+            context.set_line_width(radius / 10.0);
+            context.set_font_size(radius);
+            set_color(context, &self.settings.font_color);
+            let tex_id = context.text_extents(&format!("{}", blue.id));
+            context.move_to(x - tex_id.width / 2.0, y + tex_id.height / 2.0);
+            context.show_text(&format!("{}", blue.id));
+            context.stroke();
+            //context.rotate(-PI);
+        }
+        for yellow in self.items.borrow().yellows.iter() {
+            let (x, y, rad) = (
+                yellow.position.x as f64,
+                yellow.position.y as f64,
+                yellow.angle as f64,
+            );
+            let (rad_begin, rad_end) = (rad + PI / 6.0, rad - PI / 6.0);
+            //筐体
+            context.move_to(x, y);
+            set_color(context, &self.settings.yellow_color);
+            context.arc(x, y, radius, 0.0, PI * 2.0);
+            context.fill();
+            context.set_line_width(radius * 0.2);
+            //向き
+            context.move_to(x + radius * cos(rad_end), y + radius * sin(rad_end));
+            set_color(context, &self.settings.front_color);
+            context.arc(x, y, radius, rad_end, rad_begin);
+            context.stroke();
+            //ID
+            context.move_to(x, y);
+            context.set_line_width(radius / 10.0);
+            context.set_font_size(radius);
+            set_color(context, &self.settings.font_color);
+            let tex_id = context.text_extents(&format!("{}", yellow.id));
+            context.move_to(x - tex_id.width / 2.0, y + tex_id.height / 2.0);
+            context.show_text(&format!("{}", yellow.id));
+            context.stroke();
+            //context.rotate(-PI);
+        }
         context.restore();
     }
 }

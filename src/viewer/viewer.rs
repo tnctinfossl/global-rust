@@ -3,7 +3,7 @@ use super::field;
 use super::size_mode::SizeMode;
 use gtk::prelude::*;
 use serde_derive::{Deserialize, Serialize};
-use std::cell::{Cell,RefCell,RefMut,Ref};
+use std::cell::{Cell};
 use std::rc::Rc;
 use super::model;
 use crate::listener::World;

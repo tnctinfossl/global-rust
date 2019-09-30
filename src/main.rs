@@ -1,5 +1,4 @@
 //TODO 整理する
-#[macro_use]
 extern crate listener;
 mod settings;
 mod viewer;
