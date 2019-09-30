@@ -5,10 +5,9 @@ authors = ["terurin <hamusutaateru@live.jp>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[build-dependencies]
-protoc-rust = "2.8.1"
+[workspace]
+members=["listener"]
 [dependencies]
-protobuf = "2.8.1"
 serde = "1.0.101"
 serde_json = "1.0.40"
 serde_derive ="1.0.101"
@@ -17,6 +16,7 @@ env_logger = "0.6.2"
 log = "0.4.8"
 gdk = "0.11.0"
 cairo-rs = "0.7.1"
+listener={path="listener"}
 [dependencies.gtk]
 version = "0.7.0"
 features = ["v3_16"]

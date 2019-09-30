@@ -1,6 +1,6 @@
 //TODO 整理する
 #[macro_use]
-mod listener;
+extern crate listener;
 mod settings;
 mod viewer;
 use env_logger;
