@@ -2,8 +2,8 @@ use log::{info, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use crate::listener::listener;
-use crate::viewer;
+use super::listener;
+use super::viewer;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub listener:listener::Settings,

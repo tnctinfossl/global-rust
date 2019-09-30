@@ -18,7 +18,12 @@ fn main() {
     env::set_var("RUST_LOG", "info");
     env_logger::init();
     //load settings
-    let settings = Settings::load_or_create("settings.json");
+    let settings=if env::args().any(|s|s=="default"){
+        Settings::default()
+    }else{
+        Settings::load_or_create("settings.json")
+    };
+    
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
     //gtk init

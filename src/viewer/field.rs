@@ -108,7 +108,7 @@ impl FieldDrawing {
         self.draw_clear(context);
         if self.flags.is_drawing_stage.get() {
             self.draw_stage(context)
-        }
+        }extern crate listener;
         if self.flags.is_drawing_balls.get() {
             self.draw_balls(context)
         }
@@ -207,12 +207,15 @@ impl FieldDrawing {
     }
 
     fn draw_robots(&self, context: &Context) {
+        let radius =self.flags.gain.get()*self.settings.robot_diameter/2.0;
         context.save();
         self.transform_real(context);
         for blue in self.items.borrow().blues.iter(){
-            context.move_to(blue.position.x as f64, blue.position.y as f64);
+            let (x,y,rad)=(blue.position.x as f64,blue.position.y as f64,blue.angle as f64);
+            let (rad_begin,rad_end)=(rad+ PI/6.0,rad- PI/6.0);
+            context.move_to(x, y);
             set_color(context,&self.settings.blue_color);
-            context.arc(blue.position.x as f64, blue.position.y as f64,self.settings.robot_diameter/2.0, blue.angle as f64+ PI/6.0,blue.angle as f64-PI/6.0);
+            context.arc(x,y, radius,rad_begin,rad_end);
             context.fill();
             //println!("{:?}",blue);
         } 

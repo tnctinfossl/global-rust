@@ -16,7 +16,7 @@ env_logger = "0.6.2"
 log = "0.4.8"
 gdk = "0.11.0"
 cairo-rs = "0.7.1"
-listener={path="listener"}
+listener={path="./listener"}
 [dependencies.gtk]
 version = "0.7.0"
 features = ["v3_16"]
