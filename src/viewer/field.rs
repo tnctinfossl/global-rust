@@ -1,11 +1,12 @@
-use super::model::Items;
+use super::model;
+use crate::listener;
 use cairo::Context;
-use glm::{min, Vec2};
+use glm::{distance, min, Vec2};
 use gtk::{Inhibit, WidgetExt};
 use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell, Ref, RefCell, RefMut};
-use std::rc::Rc;
 use std::f64::consts::PI;
+use std::rc::Rc;
 use std::time;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
@@ -70,38 +71,36 @@ pub struct FieldDrawing {
     settings: Settings,
     drawing_area: gtk::DrawingArea,
     pub flags: Flags,
-    pub items: RefCell<Items>,
-    fps_last:Cell<time::Instant>,
+    pub items: RefCell<model::Items>,
+    fps_last: Cell<time::Instant>,
 }
 
-fn set_color(context:&Context,rgb:&[f64;3]){
-    let [r,g,b]=rgb;
-    context.set_source_rgb(*r,*g,*b);
+fn set_color(context: &Context, rgb: &[f64; 3]) {
+    let [r, g, b] = rgb;
+    context.set_source_rgb(*r, *g, *b);
 }
-
 
 impl FieldDrawing {
     pub fn new(settings: &Settings, drawing_area: gtk::DrawingArea) -> Rc<FieldDrawing> {
-        
         let field = Rc::new(FieldDrawing {
             settings: settings.clone(),
             drawing_area: drawing_area,
             flags: Flags::default(),
-            items: RefCell::new(Items::default()),
-            fps_last:Cell::new(time::Instant::now())
+            items: RefCell::new(model::Items::default()),
+            fps_last: Cell::new(time::Instant::now()),
         });
         //assign event
         let field_drawing = field.clone();
         field
             .drawing_area
             .connect_draw(move |widget, cairo| field_drawing.draw(widget, cairo));
-        
-        field
 
+        field
     }
 
-    pub fn refresh(&self){
-        //self.drawing_area.queue_draw();
+    pub fn update(&self, w: &listener::World) {
+        self.items.borrow_mut().update(w);
+        self.drawing_area.queue_draw();
     }
 
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
@@ -118,19 +117,23 @@ impl FieldDrawing {
         }
         //draw fps
         context.set_font_size(24.0);
-        context.move_to(10.0,100.0);
-        let fps_now= time::Instant::now();
-        let diff=fps_now-self.fps_last.get();
-        context.show_text(&format!("{:?}",diff));
-        self.fps_last.set(fps_now);
-        
-        self.drawing_area.queue_draw();
+        context.move_to(10.0, 100.0);
+        let fps_now = time::Instant::now();
+        let diff = fps_now - self.fps_last.get();
+        context.show_text(&format!(
+            "{:?},items={}",
+            diff,
+            self.items.borrow().blues.len()
+        ));
+        //self.fps_last.set(fps_now);
         Inhibit(false)
     }
 
-    fn pixel_size(&self)->(f64,f64){
-        (self.drawing_area.get_allocated_width() as f64,
-            self.drawing_area.get_allocated_height() as f64)
+    fn pixel_size(&self) -> (f64, f64) {
+        (
+            self.drawing_area.get_allocated_width() as f64,
+            self.drawing_area.get_allocated_height() as f64,
+        )
     }
 
     fn transform_real(&self, context: &Context) {
@@ -166,13 +169,7 @@ impl FieldDrawing {
         context.stroke();
         //center cicle
         let center_diameter = settings.center_diameter;
-        context.arc(
-            0.0,
-            0.0,
-            center_diameter / 2.0,
-            0.0,
-            2.0 * PI,
-        );
+        context.arc(0.0, 0.0, center_diameter / 2.0, 0.0, 2.0 * PI);
         context.stroke();
         //center line
         context.move_to(0.0, -field_y / 2.0);
@@ -197,27 +194,30 @@ impl FieldDrawing {
     }
 
     fn draw_balls(&self, context: &Context) {
-        let radius=self.flags.gain.get()*self.settings.ball_diameter/2.0;
+        let radius = self.flags.gain.get() * self.settings.ball_diameter / 2.0;
         context.save();
         self.transform_real(context);
-        set_color(context,&self.settings.ball_color);
+        set_color(context, &self.settings.ball_color);
         for ball in self.items.borrow().balls.iter() {
-            let (x,y)=(ball.position.x as f64,ball.position.y as f64);
-            context.arc(x, y, radius,0.0, 2.0*PI);
-            println!("{},{}",x,y);
+            let (x, y) = (ball.position.x as f64, ball.position.y as f64);
+            context.arc(x, y, radius, 0.0, 2.0 * PI);
             context.fill();
         }
         context.restore();
     }
 
-    fn draw_robots(&self, context: &Context) {}
+    fn draw_robots(&self, context: &Context) {
+        context.save();
+        self.transform_real(context);
+        for blue in self.items.borrow().blues.iter(){
+            context.move_to(blue.position.x as f64, blue.position.y as f64);
+            set_color(context,&self.settings.blue_color);
+            context.arc(blue.position.x as f64, blue.position.y as f64,self.settings.robot_diameter/2.0, blue.angle as f64+ PI/6.0,blue.angle as f64-PI/6.0);
+            context.fill();
+            //println!("{:?}",blue);
+        } 
 
-    //TODO 設計を再度考える
-    pub fn items_borrow(&self) -> Ref<Items> {
-        self.items.borrow()
-    }
-    //TODO 設計を再度考える
-    pub fn items_borrow_mut(&self) -> RefMut<Items> {
-        self.items.borrow_mut()
+
+        context.restore();
     }
 }

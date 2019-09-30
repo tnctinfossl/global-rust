@@ -3,14 +3,15 @@ use super::field;
 use super::size_mode::SizeMode;
 use gtk::prelude::*;
 use serde_derive::{Deserialize, Serialize};
-use std::cell::{Cell,RefMut,Ref};
+use std::cell::{Cell,RefCell,RefMut,Ref};
 use std::rc::Rc;
 use super::model;
+use crate::listener::World;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
     pub width: i32,
-    pub field: field::Settings,
+    pub field: field::Settings,           
 }
 
 impl Default for Settings {
@@ -23,7 +24,7 @@ impl Default for Settings {
     }
 }
 
-pub struct Viewer {
+pub struct Viewer {            
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
     field_drawing:Rc<field::FieldDrawing>
@@ -95,15 +96,8 @@ impl Viewer {
         //println!("group={},key={}",key.get_group(),key.get_hardware_keycode());
         Inhibit(true)
     }
-    
-    pub fn items_borrow(&self)-> Ref<model::Items>{
-        self.field_drawing.items_borrow()
-    }
 
-    pub fn items_borrow_mut(&self)-> RefMut<model::Items>{
-        self.field_drawing.items_borrow_mut()
-    }
-    pub fn update(&self){
-        self.field_drawing.refresh();
+    pub fn draw_world(&self,w:&World){
+        self.field_drawing.update(w)
     }
 }

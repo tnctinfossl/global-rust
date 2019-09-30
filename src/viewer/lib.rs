@@ -7,4 +7,4 @@ pub mod viewer;
 pub mod size_mode;
 pub mod context_extra;
 pub use size_mode::SizeMode;
-pub use model::{Ball,Robot,Items};
+pub use model::{World,Ball,Robot,Items};
