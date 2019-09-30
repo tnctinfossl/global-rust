@@ -75,7 +75,7 @@ impl Items {
 
     fn update_balls(&mut self, balls: &Vec<listener::Ball>) {
         let merge_distance = 100.0; //mergeする範囲
-        let time_limit = time::Duration::from_secs_f32(3.0); //寿命
+        let time_limit = time::Duration::from_secs(3); //寿命
 
         self.balls.retain(move |b| b.is_alive(time_limit));
         for position in balls.iter().map(|b| b.position) {
@@ -93,7 +93,7 @@ impl Items {
     }
 
     fn update_blues(&mut self, robots: &Vec<listener::Robot>) {
-        let time_limit = time::Duration::from_secs_f32(3.0); //寿命
+        let time_limit = time::Duration::from_secs(3); //寿命
         //idをもとに結合する
         self.blues.retain(move|r|r.is_alive(time_limit));
         for newer in robots.iter(){
@@ -107,7 +107,7 @@ impl Items {
         }
     }
     fn update_yellows(&mut self, robots: &Vec<listener::Robot>) {
-        let time_limit = time::Duration::from_secs_f32(3.0); //寿命
+        let time_limit = time::Duration::from_secs(3); //寿命
         //idをもとに結合する
         self.blues.retain(move|r|r.is_alive(time_limit));
         for newer in robots.iter(){

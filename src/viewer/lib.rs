@@ -8,3 +8,4 @@ pub mod size_mode;
 pub mod context_extra;
 pub use size_mode::SizeMode;
 pub use model::{World,Ball,Robot,Items};
+pub mod fps_counter;
