@@ -1,5 +1,4 @@
-use crate::listener;
-use glm::{distance, Vec2};
+use glm::Vec2;
 use std::time;
 #[derive(Debug)]
 pub struct Robot {
@@ -50,23 +49,23 @@ impl Ball {
 }
 
 #[derive(Debug)]
-pub struct Items {
+pub struct World {
     pub balls: Vec<Ball>,
     pub blues: Vec<Robot>,
     pub yellows: Vec<Robot>,
 }
 
-impl Default for Items {
-    fn default() -> Items {
-        Items {
+impl Default for World {
+    fn default() -> World {
+        World {
             balls: vec![],
             blues: vec![],
             yellows: vec![],
         }
     }
 }
-
-impl Items {
+/*
+impl World {
     pub fn update(&mut self, w: &listener::World) {
         self.update_balls(&w.balls);
         self.update_blues(&w.blues);
@@ -121,3 +120,4 @@ impl Items {
         }
     }
 }
+*/

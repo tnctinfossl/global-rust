@@ -2,16 +2,14 @@ use log::{info, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use super::listener;
-use super::viewer;
+use listener;
+use viewer;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub listener:listener::Settings,
     pub viewer: viewer::Settings,
     pub logger: Logger,
 }
-
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Logger {

@@ -1,7 +1,7 @@
 //TODO 整理する
 extern crate listener;
 mod settings;
-mod viewer;
+extern crate viewer;
 use env_logger;
 use log::{debug, error, info, warn};
 use settings::Settings;
@@ -37,7 +37,7 @@ fn main() {
     let world_recv = listener.world_receiver;
     gtk::idle_add(move||{
         if let Ok(world)=world_recv.try_recv(){
-            main_window.draw_world(&world);
+            //main_window.draw_world(&world);
         }
         gtk::Continue(true)
     });

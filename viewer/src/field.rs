@@ -1,5 +1,3 @@
-use super::model;
-use crate::listener;
 use cairo::Context;
 use glm::{cos, min, sin, Vec2};
 use gtk::{Inhibit, WidgetExt};
@@ -9,6 +7,7 @@ use std::f64::consts::PI;
 use std::rc::Rc;
 use std::time;
 use super::fps_counter::FPSCounter;
+use model;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -76,7 +75,7 @@ pub struct FieldDrawing {
     settings: Settings,
     drawing_area: gtk::DrawingArea,
     pub flags: Flags,
-    pub items: RefCell<model::Items>,
+    pub items: RefCell<model::World>,
     fps: FPSCounter,
 }
 
@@ -95,7 +94,7 @@ impl FieldDrawing {
             settings: settings.clone(),
             drawing_area: drawing_area,
             flags: flags,
-            items: RefCell::new(model::Items::default()),
+            items: RefCell::new(model::World::default()),
             fps:FPSCounter::new()
         });
         //assign event
@@ -106,19 +105,19 @@ impl FieldDrawing {
 
         field
     }
-
+    /*
     pub fn update(&self, w: &listener::World) {
         self.items.borrow_mut().update(w);
         self.drawing_area.queue_draw();
     }
-
+    */
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         //drawing
         self.draw_clear(context);
         if self.flags.is_drawing_stage.get() {
             self.draw_stage(context)
         }
-        extern crate listener;
+        
         if self.flags.is_drawing_balls.get() {
             self.draw_balls(context)
         }
