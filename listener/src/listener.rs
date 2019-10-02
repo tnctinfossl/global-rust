@@ -1,13 +1,11 @@
-use super::messages::World;
 use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
 use log::{ error,  warn};
 use serde_derive::{Deserialize, Serialize};
-
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-
 use std::sync::mpsc::{channel, Receiver};
-
 use std::thread;
+use std::sync::{Arc,RwLock};
+use model::World;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
     pub vision_ip4: [u8; 4], //ip address  of cam or sim
@@ -31,7 +29,7 @@ pub struct Listener {
 }
 
 impl Listener {
-    pub fn new(settings: &Settings) -> Listener {
+    pub fn new(settings: &Settings,world:Arc<RwLock<World>>) -> Listener {
         let (world_sender, world_receiver) = channel();
 
         let vision_handler = {
@@ -63,17 +61,17 @@ impl Listener {
                             continue;
                         }
                     };
-                    let packet =match protobuf::parse_from_bytes(&buffer[..size]){
+                    /*let packet =match protobuf::parse_from_bytes(&buffer[..size]){
                         Ok(s)=>s,
                         Err(e)=>{
                             warn!("Parse from vision server;size={},{:?}",size, e);
                             continue;
                         }
-                    };
+                    };*/
 
-                    if let Some(w)=World::from_message(&packet){
+                    /*if let Some(w)=World::from_message(&packet){
                         world_sender.send(Box::new(w)).unwrap();
-                    }
+                    }*/
                     
                 }
             })

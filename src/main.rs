@@ -31,16 +31,17 @@ fn main() {
         return;
     }
     //connect server
-    let listener = listener::Listener::new(&settings.listener);
+    
     let world = Arc::new(RwLock::new(model::World::default()));
+    let listener = listener::Listener::new(&settings.listener,world.clone());
     let mut main_window = viewer::Viewer::new(&settings.viewer, world);
 
     let world_recv = listener.world_receiver;
-    gtk::idle_add(move || {
+    /*gtk::idle_add(move || {
         if let Ok(world) = world_recv.try_recv() {
             //main_window.draw_world(&world);
         }
         gtk::Continue(true)
-    });
+    });*/
     gtk::main();
 }
