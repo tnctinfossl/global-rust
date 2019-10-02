@@ -1,13 +1,13 @@
+use super::fps_counter::FPSCounter;
 use cairo::Context;
 use glm::{cos, min, sin, Vec2};
 use gtk::{Inhibit, WidgetExt};
+use model::{World,Ball,Robot};
 use serde_derive::{Deserialize, Serialize};
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::f64::consts::PI;
 use std::rc::Rc;
-use std::time;
-use super::fps_counter::FPSCounter;
-use model;
+use std::sync::{Arc, RwLock};
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -77,6 +77,7 @@ pub struct FieldDrawing {
     pub flags: Flags,
     pub items: RefCell<model::World>,
     fps: FPSCounter,
+    world: Arc<RwLock<World>>,
 }
 
 fn set_color(context: &Context, rgb: &[f64; 3]) {
@@ -85,7 +86,11 @@ fn set_color(context: &Context, rgb: &[f64; 3]) {
 }
 
 impl FieldDrawing {
-    pub fn new(settings: &Settings, drawing_area: gtk::DrawingArea) -> Rc<FieldDrawing> {
+    pub fn new(
+        settings: &Settings,
+        drawing_area: gtk::DrawingArea,
+        world: Arc<RwLock<World>>,
+    ) -> Rc<FieldDrawing> {
         let flags = Flags {
             gain: Cell::new(settings.gain_default),
             ..Flags::default()
@@ -95,41 +100,45 @@ impl FieldDrawing {
             drawing_area: drawing_area,
             flags: flags,
             items: RefCell::new(model::World::default()),
-            fps:FPSCounter::new()
+            fps: FPSCounter::new(),
+            world: world,
         });
         //assign event
         let field_drawing = field.clone();
         field
             .drawing_area
             .connect_draw(move |widget, cairo| field_drawing.draw(widget, cairo));
-
         field
     }
     /*
     pub fn update(&self, w: &listener::World) {
         self.items.borrow_mut().update(w);
-        self.drawing_area.queue_draw();
     }
     */
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
-        //drawing
-        self.draw_clear(context);
-        if self.flags.is_drawing_stage.get() {
-            self.draw_stage(context)
+        //clone
+        if let Ok(world) = self.world.try_read() {
+            //drawing
+            self.draw_clear(context);
+            if self.flags.is_drawing_stage.get() {
+                self.draw_stage(context)
+            }
+
+            if self.flags.is_drawing_balls.get() {
+                self.draw_balls(context,&world.balls);
+            }
+            if self.flags.is_drawing_robots.get() {
+                self.draw_robots(context,&world.blues,&world.yellows);
+            }
+            //draw fps
+            context.save();
+            context.set_font_size(24.0);
+            context.move_to(10.0, 100.0);
+            context.show_text(&format!("fps={}", self.fps.count()));
+            context.restore();
+
+            self.drawing_area.queue_draw(); //wait for vsync
         }
-        
-        if self.flags.is_drawing_balls.get() {
-            self.draw_balls(context)
-        }
-        if self.flags.is_drawing_robots.get() {
-            self.draw_robots(context)
-        }
-        //draw fps
-        context.save();
-        context.set_font_size(24.0);
-        context.move_to(10.0, 100.0);
-        context.show_text(&format!("fps={}",self.fps.count()));
-        context.restore();
         Inhibit(false)
     }
 
@@ -198,12 +207,12 @@ impl FieldDrawing {
         context.restore();
     }
 
-    fn draw_balls(&self, context: &Context) {
+    fn draw_balls(&self, context: &Context,balls :&Vec<Ball>) {
         let radius = self.flags.gain.get() * self.settings.ball_diameter / 2.0;
         context.save();
         self.transform_real(context);
         set_color(context, &self.settings.ball_color);
-        for ball in self.items.borrow().balls.iter() {
+        for ball in balls.iter(){
             let (x, y) = (ball.position.x as f64, ball.position.y as f64);
             context.arc(x, y, radius, 0.0, 2.0 * PI);
             context.fill();
@@ -211,11 +220,11 @@ impl FieldDrawing {
         context.restore();
     }
 
-    fn draw_robots(&self, context: &Context) {
+    fn draw_robots(&self, context: &Context,blues:&Vec<Robot>,yellows:&Vec<Robot>) {
         let radius = self.flags.gain.get() * self.settings.robot_diameter / 2.0;
         context.save();
         self.transform_real(context);
-        for blue in self.items.borrow().blues.iter() {
+        for blue in blues.iter() {
             let (x, y, rad) = (
                 blue.position.x as f64,
                 blue.position.y as f64,
@@ -244,7 +253,7 @@ impl FieldDrawing {
             context.stroke();
             //context.rotate(-PI);
         }
-        for yellow in self.items.borrow().yellows.iter() {
+        for yellow in yellows.iter() {
             let (x, y, rad) = (
                 yellow.position.x as f64,
                 yellow.position.y as f64,

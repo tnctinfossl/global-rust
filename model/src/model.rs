@@ -1,6 +1,6 @@
 use glm::Vec2;
 use std::time;
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 pub struct Robot {
     pub id: u32,
     pub position: Vec2,
@@ -26,7 +26,7 @@ impl Robot {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 pub struct Ball {
     pub position: Vec2,
     pub time: time::Instant, //追加する
@@ -48,7 +48,7 @@ impl Ball {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct World {
     pub balls: Vec<Ball>,
     pub blues: Vec<Robot>,
@@ -64,6 +64,8 @@ impl Default for World {
         }
     }
 }
+
+
 /*
 impl World {
     pub fn update(&mut self, w: &listener::World) {
