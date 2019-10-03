@@ -8,6 +8,7 @@ use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::f64::consts::PI;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
+use glib::source::Continue;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -108,6 +109,15 @@ impl FieldDrawing {
         field
             .drawing_area
             .connect_draw(move |widget, cairo| field_drawing.draw(widget, cairo));
+        
+        let interval_ms=1000/60;
+        let field_timer=field.clone();
+        gtk::timeout_add(interval_ms,move ||{
+            field_timer.drawing_area.queue_draw(); //wait for vsync
+            
+            Continue(true)
+        });
+        
         field
     }
     /*
@@ -115,9 +125,9 @@ impl FieldDrawing {
         self.items.borrow_mut().update(w);
     }
     */
-    fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
+    fn draw(&self, widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         //clone
-        if let Ok(world) = self.world.try_read() {
+        let world = self.world.read().unwrap();
             //drawing
             self.draw_clear(context);
             if self.flags.is_drawing_stage.get() {
@@ -137,8 +147,8 @@ impl FieldDrawing {
             context.show_text(&format!("fps={}", self.fps.count()));
             context.restore();
 
-            self.drawing_area.queue_draw(); //wait for vsync
-        }
+            
+        
         Inhibit(false)
     }
 
@@ -207,7 +217,7 @@ impl FieldDrawing {
         context.restore();
     }
 
-    fn draw_balls(&self, context: &Context,balls :&Vec<Ball>) {
+    fn draw_balls(&self, context: &Context,balls :&Vec<Box<Ball>>) {
         let radius = self.flags.gain.get() * self.settings.ball_diameter / 2.0;
         context.save();
         self.transform_real(context);
@@ -220,7 +230,7 @@ impl FieldDrawing {
         context.restore();
     }
 
-    fn draw_robots(&self, context: &Context,blues:&Vec<Robot>,yellows:&Vec<Robot>) {
+    fn draw_robots(&self, context: &Context,blues:&Vec<Box<Robot>>,yellows:&Vec<Box<Robot>>) {
         let radius = self.flags.gain.get() * self.settings.robot_diameter / 2.0;
         context.save();
         self.transform_real(context);

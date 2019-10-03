@@ -3,7 +3,7 @@ use super::messages_robocup_ssl_detection::*;
 use model;
 use std::time::{Duration,Instant};
 use glm::{Vec2,distance};
-struct Updater{
+pub struct Updater{
     mergin :f32,//同一オブジェクトとみなす距離[mm]
     time_limit:Duration,
 }
@@ -21,14 +21,14 @@ impl Updater{
             let detection = packet.get_detection();
             self.update_balls(&mut world.balls,detection.get_balls());
             self.update_blues(&mut world.blues,detection.get_robots_blue());
-            self.update_yellows(&mut world.blues,detection.get_robots_yellow());
+            self.update_yellows(&mut world.yellows,detection.get_robots_yellow());
         }
     }
 
     fn update_balls(&self, dest:&mut Vec<Box<model::Ball>>,src:&[SSL_DetectionBall]){
         //寿命チェック
         let now = Instant::now();
-        dest.retain(|b|(now-b.time)>self.time_limit);
+        dest.retain(|b|(now-b.time)<self.time_limit);
         
         for newer in src.iter(){
             let position = Vec2::new(newer.get_x(),newer.get_y());
@@ -44,7 +44,7 @@ impl Updater{
     fn update_blues(&self,dest:&mut Vec<Box<model::Robot>>,src:&[SSL_DetectionRobot]){
         //寿命チェック
         let now = Instant::now();
-        dest.retain(|b|(now-b.time)>self.time_limit);
+        dest.retain(|b|(now-b.time)<self.time_limit);
         for newer in src.iter(){
             let id = newer.get_robot_id();
             let position = Vec2::new(newer.get_x(),newer.get_y());
@@ -68,8 +68,29 @@ impl Updater{
     }
     fn update_yellows(&self,dest:&mut Vec<Box<model::Robot>>,src:&[SSL_DetectionRobot]){
         //寿命チェック
+                //寿命チェック
         let now = Instant::now();
-        dest.retain(|b|(now-b.time)>self.time_limit);
+        dest.retain(|b|(now-b.time)<self.time_limit);
+        for newer in src.iter(){
+            let id = newer.get_robot_id();
+            let position = Vec2::new(newer.get_x(),newer.get_y());
+            let angle = if newer.has_orientation(){
+                newer.get_orientation()
+            }else{
+                0.0
+            };
+            let confidence=newer.get_confidence();
+            if let Some(older)=dest.iter_mut().find(|b|b.id==id){       
+                if distance(position,older.position)<self.mergin{
+                    older.position=position;
+                    older.angle=angle;
+                    older.time=now;
+                    older.confidence=confidence;
+                    continue;
+                }
+            }
+            dest.push(model::Robot::new(id,position,angle,confidence));
+        }
     }
 
 }

@@ -7,6 +7,7 @@ extern crate listener;
 extern crate log;
 extern crate model;
 extern crate viewer;
+extern crate glib;
 pub mod field;
 pub mod fps_counter;
 pub mod model;

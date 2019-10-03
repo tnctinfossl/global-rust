@@ -37,11 +37,5 @@ fn main() {
     let mut main_window = viewer::Viewer::new(&settings.viewer, world);
 
     let world_recv = listener.world_receiver;
-    /*gtk::idle_add(move || {
-        if let Ok(world) = world_recv.try_recv() {
-            //main_window.draw_world(&world);
-        }
-        gtk::Continue(true)
-    });*/
     gtk::main();
 }
