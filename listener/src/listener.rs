@@ -1,10 +1,8 @@
-use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
 use super::updater::Updater;
 use log::{error, warn};
 use model::World;
 use serde_derive::{Deserialize, Serialize};
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::sync::mpsc::{channel, Receiver};
 use std::sync::{Arc, RwLock};
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -24,68 +22,53 @@ impl Default for Settings {
     }
 }
 
-pub struct Listener {
-    vision_handler: thread::JoinHandle<()>,
-    pub world_receiver: Receiver<Box<World>>,
-}
+pub struct Listener {}
 
 impl Listener {
-    pub fn new(settings: &Settings, world: Arc<RwLock<World>>) -> Listener {
-        let (world_sender, world_receiver) = channel();
-
-        let vision_handler = {
-            let settings = settings.clone();
-            thread::spawn(move || {
-                let addr = {
-                    let [a, b, c, d] = settings.vision_ip4;
-                    Ipv4Addr::new(a, b, c, d)
+    pub fn spawn(settings: &Settings, world: Arc<RwLock<World>>) -> Listener {
+        let settings = settings.clone();
+        thread::spawn(move || {
+            let addr = {
+                let [a, b, c, d] = settings.vision_ip4;
+                Ipv4Addr::new(a, b, c, d)
+            };
+            let socket = UdpSocket::bind(&SocketAddr::from((addr, settings.vision_port)))
+                .unwrap_or_else(|e| {
+                    let message = format!("Cannot bind vision server:{:?}", e);
+                    error!("{}", message);
+                    panic!(message);
+                });
+            socket
+                .join_multicast_v4(&addr, &Ipv4Addr::new(0, 0, 0, 0))
+                .unwrap_or_else(|e| {
+                    let message = format!("Cannot join vision server:{:?}", e);
+                    error!("{}", message);
+                    panic!(message);
+                });
+            let mut buffer = [0u8; 4096];
+            let updater = Updater::new(100.0, std::time::Duration::from_secs_f32(3.0));
+            loop {
+                let size = match socket.recv(&mut buffer) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        warn!("Receive from vision server;{:?}", e);
+                        continue;
+                    }
                 };
-                let socket = UdpSocket::bind(&SocketAddr::from((addr, settings.vision_port)))
-                    .unwrap_or_else(|e| {
-                        let message = format!("Cannot bind vision server:{:?}", e);
-                        error!("{}", message);
-                        panic!(message);
-                    });
-                socket
-                    .join_multicast_v4(&addr, &Ipv4Addr::new(0, 0, 0, 0))
-                    .unwrap_or_else(|e| {
-                        let message = format!("Cannot join vision server:{:?}", e);
-                        error!("{}", message);
-                        panic!(message);
-                    });
-                let mut buffer = [0u8; 4096];
-                let updater = Updater::new(100.0, std::time::Duration::from_secs_f32(3.0));
-                let mut cnt=0;
-                loop {
-                    let size = match socket.recv(&mut buffer) {
-                        Ok(s) => s,
-                        Err(e) => {
-                            warn!("Receive from vision server;{:?}", e);
-                            continue;
-                        }
-                    };
-                    let packet = match protobuf::parse_from_bytes(&buffer[..size]) {
-                        Ok(s) => s,
-                        Err(e) => {
-                            warn!("Parse from vision server;size={},{:?}", size, e);
-                            continue;
-                        }
-                    };
+                let packet = match protobuf::parse_from_bytes(&buffer[..size]) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        warn!("Parse from vision server;size={},{:?}", size, e);
+                        continue;
+                    }
+                };
 
-                    if let Ok(mut w) = world.write() {
-                        updater.update(&mut w, &packet);
-                        cnt+=1;
-                        /*if (cnt%100==0){
-                            println!("{:?}",*w);
-                        }*/
-
-                    } 
+                if let Ok(mut w) = world.write() {
+                    updater.update(&mut w, &packet);
                 }
-            })
-        };
-        Listener {
-            world_receiver: world_receiver,
-            vision_handler: vision_handler,
-        }
+            }
+        });
+
+        Listener {}
     }
 }

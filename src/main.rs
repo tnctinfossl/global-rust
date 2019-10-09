@@ -4,14 +4,11 @@ mod settings;
 extern crate model;
 extern crate viewer;
 use env_logger;
-use log::{debug, error, info, warn};
+use log:: error;
 use settings::Settings;
 use std::env;
-use std::fs::File;
-use std::io::{BufReader, BufWriter};
-use std::net::Ipv4Addr;
 use std::sync::{RwLock,Arc};
-use gtk::prelude::*;
+//use gtk::prelude::*;
 
 fn main() {
     //init logger
@@ -33,9 +30,7 @@ fn main() {
     //connect server
     
     let world = Arc::new(RwLock::new(model::World::default()));
-    let listener = listener::Listener::new(&settings.listener,world.clone());
-    let mut main_window = viewer::Viewer::new(&settings.viewer, world);
-
-    let world_recv = listener.world_receiver;
+    listener::Listener::spawn(&settings.listener,world.clone());
+    let _main_window = viewer::Viewer::new(&settings.viewer, world);
     gtk::main();
 }
