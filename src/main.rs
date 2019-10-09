@@ -4,12 +4,10 @@ mod settings;
 extern crate model;
 extern crate viewer;
 use env_logger;
-use log:: error;
+use log::error;
 use settings::Settings;
 use std::env;
-use std::sync::{RwLock,Arc};
-//use gtk::prelude::*;
-
+use std::sync::{Arc, RwLock};
 fn main() {
     //init logger
     env::set_var("RUST_LOG", "info");
@@ -22,15 +20,13 @@ fn main() {
     };
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
-    //gtk init
-    if gtk::init().is_err() {
-        error!("gtk cannot initialize");
-        return;
-    }
+
+
     //connect server
-    
     let world = Arc::new(RwLock::new(model::World::default()));
-    listener::Listener::spawn(&settings.listener,world.clone());
-    let _main_window = viewer::Viewer::new(&settings.viewer, world);
-    gtk::main();
+    listener::Listener::spawn(&settings.listener, world.clone());
+    match viewer::Viewer::new(&settings.viewer, world) {
+        Ok(main_window)=>main_window.run(),
+        Err(e)=>error!("{}",e),
+    }
 }
