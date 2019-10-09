@@ -1,12 +1,11 @@
-use super::messages::World;
 use super::messages_robocup_ssl_wrapper::SSL_WrapperPacket;
-use log::{ error,  warn};
+use super::updater::Updater;
+use log::{error, warn};
+use model::World;
 use serde_derive::{Deserialize, Serialize};
-
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-
 use std::sync::mpsc::{channel, Receiver};
-
+use std::sync::{Arc, RwLock};
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -31,7 +30,7 @@ pub struct Listener {
 }
 
 impl Listener {
-    pub fn new(settings: &Settings) -> Listener {
+    pub fn new(settings: &Settings, world: Arc<RwLock<World>>) -> Listener {
         let (world_sender, world_receiver) = channel();
 
         let vision_handler = {
@@ -55,6 +54,8 @@ impl Listener {
                         panic!(message);
                     });
                 let mut buffer = [0u8; 4096];
+                let updater = Updater::new(100.0, std::time::Duration::from_secs_f32(3.0));
+                let mut cnt=0;
                 loop {
                     let size = match socket.recv(&mut buffer) {
                         Ok(s) => s,
@@ -63,18 +64,22 @@ impl Listener {
                             continue;
                         }
                     };
-                    let packet =match protobuf::parse_from_bytes(&buffer[..size]){
-                        Ok(s)=>s,
-                        Err(e)=>{
-                            warn!("Parse from vision server;size={},{:?}",size, e);
+                    let packet = match protobuf::parse_from_bytes(&buffer[..size]) {
+                        Ok(s) => s,
+                        Err(e) => {
+                            warn!("Parse from vision server;size={},{:?}", size, e);
                             continue;
                         }
                     };
 
-                    if let Some(w)=World::from_message(&packet){
-                        world_sender.send(Box::new(w)).unwrap();
-                    }
-                    
+                    if let Ok(mut w) = world.write() {
+                        updater.update(&mut w, &packet);
+                        cnt+=1;
+                        /*if (cnt%100==0){
+                            println!("{:?}",*w);
+                        }*/
+
+                    } 
                 }
             })
         };
@@ -83,9 +88,4 @@ impl Listener {
             vision_handler: vision_handler,
         }
     }
-
-
-
-
 }
-

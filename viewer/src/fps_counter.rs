@@ -14,7 +14,7 @@ impl FPSCounter{
     pub fn count(&self)->f32{
         let now = Instant::now();
         let diff :Duration= now-self.last.get();
-        let result = 1.0/(diff.as_secs() as f32);
+        let result = 1.0/(diff.as_secs_f32());
         self.last.set(now);
         result
     }

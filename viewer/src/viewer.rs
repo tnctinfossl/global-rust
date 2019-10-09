@@ -1,17 +1,19 @@
 //TODO *を直す
 use super::field;
 use super::size_mode::SizeMode;
+use model::World;
 use gtk::prelude::*;
 use serde_derive::{Deserialize, Serialize};
-use std::cell::{Cell};
+use std::cell::Cell;
 use std::rc::Rc;
-use super::model;
-use crate::listener::World;
+use gtk;
+use std::sync::{Arc,RwLock};
+//use crate::listener::World;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
     pub width: i32,
-    pub field: field::Settings,           
+    pub field: field::Settings,
 }
 
 impl Default for Settings {
@@ -24,27 +26,33 @@ impl Default for Settings {
     }
 }
 
-pub struct Viewer {            
+pub struct Viewer {
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
-    field_drawing:Rc<field::FieldDrawing>
+    field_drawing: Rc<field::FieldDrawing>,
+    world:Arc<RwLock<World>>
 }
 
 impl Viewer {
-    pub fn new(settings: &Settings) -> Rc<Viewer> {
+    pub fn new(settings: &Settings,world:Arc<RwLock<World>>) -> Rc<Viewer> {
         let ui_src = include_str!("viewer.ui");
         let ui_builder = gtk::Builder::new_from_string(ui_src);
         //load components
-        let main_window: gtk::Window = ui_builder.get_object("MainWindow").expect("Error:MainWindow is lost");
+        let main_window: gtk::Window = ui_builder
+            .get_object("MainWindow")
+            .expect("Error:MainWindow is lost");
         main_window.set_default_size(settings.width, settings.height);
         //
-        let field_drawing_area: gtk::DrawingArea = ui_builder.get_object("FieldDrawing").expect("Error:FieldDrawing is lost");
-        let field_draw=field::FieldDrawing::new(&settings.field,field_drawing_area);
+        let field_drawing_area: gtk::DrawingArea = ui_builder
+            .get_object("FieldDrawing")
+            .expect("Error:FieldDrawing is lost");
+        let field_draw = field::FieldDrawing::new(&settings.field, field_drawing_area,world.clone());
         //create instance
         let viewer = Rc::new(Viewer {
             main_window: main_window,
             size_mode: Cell::new(SizeMode::default()),
-            field_drawing: field_draw
+            field_drawing: field_draw,
+            world:world
         });
         //assign event
         viewer.main_window.connect_delete_event(move |_, _| {
@@ -97,7 +105,7 @@ impl Viewer {
         Inhibit(true)
     }
 
-    pub fn draw_world(&self,w:&World){
+    /*    pub fn draw_world(&self,w:&World){
         self.field_drawing.update(w)
-    }
+    }*/
 }
