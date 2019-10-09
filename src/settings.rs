@@ -2,11 +2,11 @@ use log::{info, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use listener;
+use vision;
 use viewer;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
-    pub listener:listener::Settings,
+    pub vision:vision::Settings,
     pub viewer: viewer::Settings,
     pub logger: Logger,
 }
@@ -19,7 +19,7 @@ pub struct Logger {
 impl Default for Settings {
     fn default() -> Settings {
         Settings {
-            listener:listener::Settings::default(),
+            vision:vision::Settings::default(),
             viewer: viewer::Settings::default(),
             logger: Logger {
                 level: "info".to_owned(),

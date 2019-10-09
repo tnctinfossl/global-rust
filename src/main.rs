@@ -1,5 +1,5 @@
 //TODO 整理する
-extern crate listener;
+extern crate vision;
 mod settings;
 extern crate model;
 extern crate viewer;
@@ -24,7 +24,7 @@ fn main() {
 
     //connect server
     let world = Arc::new(RwLock::new(model::World::default()));
-    listener::Listener::spawn(&settings.listener, world.clone());
+    vision::Listener::spawn(&settings.vision, world.clone());
     match viewer::Viewer::new(&settings.viewer, world) {
         Ok(main_window)=>main_window.run(),
         Err(e)=>error!("{}",e),
