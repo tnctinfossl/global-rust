@@ -6,7 +6,7 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members=["listener","model","viewer"]
+members=["vision","model","viewer","refbox"]
 [dependencies]
 serde = "1.0.101"
 serde_json = "1.0.40"
@@ -14,14 +14,7 @@ serde_derive ="1.0.101"
 glm = "0.2.3"
 env_logger = "0.6.2"
 log = "0.4.8"
-gdk = "0.11.0"
-cairo-rs = "0.7.1"
-listener={path="listener"}
+vision={path="vision"}
 model={path="model"}
 viewer={path="viewer"}
-[dependencies.gtk]
-version = "0.7.0"
-features = ["v3_16"]
-[dependencies.gio]
-version = ""
-features = ["v2_44"]
+refbox={path="refbox"}

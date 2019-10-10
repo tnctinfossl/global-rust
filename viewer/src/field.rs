@@ -1,10 +1,10 @@
 use super::fps_counter::FPSCounter;
 use cairo::Context;
-use glm::{cos, min, sin, Vec2};
+use glm::{cos, min, sin};
 use gtk::{Inhibit, WidgetExt};
 use model::{World,Ball,Robot};
 use serde_derive::{Deserialize, Serialize};
-use std::cell::{Cell, Ref, RefCell, RefMut};
+use std::cell::{Cell, RefCell};
 use std::f64::consts::PI;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
@@ -125,7 +125,7 @@ impl FieldDrawing {
         self.items.borrow_mut().update(w);
     }
     */
-    fn draw(&self, widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
+    fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         //clone
         let world = self.world.read().unwrap();
             //drawing
@@ -138,7 +138,7 @@ impl FieldDrawing {
                 self.draw_balls(context,&world.balls);
             }
             if self.flags.is_drawing_robots.get() {
-                self.draw_robots(context,&world.blues,&world.yellows);
+                self.draw_robots(context,&world.blues.robots,&world.yellows.robots);
             }
             //draw fps
             context.save();
