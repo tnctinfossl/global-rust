@@ -94,6 +94,8 @@ pub enum Command {
     DirectFree(TeamColor),
     IndirectFree(TeamColor),
     Timeout(TeamColor),
+    Goal(TeamColor),
+    BallPlacement(TeamColor)
 }
 
 #[derive(Debug, Clone, Copy)]

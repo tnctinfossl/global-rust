@@ -1,5 +1,5 @@
 use super::referee::{SSL_Referee, SSL_Referee_Command, SSL_Referee_Stage};
-use model::{Stage, World};
+use model::{Command, Stage, TeamColor, World};
 pub struct Updater;
 
 impl Updater {
@@ -9,6 +9,7 @@ impl Updater {
 
     pub fn update(&self, world: &mut World, referee: &SSL_Referee) {
         world.stage = Some(Updater::to_stage(referee.get_stage()));
+        world.command=Some(Updater::to_command(referee.get_command()));
     }
 
     fn to_stage(stage: SSL_Referee_Stage) -> Stage {
@@ -29,6 +30,31 @@ impl Updater {
             PENALTY_SHOOTOUT_BREAK => PenaltyShootoutBreak,
             PENALTY_SHOOTOUT => PenaltyShootout,
             POST_GAME => PostGame,
+        }
+    }
+    fn to_command(command: SSL_Referee_Command) -> Command {
+        use Command::*;
+        use SSL_Referee_Command::*;
+        use TeamColor::*;
+        match (command) {
+            HALT => Halt,
+            STOP => Stop,
+            NORMAL_START => NormalStart,
+            FORCE_START => ForceStart,
+            PREPARE_KICKOFF_YELLOW => PrepareKickOff(Yellow),
+            PREPARE_KICKOFF_BLUE => PrepareKickOff(Blue),
+            PREPARE_PENALTY_YELLOW => PreparePenalty(Yellow),
+            PREPARE_PENALTY_BLUE => PreparePenalty(Blue),
+            DIRECT_FREE_YELLOW => DirectFree(Yellow),
+            DIRECT_FREE_BLUE => DirectFree(Blue),
+            INDIRECT_FREE_YELLOW => IndirectFree(Yellow),
+            INDIRECT_FREE_BLUE => IndirectFree(Blue),
+            TIMEOUT_YELLOW => Timeout(Yellow),
+            TIMEOUT_BLUE => Timeout(Blue),
+            GOAL_YELLOW => Goal(Yellow),
+            GOAL_BLUE => Goal(Blue),
+            BALL_PLACEMENT_YELLOW => BallPlacement(Yellow),
+            BALL_PLACEMENT_BLUE => BallPlacement(Blue),
         }
     }
 }
