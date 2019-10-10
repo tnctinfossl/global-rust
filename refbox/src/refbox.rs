@@ -28,10 +28,10 @@ impl RefBox {
         let addr = Ipv4Addr::from(settings.ip4);
         let addr_port = (addr, settings.port);
         let socket =
-            UdpSocket::bind(addr_port).map_err(|e| format!("Refbox cannnot bind;{:?}", e))?;
+            UdpSocket::bind(addr_port).map_err(|e| format!("refbox cannnot bind;{:?}", e))?;
         socket
             .join_multicast_v4(&addr, &Ipv4Addr::from([0, 0, 0, 0]))
-            .map_err(|e| format!("Refbox cannnot join multicast;{:?}", e))?;
+            .map_err(|e| format!("refbox cannnot join multicast;{:?}", e))?;
         let updater = Updater::new();
         thread::spawn(move || {
             let mut buffer = [0; 1024];
