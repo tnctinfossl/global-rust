@@ -1,8 +1,10 @@
+use super::referee::SSL_Referee;
+use super::updater::Updater;
+use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::net::*;
 use std::sync::{Arc, RwLock};
 use std::thread;
-use crate::referee::SSL_Referee;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
     ip4: [u8; 4],
@@ -25,26 +27,37 @@ impl RefBox {
         //multicastを受け付ける
         let addr = Ipv4Addr::from(settings.ip4);
         let addr_port = (addr, settings.port);
-        let socket = UdpSocket::bind(addr_port).map_err(|e|format!("Refbox cannnot bind;{:?}",e))?;
+        let socket =
+            UdpSocket::bind(addr_port).map_err(|e| format!("Refbox cannnot bind;{:?}", e))?;
         socket
             .join_multicast_v4(&addr, &Ipv4Addr::from([0, 0, 0, 0]))
-            .map_err(|e|format!("Refbox cannnot join multicast;{:?}",e))?;
+            .map_err(|e| format!("Refbox cannnot join multicast;{:?}", e))?;
+        let updater = Updater::new();
         thread::spawn(move || {
-            
-
             let mut buffer = [0; 1024];
             loop {
                 let size = match socket.recv(&mut buffer) {
                     Ok(size) => size,
-                    Err(_) => continue,
+                    Err(e) => {
+                        warn!("refbox failure receiving;{:?}", e);
+                        continue;
+                    }
                 };
-                let packet:SSL_Referee=match protobuf::parse_from_bytes(&buffer[..size]) {
-                    Ok(packet) => packet,
-                    Err(_) => continue,
+                let referee: SSL_Referee = match protobuf::parse_from_bytes(&buffer[..size]) {
+                    Ok(referee) => referee,
+                    Err(e) => {
+                        warn!("refbox failure parsing;{:?}", e);
+                        continue;
+                    }
                 };
-                println!("{:?}", packet);
-            
-            
+                //println!("{:?}", packet);
+                match world.write() {
+                    Ok(mut w) => updater.update(&mut w, &referee),
+                    Err(e) => {
+                        warn!("refbox failure taking mutex;{:?}", e);
+                        continue;
+                    }
+                }
             }
         });
         Ok(RefBox {})
