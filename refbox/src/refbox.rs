@@ -7,8 +7,8 @@ use std::sync::{Arc, RwLock};
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
-    ip4: [u8; 4],
-    port: u16,
+    pub ip4: [u8; 4],
+    pub port: u16,
 }
 
 impl Default for Settings {

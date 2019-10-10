@@ -83,8 +83,10 @@ pub enum TeamColor {
     Yellow,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum Command {
+
     Halt,
     Stop,
     NormalStart,
@@ -97,7 +99,7 @@ pub enum Command {
     Goal(TeamColor),
     BallPlacement(TeamColor)
 }
-
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum Stage {
     NormalFirstHalfPre,
