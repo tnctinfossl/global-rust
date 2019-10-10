@@ -9,6 +9,7 @@ pub struct Settings {
     pub vision:vision::Settings,
     pub viewer: viewer::Settings,
     pub logger: Logger,
+    pub refbox :refbox::Settings,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -24,6 +25,7 @@ impl Default for Settings {
             logger: Logger {
                 level: "info".to_owned(),
             },
+            refbox:refbox::Settings::default(),
         } 
     }
 }

@@ -98,7 +98,7 @@ message SSL_Referee {
 		// For information only.
 		// For rules compliance, teams must treat as STOP.
 		GOAL_YELLOW = 14;
-		// The blue team just scored a goal.
+		// The blue team just scored a goal.https://qiita.com/tetsu_koba/items/e1dc088e88979af58ea8
 		GOAL_BLUE = 15;
 		// Equivalent to STOP, but the yellow team must pick up the ball and
 		// drop it in the Designated Position.

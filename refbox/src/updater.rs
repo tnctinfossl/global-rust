@@ -1,5 +1,5 @@
-use super::referee::{SSL_Referee, SSL_Referee_Command, SSL_Referee_Stage};
-use model::{Command, Stage, TeamColor, World};
+use super::referee::{SSL_Referee, SSL_Referee_Command, SSL_Referee_Stage,SSL_Referee_TeamInfo};
+use model::{Command, Stage, TeamColor, World,Team};
 pub struct Updater;
 
 impl Updater {
@@ -9,7 +9,9 @@ impl Updater {
 
     pub fn update(&self, world: &mut World, referee: &SSL_Referee) {
         world.stage = Some(Updater::to_stage(referee.get_stage()));
-        world.command=Some(Updater::to_command(referee.get_command()));
+        world.command = Some(Updater::to_command(referee.get_command()));
+        Updater::update_team(&mut world.blues, referee.get_blue());
+        Updater::update_team(&mut world.yellows, referee.get_yellow());
     }
 
     fn to_stage(stage: SSL_Referee_Stage) -> Stage {
@@ -36,7 +38,7 @@ impl Updater {
         use Command::*;
         use SSL_Referee_Command::*;
         use TeamColor::*;
-        match (command) {
+        match command {
             HALT => Halt,
             STOP => Stop,
             NORMAL_START => NormalStart,
@@ -56,5 +58,13 @@ impl Updater {
             BALL_PLACEMENT_YELLOW => BallPlacement(Yellow),
             BALL_PLACEMENT_BLUE => BallPlacement(Blue),
         }
+    }
+
+    fn update_team(team:&mut Team,info:&SSL_Referee_TeamInfo){
+        team.name=info.get_name().to_owned();
+        team.red_card=info.get_red_cards();
+        team.yellow_card=info.get_yellow_cards();
+        team.score=info.get_score();
+        team.goalie=info.get_goalie();
     }
 }

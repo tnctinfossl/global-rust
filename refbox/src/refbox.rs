@@ -52,7 +52,7 @@ impl RefBox {
                 };
                 //println!("{:?}", packet);
                 match world.write() {
-                    Ok(mut w) => updater.update(&mut w, &referee),
+                    Ok(mut w) => {updater.update(&mut w, &referee);println!("{:?}",*w);},
                     Err(e) => {
                         warn!("refbox failure taking mutex;{:?}", e);
                         continue;

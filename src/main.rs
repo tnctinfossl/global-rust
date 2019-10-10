@@ -1,5 +1,6 @@
 //TODO 整理する
 extern crate vision;
+extern crate refbox;
 mod settings;
 extern crate model;
 extern crate viewer;
@@ -24,6 +25,11 @@ fn main() {
 
     //connect server
     let world = Arc::new(RwLock::new(model::World::default()));
+    if let Err(e)=refbox::RefBox::spawn(&settings.refbox, world.clone()){
+        error!("{:?}",e);
+        return;
+    }
+    
     vision::Listener::spawn(&settings.vision, world.clone());
     match viewer::Viewer::new(&settings.viewer, world) {
         Ok(main_window)=>main_window.run(),

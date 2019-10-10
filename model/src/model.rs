@@ -61,7 +61,7 @@ pub struct Team {
     pub score: u32,
     pub red_card: u32,
     pub yellow_card: u32,
-    pub goalie: u32,
+    pub goalie: u32,//ゴールキーパ
 }
 
 impl Default for Team {
