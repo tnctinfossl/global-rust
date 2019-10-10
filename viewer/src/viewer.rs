@@ -1,6 +1,7 @@
 //TODO *を直す
 use super::field;
 use super::size_mode::SizeMode;
+use super::info_tree;
 use gtk;
 use gtk::prelude::*;
 use model::World;
@@ -8,7 +9,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::cell::Cell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
-//use crate::listener::World;
+
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -30,6 +31,7 @@ pub struct Viewer {
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
     field_drawing: Rc<field::FieldDrawing>,
+    info_tree:Rc<info_tree::InfoTree>,
     world: Arc<RwLock<World>>,
 }
 
@@ -42,20 +44,23 @@ impl Viewer {
         let ui_builder = gtk::Builder::new_from_string(ui_src);
         //load components
         let main_window: gtk::Window = ui_builder
-            .get_object("MainWindow").ok_or("Error:MainWindow is lost".to_owned())?;
+            .get_object("MainWindow").ok_or("viewer MainWindow is lost".to_owned())?;
         main_window.set_default_size(settings.width, settings.height);
-        //
+        //field_drawing
         let field_drawing_area: gtk::DrawingArea = ui_builder
             .get_object("FieldDrawing")
-            .ok_or("Error:FieldDrawing is lost".to_owned())?;
-
+            .ok_or("viewer FieldDrawing is lost".to_owned())?;
         let field_draw =
             field::FieldDrawing::new(&settings.field, field_drawing_area, world.clone());
+        //infotree
+        let info_tree_widget:gtk::TreeView= ui_builder.get_object("InfoTree").ok_or("viewer Lost InfoTree".to_owned())?;
+        let info_tree=info_tree::InfoTree::new(info_tree_widget,world.clone());
         //create instance
         let viewer = Rc::new(Viewer {
             main_window: main_window,
             size_mode: Cell::new(SizeMode::default()),
             field_drawing: field_draw,
+            info_tree:info_tree,
             world: world,
         });
         //assign event
