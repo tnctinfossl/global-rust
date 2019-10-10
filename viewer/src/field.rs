@@ -138,7 +138,7 @@ impl FieldDrawing {
                 self.draw_balls(context,&world.balls);
             }
             if self.flags.is_drawing_robots.get() {
-                self.draw_robots(context,&world.blues,&world.yellows);
+                self.draw_robots(context,&world.blues.robots,&world.yellows.robots);
             }
             //draw fps
             context.save();

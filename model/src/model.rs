@@ -10,14 +10,14 @@ pub struct Robot {
 }
 
 impl Robot {
-    pub fn new(id:u32,position: Vec2,angle:f32,confidence:f32) ->Box<Robot> {
-        Box::new(Robot {
+    pub fn new(id:u32,position: Vec2,angle:f32,confidence:f32) ->Robot {
+        Robot {
             id:id,
             position: position,
             angle:angle,
             time: time::Instant::now(),
             confidence:confidence
-        })
+        }
     }
     pub fn is_alive(&self, limit: time::Duration) -> bool {
         let d = time::Instant::now() - self.time;
@@ -51,20 +51,39 @@ impl Ball {
         self.time=time::Instant::now();
     }
 }
+#[derive(Debug,Clone)]
+pub struct Team{
+    pub robots:Vec<Box<Robot>>
+
+}
+
+impl Default for Team{
+    fn default()->Team{
+        Team{
+            robots:vec![]
+        }
+    }
+}
+
+
+
+
+
+
 
 #[derive(Debug,Clone)]
 pub struct World {
     pub balls: Vec<Box<Ball>>,
-    pub blues: Vec<Box<Robot>>,
-    pub yellows: Vec<Box<Robot>>,
+    pub blues: Team,
+    pub yellows: Team,
 }
 
 impl Default for World {
     fn default() -> World {
         World {
             balls: vec![],
-            blues: vec![],
-            yellows: vec![],
+            blues: Team::default(),
+            yellows: Team::default(),
         }
     }
 }
