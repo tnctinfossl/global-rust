@@ -1,6 +1,8 @@
 use glm::Vec2;
 use std::collections::HashMap;
 use std::time;
+
+
 #[derive(Debug, Clone)]
 pub struct Robot {
     pub id: u32,
@@ -22,13 +24,7 @@ impl Robot {
             tags: HashMap::new(),
         }
     }
-    pub fn is_alive(&self, limit: time::Duration) -> bool {
-        let d = time::Instant::now() - self.time;
-        d < limit
-    }
-    pub fn alive(&mut self) {
-        self.time = time::Instant::now();
-    }
+
 }
 
 #[derive(Debug, Clone, Copy)]
