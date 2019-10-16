@@ -1,5 +1,6 @@
 use super::referee::{SSL_Referee, SSL_Referee_Command, SSL_Referee_Stage,SSL_Referee_TeamInfo};
 use model::{Command, Stage, TeamColor, World,Team};
+use std::time;
 pub struct Updater;
 
 impl Updater {
@@ -12,6 +13,7 @@ impl Updater {
         world.command = Some(Updater::to_command(referee.get_command()));
         Updater::update_team(&mut world.blues, referee.get_blue());
         Updater::update_team(&mut world.yellows, referee.get_yellow());
+        world.timestamp=time::Instant::now();
     }
 
     fn to_stage(stage: SSL_Referee_Stage) -> Stage {

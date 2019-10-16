@@ -22,6 +22,7 @@ impl Updater {
             self.update_balls(&mut world.balls, detection.get_balls());
             self.update_team(&mut world.blues.robots, detection.get_robots_blue());
             self.update_team(&mut world.yellows.robots, detection.get_robots_yellow());
+            world.timestamp=Instant::now();
         }
     }
 

@@ -4,6 +4,7 @@ use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::net::*;
 use std::sync::{Arc, RwLock};
+use std::sync::mpsc;
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -20,7 +21,9 @@ impl Default for Settings {
     }
 }
 
-pub struct RefBox {}
+pub struct RefBox {
+    
+}
 
 impl RefBox {
     pub fn spawn(settings: &Settings, world: Arc<RwLock<model::World>>) -> Result<RefBox, String> {

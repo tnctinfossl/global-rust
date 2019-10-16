@@ -46,13 +46,6 @@ impl Ball {
             confidence: confidence,
         }
     }
-    pub fn is_alive(&self, limit: time::Duration) -> bool {
-        let d = time::Instant::now() - self.time;
-        d < limit
-    }
-    pub fn alive(&mut self) {
-        self.time = time::Instant::now();
-    }
 }
 #[derive(Debug, Clone)]
 pub struct Team {
@@ -86,7 +79,6 @@ pub enum TeamColor {
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum Command {
-
     Halt,
     Stop,
     NormalStart,
@@ -125,6 +117,7 @@ pub struct World {
     pub yellows: Team,
     pub command: Option<Command>,
     pub stage:Option<Stage>,
+    pub timestamp:time::Instant,
 }
 
 impl Default for World {
@@ -135,6 +128,7 @@ impl Default for World {
             yellows: Team::default(),
             command: None,
             stage:None,
+            timestamp:time::Instant::now()
         }
     }
 }
