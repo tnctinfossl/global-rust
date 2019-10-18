@@ -2,7 +2,6 @@ use glm::Vec2;
 use std::collections::HashMap;
 use std::time;
 
-
 #[derive(Debug, Clone)]
 pub struct Robot {
     pub id: u32,
@@ -24,7 +23,6 @@ impl Robot {
             tags: HashMap::new(),
         }
     }
-
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -46,22 +44,22 @@ impl Ball {
 #[derive(Debug, Clone)]
 pub struct Team {
     pub robots: Vec<Box<Robot>>,
-    pub name: String,
-    pub score: u32,
-    pub red_card: u32,
-    pub yellow_card: u32,
-    pub goalie: u32,//ゴールキーパ
+    pub name: Option<String>,
+    pub score: Option<u32>,
+    pub red_card: Option<u32>,
+    pub yellow_card: Option<u32>,
+    pub goalie: Option<u32>, //ゴールキーパ
 }
 
 impl Default for Team {
     fn default() -> Team {
         Team {
             robots: vec![],
-            name: "unknown".to_owned(),
-            score: 0,
-            red_card: 0,
-            yellow_card: 0,
-            goalie: 0,
+            name: None,
+            score: None,
+            red_card: None,
+            yellow_card: None,
+            goalie: None,
         }
     }
 }
@@ -85,7 +83,7 @@ pub enum Command {
     IndirectFree(TeamColor),
     Timeout(TeamColor),
     Goal(TeamColor),
-    BallPlacement(TeamColor)
+    BallPlacement(TeamColor),
 }
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
@@ -112,8 +110,8 @@ pub struct World {
     pub blues: Team,
     pub yellows: Team,
     pub command: Option<Command>,
-    pub stage:Option<Stage>,
-    pub timestamp:time::Instant,
+    pub stage: Option<Stage>,
+    pub timestamp: time::Instant,
 }
 
 impl Default for World {
@@ -123,8 +121,14 @@ impl Default for World {
             blues: Team::default(),
             yellows: Team::default(),
             command: None,
-            stage:None,
-            timestamp:time::Instant::now()
+            stage: None,
+            timestamp: time::Instant::now(),
         }
+    }
+}
+
+impl World {
+    pub fn new() -> World {
+        World::default()
     }
 }
