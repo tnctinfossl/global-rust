@@ -31,11 +31,11 @@ fn main() {
     vision::Listener::spawn(&settings.vision, tx).unwrap();
 
     let world2 = world.clone();
-    thread::spawn(move || {
+    thread::spawn(move || loop {
         if let Ok(w) = rx.recv() {
-            if let Ok(mut world )= world2.write() {
-                println!("{:?}",world);
-                world.merge(w,&model::MergeOptions::default());
+            if let Ok(mut world) = world2.write() {
+                //println!("{:?}", *world);
+                world.merge(w, &model::MergeOptions::default());
             }
         }
     });

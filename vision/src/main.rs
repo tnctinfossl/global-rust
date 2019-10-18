@@ -6,7 +6,7 @@ fn main(){
 
     //let world = Arc::new(RwLock::new(model::World::default()));
     let (tx,rx)=channel();
-    let receive=Listener::spawn(&settings,tx).unwrap();
+    Listener::spawn(&settings,tx).unwrap();
     loop{
         if let Ok(data)=rx.recv(){
             println!("{:?}",data);
