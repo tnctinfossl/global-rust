@@ -1,9 +1,9 @@
 use super::referee::{SSL_Referee, SSL_Referee_Command, SSL_Referee_Stage, SSL_Referee_TeamInfo};
 use log::warn;
-use model::{Command, Stage, Team, TeamColor, World};
+use model::{Command, Stage, Team, TeamColor};
 use serde_derive::{Deserialize, Serialize};
 use std::net::*;
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::Sender;
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -26,7 +26,7 @@ pub struct RefBox {
 }
 
 impl RefBox {
-    pub fn spawn(settings: &Settings) -> Result<Receiver<model::World>, String> {
+    pub fn spawn(settings: &Settings, sender: Sender<model::World>) -> Result<(), String> {
         //multicastを受け付ける
         let addr = Ipv4Addr::from(settings.ip4);
         let addr_port = (addr, settings.port);
@@ -35,8 +35,6 @@ impl RefBox {
         socket
             .join_multicast_v4(&addr, &Ipv4Addr::from([0, 0, 0, 0]))
             .map_err(|e| format!("refbox cannnot join multicast;{:?}", e))?;
-        //let updater = Updater::new();
-        let (sender, receiver) = channel();
         let refbox = RefBox {
             socket: socket,
             sender: sender,
@@ -49,7 +47,7 @@ impl RefBox {
                 }
             }
         });
-        Ok(receiver)
+        Ok(())
     }
 
     fn recive(&self, buffer: &mut [u8]) -> Result<(), String> {
@@ -73,9 +71,12 @@ impl RefBox {
             blues: team_cast(referee.get_blue()),
             yellows: team_cast(referee.get_yellow()),
             stage: Some(RefBox::to_stage(referee.get_stage())),
-            command:Some(RefBox::to_command(referee.get_command())),
+            command: Some(RefBox::to_command(referee.get_command())),
             ..model::World::default()
         };
+        self.sender
+            .send(world)
+            .map_err(|e| format!("refbox cannot send;{:?}", e))?;
 
         Ok(())
     }

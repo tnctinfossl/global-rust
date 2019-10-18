@@ -1,14 +1,14 @@
-use std::sync::{Arc,RwLock};
+use std::sync::mpsc::channel;
 use vision::{Listener,Settings};
 fn main(){
     //test code
     let settings=Settings::default();
 
-    let world = Arc::new(RwLock::new(model::World::default()));
-   
-    let receive=Listener::spawn(&settings).unwrap();
+    //let world = Arc::new(RwLock::new(model::World::default()));
+    let (tx,rx)=channel();
+    let receive=Listener::spawn(&settings,tx).unwrap();
     loop{
-        if let Ok(data)=receive.recv(){
+        if let Ok(data)=rx.recv(){
             println!("{:?}",data);
         }
     }

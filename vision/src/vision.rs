@@ -4,7 +4,7 @@ use glm::Vec2;
 use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::Sender;
 use std::thread;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Settings {
@@ -22,13 +22,12 @@ impl Default for Settings {
 }
 
 pub struct Listener {
-    transmitter: Sender<model::World>,
+    sender: Sender<model::World>,
     socket: UdpSocket,
 }
 
 impl Listener {
-    pub fn spawn(settings: &Settings) -> Result<Receiver<model::World>, String> {
-        let (transmitter, receiver) = channel();
+    pub fn spawn(settings: &Settings,sender:Sender<model::World>) -> Result<(), String> {
         //socket open
         let addr = {
             let [a, b, c, d] = settings.ip4;
@@ -41,7 +40,7 @@ impl Listener {
             .map_err(|e| format!("Cannot join vision server:{:?}", e))?;
 
         let listener = Listener {
-            transmitter: transmitter,
+            sender:sender,
             socket: socket,
         };
 
@@ -54,7 +53,7 @@ impl Listener {
             }
         });
 
-        Ok(receiver)
+        Ok(())
     }
 
     fn receive(&self, buffer: &mut [u8]) -> Result<(), String> {
@@ -114,7 +113,7 @@ impl Listener {
             yellows: yellows,
             ..model::World::default()
         };
-        self.transmitter
+        self.sender
             .send(world)
             .map_err(|e| format!("Vision:cannot send;{:?}", e))?;
         Ok(())
