@@ -102,6 +102,11 @@ impl Viewer {
                     self.size_mode.set(next);
                 }
             }
+            //F4 path show
+            70=>{
+                let flag=&self.field_drawing.flags.is_drawing_paths;
+                flag.set(!flag.get());
+            }
             _ => (),
         }
 

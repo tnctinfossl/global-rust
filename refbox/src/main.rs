@@ -1,12 +1,13 @@
 mod refbox;
-use std::sync::{Arc,RwLock};
+use std::sync::mpsc::{channel, Receiver};
 mod referee;
 mod game_event;
-mod updater;
 extern crate protobuf;
 extern crate model;
 fn main() {
-    let world = Arc::new(RwLock::new(model::World::default()));
-    refbox::RefBox::spawn(&refbox::Settings::default(), world).unwrap();
-    loop{}
+    let (tx,rx)=channel();
+    refbox::RefBox::spawn(&refbox::Settings::default(),tx).unwrap();
+    loop{
+        println!("{:?}",rx.recv().unwrap());
+    }
 }

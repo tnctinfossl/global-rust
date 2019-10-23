@@ -7,4 +7,3 @@ pub use listener::{Listener, Settings};
 extern crate glm;
 extern crate model;
 extern crate protobuf;
-mod updater;
