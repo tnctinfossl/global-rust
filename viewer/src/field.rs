@@ -9,6 +9,7 @@ use std::cell::{Cell, RefCell};
 use std::f64::consts::PI;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
+use glib::object::Cast;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -97,9 +98,11 @@ fn set_color(context: &Context, rgb: &[f64; 3]) {
 impl FieldDrawing {
     pub fn new(
         settings: &Settings,
-        drawing_area: gtk::DrawingArea,
         world: Arc<RwLock<World>>,
     ) -> Rc<FieldDrawing> {
+
+        let drawing_area=gtk::DrawingAreaBuilder::new().visible(true).build();
+
         let flags = Flags {
             gain: Cell::new(settings.gain_default),
             ..Flags::default()
@@ -125,6 +128,10 @@ impl FieldDrawing {
             Continue(true)
         });
         field
+    }
+
+    pub fn widget(&self)->&gtk::Widget{
+        self.drawing_area.upcast_ref()
     }
 
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
@@ -324,14 +331,6 @@ impl FieldDrawing {
 
         draw(blue_positions);
         draw(yellow_positions);
-
-        
-
-
-
-
-
-
         context.restore();
     }
 }

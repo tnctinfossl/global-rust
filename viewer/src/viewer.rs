@@ -38,24 +38,22 @@ impl Viewer {
         if gtk::init().is_err() {
             return Err("gtk cannot initialize".to_owned());
         }
-        let ui_src = include_str!("viewer.ui");
-        let ui_builder = gtk::Builder::new_from_string(ui_src);
-        //load components
-        let main_window: gtk::Window = ui_builder
-            .get_object("MainWindow").ok_or("Error:MainWindow is lost".to_owned())?;
-        main_window.set_default_size(settings.width, settings.height);
-        //
-        let field_drawing_area: gtk::DrawingArea = ui_builder
-            .get_object("FieldDrawing")
-            .ok_or("Error:FieldDrawing is lost".to_owned())?;
 
-        let field_draw =
-            field::FieldDrawing::new(&settings.field, field_drawing_area, world.clone());
+        let field_drawing = field::FieldDrawing::new(&settings.field, world.clone());
+        let main_window = gtk::WindowBuilder::new()
+            .title("Global")
+            .width_request(settings.width)
+            .height_request(settings.height)
+            .resizable(true)
+            .visible(true)
+            .build();
+        main_window.add(field_drawing.widget());
+
         //create instance
         let viewer = Rc::new(Viewer {
             main_window: main_window,
             size_mode: Cell::new(SizeMode::default()),
-            field_drawing: field_draw,
+            field_drawing: field_drawing,
             world: world,
         });
         //assign event
@@ -103,8 +101,8 @@ impl Viewer {
                 }
             }
             //F4 path show
-            70=>{
-                let flag=&self.field_drawing.flags.is_drawing_paths;
+            70 => {
+                let flag = &self.field_drawing.flags.is_drawing_paths;
                 flag.set(!flag.get());
             }
             _ => (),
