@@ -247,7 +247,7 @@ impl FieldDrawing {
             for robot in robots.iter() {
                 let (x, y, rad) = (
                     robot.position.x as f64,
-                    robot.position.y as f64,
+                    -robot.position.y as f64,
                     robot.angle as f64,
                 );
                 let (rad_begin, rad_end) = (rad + PI / 6.0, rad - PI / 6.0);
@@ -311,13 +311,13 @@ impl FieldDrawing {
 
         let mut blue_positions: Vec<(_, _)> = blues
             .iter()
-            .map(|v| (v.position.x, v.position.y))
+            .map(|v| (v.position.x, -v.position.y))
             .chain(balls.iter().map(|v| (v.position.x, v.position.y)))
             .collect();
         blue_positions.push(blue_goal);
         let mut yellow_positions: Vec<(_, _)> = yellows
             .iter()
-            .map(|v| (v.position.x, v.position.y))
+            .map(|v| (v.position.x, -v.position.y))
             .chain(balls.iter().map(|v| (v.position.x, v.position.y)))
             .collect();
         yellow_positions.push(yellow_goal);
