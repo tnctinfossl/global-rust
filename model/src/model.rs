@@ -94,7 +94,7 @@ impl Team {
         self.goalie=newer.goalie.or(self.goalie);
     }
 }
-
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum TeamColor {
     Blue,
