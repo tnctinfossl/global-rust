@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::cell::Cell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
-//use crate::listener::World;
+
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -30,6 +30,7 @@ pub struct Viewer {
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
     field_drawing: Rc<field::FieldDrawing>,
+    info_tree:Rc<info_tree::InfoTree>,
     world: Arc<RwLock<World>>,
 }
 
