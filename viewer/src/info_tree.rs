@@ -7,7 +7,10 @@ pub struct InfoTree {
 }
 
 impl InfoTree {
-    pub fn new(tree_view: gtk::TreeView,world:Arc<RwLock<World>>) -> Rc<InfoTree> {
+    pub fn new(world:Arc<RwLock<World>>) -> Rc<InfoTree> {
+        
+        let tree_view = gtk::TreeViewBuilder::new().build();
+
         Rc::new(InfoTree {
             tree_view:tree_view,
             world:world

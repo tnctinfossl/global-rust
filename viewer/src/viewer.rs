@@ -8,6 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::cell::Cell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
+use super::info_tree::InfoTree;
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
@@ -30,7 +31,7 @@ pub struct Viewer {
     main_window: gtk::Window,
     size_mode: Cell<SizeMode>,
     field_drawing: Rc<field::FieldDrawing>,
-    info_tree:Rc<info_tree::InfoTree>,
+    info_tree:Rc<InfoTree>,
     world: Arc<RwLock<World>>,
 }
 
@@ -55,7 +56,8 @@ impl Viewer {
             main_window: main_window,
             size_mode: Cell::new(SizeMode::default()),
             field_drawing: field_drawing,
-            world: world,
+            world: world.clone(),
+            info_tree:InfoTree::new(world.clone())
         });
         //assign event
         viewer.main_window.connect_delete_event(move |_, _| {
