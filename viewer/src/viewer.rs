@@ -9,7 +9,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use super::info_tree::InfoTree;
-
+use super::widget::AsWidget;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub height: i32,
@@ -49,7 +49,7 @@ impl Viewer {
             .resizable(true)
             .visible(true)
             .build();
-        main_window.add(field_drawing.widget());
+        main_window.add(field_drawing.as_widget_ref());
 
         //create instance
         let viewer = Rc::new(Viewer {

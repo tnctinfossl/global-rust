@@ -10,6 +10,7 @@ use std::f64::consts::PI;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use glib::object::Cast;
+use super::widget::AsWidget;
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub back_color: [f64; 3],
@@ -129,11 +130,6 @@ impl FieldDrawing {
         });
         field
     }
-
-    pub fn widget(&self)->&gtk::Widget{
-        self.drawing_area.upcast_ref()
-    }
-
     fn draw(&self, _widget: &gtk::DrawingArea, context: &Context) -> Inhibit {
         //clone
         let world = self.world.read().unwrap();
@@ -332,5 +328,11 @@ impl FieldDrawing {
         draw(blue_positions);
         draw(yellow_positions);
         context.restore();
+    }
+}
+
+impl AsWidget for FieldDrawing{
+    fn as_widget_ref(&self)->&gtk::Widget{
+        self.drawing_area.upcast_ref()
     }
 }
