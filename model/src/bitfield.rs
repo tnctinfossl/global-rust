@@ -1,4 +1,5 @@
 use std::ops::*;
+use std::cmp::max;
 #[derive(Debug, Clone, Hash, PartialEq)]
 pub struct BitField {
     pub field: Vec<u128>, //メモ 縦*横
@@ -20,6 +21,26 @@ impl Default for BitField {
 impl BitField {
     pub fn new() -> BitField {
         Self::default()
+    }
+
+    pub fn new_rect((i,j):(usize,usize),k:usize)->BitField{
+        let i = i as isize;
+        let j = j as isize;
+        let k= k as isize;
+        let mut tmp=Self::default();
+        let high= (1u128<<(i+k+1))-1;
+        let low =if (i -k )>=0{
+            (1u128<<(i-k))-1
+        }else{
+            0
+        };
+
+        let line:u128 = high&!low;
+        for l in max(j-k ,0) ..j+k+1{
+            let l =l  as usize;
+            tmp.field[l]|=line;
+        }
+        tmp
     }
 
     pub fn width(&self) -> usize {
@@ -139,16 +160,6 @@ impl BitField {
         }
         for j in self.height()-i..self.height(){
             self.field[j]=0;
-        }
-        self
-    }
-
-    pub fn rect(&mut self, (i,j):(usize,usize),k:usize)->&mut Self{
-        let high= (1u128<<(i+k+1))-1;
-        let low = (1u128<<(i-k))-1;
-        let line:u128 = high&!low;
-        for l in j-k..j+k+1{
-            self.field[l]|=line;
         }
         self
     }
