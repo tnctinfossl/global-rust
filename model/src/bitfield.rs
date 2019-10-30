@@ -15,6 +15,7 @@ impl Default for BitField {
 
 
 
+
 #[allow(dead_code)]
 impl BitField {
     pub fn new() -> BitField {
@@ -29,11 +30,15 @@ impl BitField {
         self.field.len()
     }
 
+    pub fn area(&self)->usize{
+        self.width()*self.height()        
+    }
+
     pub fn dump(&self) -> String {
         self.field
-            .iter()
+            .iter().rev()
             .map(|x| {
-                (0..self.width())
+                (0..self.width()).rev()
                     .map(|index| {
                         if (x & 1 << index) == 0 {
                             "_".to_owned()
@@ -97,6 +102,61 @@ impl BitField {
             .zip(rhs.field.iter())
             .for_each(|(x, y)| f(x, *y))
     }
+
+    pub fn count_one(&self)->u32{
+        self.field.iter().map(|x|x.count_ones()).sum() 
+    }
+
+    pub fn count_zeros(&self)->u32{
+        self.field.iter().map(|x|x.count_zeros()).sum() 
+    }
+
+    pub fn move_right(&mut self,i:u32)->&mut Self{
+        self.field.iter_mut().for_each(|x|*x>>=i);
+        self
+    }
+
+    pub fn move_left(&mut self,i:u32)->&mut Self{
+        self.field.iter_mut().for_each(|x|*x<<=i);
+        self
+    }
+
+    pub fn move_up(&mut self,i:usize)->&mut Self{
+        for j in (0..self.height()).rev(){
+            self.field[j]= if (j as isize -i as isize )>=0{
+                self.field[j-i]
+            }else{
+                0
+            };
+        }//TODO 若干遅いので修正すること
+        self
+    }
+
+    pub fn move_down(&mut self,i:usize)->&mut Self{
+        for j in 0..self.height()-i{
+            //let j = j.into();
+            self.field[j]=self.field[i +j];
+        }
+        for j in self.height()-i..self.height(){
+            self.field[j]=0;
+        }
+        self
+    }
+
+    pub fn rect(&mut self, (i,j):(usize,usize),k:usize)->&mut Self{
+        let high= (1u128<<(i+k+1))-1;
+        let low = (1u128<<(i-k))-1;
+        let line:u128 = high&!low;
+        for l in j-k..j+k+1{
+            self.field[l]|=line;
+        }
+        self
+    }
+    /*
+    pub fn rect((i,j):(u32,u32),k:u32)->BitField{
+
+    }
+    */
 }
 
 impl BitAnd for BitField {
@@ -138,19 +198,14 @@ impl BitOrAssign  for BitField {
         self.op_assign(rhs, |x, y| *x |= y);
         }
 }
+
 #[test]
-fn bitfield_test() {
+fn bitfield_and(){
     let mut a = BitField::new();
     a.write((0, 0), true).write((1, 0), true);
     let mut b = BitField::new();
     b.write((0, 0), true).write((0, 1), true);
     let mut and = BitField::new();
     and.write((0, 0), true);
-    assert_eq!((&a)&(&b),and);
-    let mut or = BitField::new();
-    or.write((0, 0), true).write((1, 0), true).write((0, 1), true);
-    assert_eq!(&a|&b,or);
-    let mut xor= BitField::new();
-    xor.write((1, 0), true).write((0, 1), true);
-    assert_eq!(&a^&b,xor);
+    assert_eq!(a&b,and);
 }
