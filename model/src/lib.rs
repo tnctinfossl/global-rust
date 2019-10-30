@@ -1,4 +1,4 @@
-pub mod model;
 pub mod bitfield;
-pub use model::{Ball, Command, Robot, Stage, Team, TeamColor, World,MergeOptions};
+pub mod model;
+pub use self::model::{Ball, Command, MergeOptions, Robot, Stage, Team, TeamColor, World};
 extern crate glm;
