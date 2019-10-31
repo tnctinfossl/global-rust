@@ -1,21 +1,19 @@
 use std::ops::*;
 use std::cmp::max;
-#[derive(Debug, Clone, Hash, PartialEq)]
+use std::cell::RefCell;
+use std::rc::Rc;
+#[derive(Debug, Clone,  PartialEq)]
 pub struct BitField {
-    pub field: Vec<u128>, //メモ 縦*横
+    pub field:Rc<RefCell< Vec<u128>>>, //メモ 縦*横
 }
 
 impl Default for BitField {
     fn default() -> BitField {
         BitField {
-            field: vec![0; 100],
+            field:Rc::new(RefCell::new( vec![0; 100])),
         }
     }
 }
-
-
-
-
 
 #[allow(dead_code)]
 impl BitField {
@@ -24,10 +22,11 @@ impl BitField {
     }
 
     pub fn new_rect((i,j):(usize,usize),k:usize)->BitField{
+        let mut field=vec![0;100];
         let i = i as isize;
         let j = j as isize;
         let k= k as isize;
-        let mut tmp=Self::default();
+        
         let high= (1u128<<(i+k+1))-1;
         let low =if (i -k )>=0{
             (1u128<<(i-k))-1
@@ -38,17 +37,20 @@ impl BitField {
         let line:u128 = high&!low;
         for l in max(j-k ,0) ..j+k+1{
             let l =l  as usize;
-            tmp.field[l]|=line;
+            field[l]|=line;
         }
-        tmp
+        
+        BitField {
+            field:Rc::new(RefCell::new( field)),
+        }
     }
 
     pub fn width(&self) -> usize {
         std::mem::size_of::<u128>() * 8
     }
 
-    pub fn height(&self) -> usize {
-        self.field.len()
+    pub const fn height(&self) -> usize {
+        100
     }
 
     pub fn area(&self)->usize{
@@ -56,7 +58,7 @@ impl BitField {
     }
 
     pub fn dump(&self) -> String {
-        self.field
+        self.field.borrow()
             .iter().rev()
             .map(|x| {
                 (0..self.width()).rev()
@@ -74,7 +76,7 @@ impl BitField {
 
     pub fn read(&self, (x, y): (usize, usize)) -> bool {
         if x < self.width() && y < self.height() {
-            (self.field[y] & (1 << x)) != 0
+            (self.field.borrow()[y] & (1 << x)) != 0
         } else {
             false
         }
@@ -84,9 +86,9 @@ impl BitField {
         if x < self.width() && y < self.height() {
             let mask = 1 << x;
             if value {
-                self.field[y] |= mask;
+                self.field.borrow_mut()[y] |= mask;
             } else {
-                self.field[y] &= !mask;
+                self.field.borrow_mut()[y] &= !mask;
             }
         }
         self
@@ -97,12 +99,12 @@ impl BitField {
         F: Fn(u128, u128) -> u128,
     {
         BitField {
-            field: self
-                .field
+            field: Rc::new(RefCell::new(self
+                .field.borrow()
                 .iter()
-                .zip(rhs.field.iter())
+                .zip(rhs.field.borrow().iter())
                 .map(|(x, y)| f(*x, *y))
-                .collect(),
+                .collect())),
         }
     }
     fn op_single<F>(&self, f: F) -> BitField
@@ -110,7 +112,7 @@ impl BitField {
         F: Fn(u128) -> u128,
     {
         BitField {
-            field: self.field.iter().map(|x| f(*x)).collect(),
+            field: Rc::new(RefCell::new(self.field.borrow().iter().map(|x| f(*x)).collect())),
         }
     }
 
@@ -118,34 +120,34 @@ impl BitField {
     where
         F: Fn(&mut u128, u128),
     {
-        self.field
+        self.field.borrow_mut()
             .iter_mut()
-            .zip(rhs.field.iter())
+            .zip(rhs.field.borrow().iter())
             .for_each(|(x, y)| f(x, *y))
     }
 
     pub fn count_one(&self)->u32{
-        self.field.iter().map(|x|x.count_ones()).sum() 
+        self.field.borrow().iter().map(|x|x.count_ones()).sum() 
     }
 
     pub fn count_zeros(&self)->u32{
-        self.field.iter().map(|x|x.count_zeros()).sum() 
+        self.field.borrow().iter().map(|x|x.count_zeros()).sum() 
     }
 
     pub fn move_right(&mut self,i:u32)->&mut Self{
-        self.field.iter_mut().for_each(|x|*x>>=i);
+        self.field.borrow_mut().iter_mut().for_each(|x|*x>>=i);
         self
     }
 
     pub fn move_left(&mut self,i:u32)->&mut Self{
-        self.field.iter_mut().for_each(|x|*x<<=i);
+        self.field.borrow_mut().iter_mut().for_each(|x|*x<<=i);
         self
     }
 
     pub fn move_up(&mut self,i:usize)->&mut Self{
         for j in (0..self.height()).rev(){
-            self.field[j]= if (j as isize -i as isize )>=0{
-                self.field[j-i]
+            self.field.borrow_mut()[j]= if (j as isize -i as isize )>=0{
+                self.field.borrow()[j-i]
             }else{
                 0
             };
@@ -156,10 +158,10 @@ impl BitField {
     pub fn move_down(&mut self,i:usize)->&mut Self{
         for j in 0..self.height()-i{
             //let j = j.into();
-            self.field[j]=self.field[i +j];
+            self.field.borrow_mut()[j]=self.field.borrow()[i +j];
         }
         for j in self.height()-i..self.height(){
-            self.field[j]=0;
+            self.field.borrow_mut()[j]=0;
         }
         self
     }
