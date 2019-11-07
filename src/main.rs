@@ -1,18 +1,16 @@
 //TODO 整理する
-extern crate listener;
+extern crate refbox;
+extern crate vision;
 mod settings;
 extern crate model;
 extern crate viewer;
 use env_logger;
-use log::{debug, error, info, warn};
+use log::error;
 use settings::Settings;
 use std::env;
-use std::fs::File;
-use std::io::{BufReader, BufWriter};
-use std::net::Ipv4Addr;
-use std::sync::{RwLock,Arc};
-use gtk::prelude::*;
-
+use std::sync::mpsc::channel;
+use std::sync::{Arc, RwLock};
+use std::thread;
 fn main() {
     //init logger
     env::set_var("RUST_LOG", "info");
@@ -25,17 +23,25 @@ fn main() {
     };
     //fix log level
     env::set_var("RUST_LOG", settings.logger.level);
-    //gtk init
-    if gtk::init().is_err() {
-        error!("gtk cannot initialize");
-        return;
-    }
-    //connect server
-    
-    let world = Arc::new(RwLock::new(model::World::default()));
-    let listener = listener::Listener::new(&settings.listener,world.clone());
-    let mut main_window = viewer::Viewer::new(&settings.viewer, world);
 
-    let world_recv = listener.world_receiver;
-    gtk::main();
+    //connect server
+    let (tx, rx) = channel();
+    let world = Arc::new(RwLock::new(model::World::default()));
+    refbox::RefBox::spawn(&settings.refbox, tx.clone()).unwrap();
+    vision::Listener::spawn(&settings.vision, tx).unwrap();
+
+    let world2 = world.clone();
+    thread::spawn(move || loop {
+        if let Ok(w) = rx.recv() {
+            if let Ok(mut world) = world2.write() {
+                //println!("{:?}", *world);
+                world.merge(w, &model::MergeOptions::default());
+            }
+        }
+    });
+
+    match viewer::Viewer::new(&settings.viewer, world) {
+        Ok(main_window) => main_window.run(),
+        Err(e) => error!("{}", e),
+    }
 }
