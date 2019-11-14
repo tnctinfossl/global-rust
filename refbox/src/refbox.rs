@@ -127,5 +127,6 @@ impl RefBox {
         }
     }
 
+    
     fn update_team(team: &mut Team, info: &SSL_Referee_TeamInfo) {}
 }

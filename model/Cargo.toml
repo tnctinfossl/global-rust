@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 glm = "0.2.3"
+rand = "0.7.2"

@@ -1,4 +1,5 @@
 use glm::{distance, Vec2};
+use rand::Rng;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 #[derive(Debug, Clone)]
@@ -22,6 +23,12 @@ impl Robot {
             tags: HashMap::new(),
         }
     }
+    /*pub fn new_random<R: Rng + ?Sized>(rng: &mut R,id:u32,infield_width:f32,infield_hight:f32) -> Robot{
+        let x = rand::thread_rng().gen_range(0,1200);
+        let y = rand::thread_rng().gen_range(0,9000);
+        let mut robot = Robot{position:Vec2::new(0.0,0.0)};
+        robot.position =
+    }*/
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -80,20 +87,71 @@ impl Team {
                 old_robot.angle = new_robot.angle;
                 old_robot.time = new_robot.time;
                 old_robot.confidence = new_robot.confidence;
-            }else{
+            } else {
                 self.robots.push(new_robot);
             }
         }
-        
-        if let Some(name)=newer.name{
-            self.name=Some(name);
+
+        if let Some(name) = newer.name {
+            self.name = Some(name);
         }
-        self.score=newer.score.or(self.score);
-        self.red_card=newer.red_card.or(self.red_card);
-        self.yellow_card=newer.yellow_card.or(self.yellow_card);
-        self.goalie=newer.goalie.or(self.goalie);
+        self.score = newer.score.or(self.score);
+        self.red_card = newer.red_card.or(self.red_card);
+        self.yellow_card = newer.yellow_card.or(self.yellow_card);
+        self.goalie = newer.goalie.or(self.goalie);
+    }
+
+}
+
+#[derive(Debug, Clone)]
+pub struct Field {
+    pub infield: Vec2,
+    pub outfield: Vec2,
+    pub midlecircle_diameter: f32,
+    pub goal_width: f32,
+    pub penalty_area_width: f32,
+    pub penalty_area_depth: f32,
+}
+impl Field {
+    pub fn new_large() -> Field {
+        Field {
+            infield: Vec2::new(12000.0, 9000.0),
+            outfield: Vec2::new(13400.0, 10400.0),
+            midlecircle_diameter: 1000.0,
+            goal_width: 1200.0,
+            penalty_area_width: 2400.0,
+            penalty_area_depth: 1200.0,
+        }
+    }
+    pub fn new_small() -> Field {
+        Field {
+            infield: Vec2::new(9000.0, 6000.0),
+            outfield: Vec2::new(10400.0, 7400.0),
+            midlecircle_diameter: 1000.0,
+            goal_width: 1000.0,
+            penalty_area_width: 2000.0,
+            penalty_area_depth: 1000.0,
+        }
+    }
+
+    pub fn allocate_robot_by_random<R: Rng + ?Sized>(&self, random: &mut R, id: u32) -> Robot {
+        let position = Vec2::new(
+            random.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
+            random.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+        );
+        let angle = random.gen_range(0.0,std::f32::consts::PI*2.0);
+        Robot::new(id, position,angle,1.0)
+    }
+
+    pub fn allocate_ball_by_random<R: Rng + ?Sized>(&self,random: &mut R) -> Ball{
+         let position = Vec2::new(
+            random.gen_range(-self.outfield.x / 2.0, self.outfield.x / 2.0),
+            random.gen_range(-self.outfield.y / 2.0, self.outfield.y / 2.0),
+        );
+        Ball::new(position, 1.0)
     }
 }
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum TeamColor {
@@ -140,6 +198,7 @@ pub struct World {
     pub balls: Vec<Box<Ball>>,
     pub blues: Team,
     pub yellows: Team,
+    pub field: Field,
     pub command: Option<Command>,
     pub stage: Option<Stage>,
     pub timestamp: Instant,
@@ -151,6 +210,7 @@ impl Default for World {
             balls: vec![],
             blues: Team::default(),
             yellows: Team::default(),
+            field: Field::new_large(),
             command: None,
             stage: None,
             timestamp: Instant::now(),
@@ -176,6 +236,7 @@ impl World {
     pub fn new() -> World {
         World::default()
     }
+
     pub fn merge(&mut self, newer: World, options: &MergeOptions) {
         //寿命チェック
         let now = newer.timestamp;
@@ -201,5 +262,10 @@ impl World {
         self.command = newer.command.or(self.command);
         self.stage = newer.stage.or(self.stage);
         self.timestamp = now;
+    }
+    pub fn alocate_random<R: Rng + ?Sized>(&mut self,random:&mut R,count:u32){
+        self.blues.robots=(0..count).map(|id:u32|{Box::new(self.field.allocate_robot_by_random(random,id))}).collect();
+        self.yellows.robots=(0..count).map(|id:u32|{Box::new(self.field.allocate_robot_by_random(random,id))}).collect();
+        
     }
 }
