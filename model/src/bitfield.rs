@@ -31,11 +31,11 @@ impl BitField {
             match n {
                 n if n < 0 => 0,
                 n if n >= 127 => !0,
-                n => 1 << n - 1,
+                n => (1 << n) - 1,
             }
         };
 
-        /*
+    /*
         let high= (1u128<<(i+k+1))-1;
         let low =if (i -k )>=0{
             (1u128<<(i-k))-1
@@ -43,6 +43,7 @@ impl BitField {
             0
         };*/
         let (high, low) = (masker(i + k + 1), masker(i - k));
+        
         let line: u128 = high ^ low;
         for l in max(j - k, 0)..j + k + 1 {
             let l = l as usize;
