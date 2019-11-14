@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::cmp::max;
+use std::cmp::{max,min};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Fn, Not};
 use std::rc::Rc;
 #[derive(Debug, Clone, PartialEq)]
@@ -35,17 +35,10 @@ impl BitField {
             }
         };
 
-    /*
-        let high= (1u128<<(i+k+1))-1;
-        let low =if (i -k )>=0{
-            (1u128<<(i-k))-1
-        }else{
-            0
-        };*/
         let (high, low) = (masker(i + k + 1), masker(i - k));
         
         let line: u128 = high ^ low;
-        for l in max(j - k, 0)..j + k + 1 {
+        for l in max(j - k, 0)..min(j + k + 1,99) {
             let l = l as usize;
             field[l] |= line;
         }
@@ -228,6 +221,7 @@ impl BitOrAssign for BitField {
         self.op_assign(rhs, |x, y| *x |= y);
     }
 }
+
 
 #[test]
 fn bitfield_and() {
