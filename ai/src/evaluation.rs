@@ -2,7 +2,6 @@ extern crate model;
 use super::bitfield::BitField;
 use glm::*;
 use model::*;
-use rand;
 #[feature(test)]
 
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
