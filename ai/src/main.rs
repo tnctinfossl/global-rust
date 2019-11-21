@@ -10,7 +10,9 @@ use glm::*;
 use geometry::*;
 use std::time::{Duration, Instant};
 fn main() {
-
+    let d=distance_segment_point((vec2(0.0,0.0),vec2(2.0,0.0)), vec2(1.0,3.0));
+    //assert_eq!(d,1.0);
+    println!("{}",d);
 }
 
 
