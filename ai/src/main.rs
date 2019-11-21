@@ -1,6 +1,5 @@
 extern crate model;
 use model::*;
-use rand;
 mod bitfield;
 mod evaluation;
 mod util;
@@ -9,10 +8,13 @@ use evaluation::space_domination;
 use glm::*;
 use geometry::*;
 use std::time::{Duration, Instant};
+use rand::{Rng, SeedableRng};
 fn main() {
-    let d=distance_segment_point((vec2(0.0,0.0),vec2(2.0,0.0)), vec2(1.0,3.0));
-    //assert_eq!(d,1.0);
-    println!("{}",d);
+    let mut rng = rand_xoshiro::Xoshiro256StarStar::seed_from_u64(123);
+    let mut world=model::World::new();
+    world.alocate_random( &mut rng, 10);
+
+    println!("{:?}",evaluation::evaluate_shoot(&world.field, &world.blues, &world.yellows));
 }
 
 

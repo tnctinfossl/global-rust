@@ -11,7 +11,7 @@ fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     (x, y)
 }
 
-pub fn decode(
+fn decode(
     bitfield: &BitField,
     field: &Field,
     bit_coordinate_x: usize,
