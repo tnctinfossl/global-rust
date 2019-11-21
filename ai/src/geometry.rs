@@ -35,6 +35,7 @@ fn length2<S: BaseFloat, T: GenFloatVec<S>>(x: T) -> S {
 }
 
 //二点a,bを通る直線と点pの距離
+#[allow(dead_code)]
 pub fn distance_line_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
     //導出
     abs(dot(b - a, flip2(p)) + cross2(a, b)) / length(b - a)
@@ -47,14 +48,14 @@ fn test_distance_line_point() {
 }
 
 //二点a,bを通る線分と点pの距離
+#[allow(dead_code)]
 pub fn distance_segment_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
-    let tt = -dot(b-a,a-p)/length2(a- b);
-    if tt < 0.0  {
-      return distance(p, a)
+    let tt = -dot(b - a, a - p) / length2(a - b);
+    if tt < 0.0 {
+        return distance(p, a);
     }
     if tt > 1.0 {
-      return distance(p, b)
+        return distance(p, b);
     }
-    
-    return distance_line_point((a, b), p)
+    return distance_line_point((a, b), p);
 }

@@ -11,19 +11,22 @@ fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     (x, y)
 }
 
-pub fn decode(bitfield:&BitField,field:&Field,bit_coordinate_x:usize,bit_coordinate_y:usize)->Vec2{
+pub fn decode(
+    bitfield: &BitField,
+    field: &Field,
+    bit_coordinate_x: usize,
+    bit_coordinate_y: usize,
+) -> Vec2 {
     let x = bit_coordinate_x as f32 / bitfield.width() as f32;
     let y = bit_coordinate_y as f32 / bitfield.height() as f32;
-    let rate = Vec2::new(x,y) ;
-    let half = Vec2::new(0.5,0.5);
-    
-    field.outfield*(rate-half)
+    let rate = Vec2::new(x, y);
+    let half = Vec2::new(0.5, 0.5);
+
+    field.outfield * (rate - half)
 }
 
-
-pub fn space_domination(my_team: &Team, enemy_team:&Team, field:&Field) -> (f32, f32) {
+pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f32, f32) {
     let locate = |r: &Box<Robot>| encode(&field, r.position);
-    
     let my_team_positions: Vec<_> = my_team.robots.iter().map(locate).collect();
     let enemy_team_positions: Vec<_> = enemy_team.robots.iter().map(locate).collect();
 
@@ -51,8 +54,10 @@ pub fn space_domination(my_team: &Team, enemy_team:&Team, field:&Field) -> (f32,
     let ret_y = enemy_team_field.count_one() as f32 / enemy_team_field.area() as f32;
     (ret_b, ret_y)
 }
-//TODO スタブ
-pub fn evaluate_shoot(bitfield:&BitField,field:&Field,robots:&Team)->(f32,f32){
-    (0.0,0.0)
-}
 
+pub fn evaluate_shoot(field: &model::Field, mine: &model::Team, yours: &model::Team) -> (f32, f32) {
+    //計算量O(n2)程度
+    filed.    
+
+    (0.0, 0.0)
+}

@@ -1,6 +1,7 @@
 use glm::{distance, Vec2};
 use rand::Rng;
 use std::collections::HashMap;
+use std::ops::*;
 use std::time::{Duration, Instant};
 #[derive(Debug, Clone)]
 pub struct Robot {
@@ -23,12 +24,6 @@ impl Robot {
             tags: HashMap::new(),
         }
     }
-    /*pub fn new_random<R: Rng + ?Sized>(rng: &mut R,id:u32,infield_width:f32,infield_hight:f32) -> Robot{
-        let x = rand::thread_rng().gen_range(0,1200);
-        let y = rand::thread_rng().gen_range(0,9000);
-        let mut robot = Robot{position:Vec2::new(0.0,0.0)};
-        robot.position =
-    }*/
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -100,7 +95,6 @@ impl Team {
         self.yellow_card = newer.yellow_card.or(self.yellow_card);
         self.goalie = newer.goalie.or(self.goalie);
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -111,9 +105,10 @@ pub struct Field {
     pub goal_width: f32,
     pub penalty_area_width: f32,
     pub penalty_area_depth: f32,
+    pub direction: Direction,
 }
 impl Field {
-    pub fn new_large() -> Field {
+    pub fn new_large(direction: Direction) -> Field {
         Field {
             infield: Vec2::new(12000.0, 9000.0),
             outfield: Vec2::new(13400.0, 10400.0),
@@ -121,9 +116,10 @@ impl Field {
             goal_width: 1200.0,
             penalty_area_width: 2400.0,
             penalty_area_depth: 1200.0,
+            direction: direction,
         }
     }
-    pub fn new_small() -> Field {
+    pub fn new_small(direction: Direction) -> Field {
         Field {
             infield: Vec2::new(9000.0, 6000.0),
             outfield: Vec2::new(10400.0, 7400.0),
@@ -131,6 +127,7 @@ impl Field {
             goal_width: 1000.0,
             penalty_area_width: 2000.0,
             penalty_area_depth: 1000.0,
+            direction: direction,
         }
     }
 
@@ -139,12 +136,12 @@ impl Field {
             random.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
             random.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
         );
-        let angle = random.gen_range(0.0,std::f32::consts::PI*2.0);
-        Robot::new(id, position,angle,1.0)
+        let angle = random.gen_range(0.0, std::f32::consts::PI * 2.0);
+        Robot::new(id, position, angle, 1.0)
     }
 
-    pub fn allocate_ball_by_random<R: Rng + ?Sized>(&self,random: &mut R) -> Ball{
-         let position = Vec2::new(
+    pub fn allocate_ball_by_random<R: Rng + ?Sized>(&self, random: &mut R) -> Ball {
+        let position = Vec2::new(
             random.gen_range(-self.outfield.x / 2.0, self.outfield.x / 2.0),
             random.gen_range(-self.outfield.y / 2.0, self.outfield.y / 2.0),
         );
@@ -153,20 +150,43 @@ impl Field {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy,PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TeamColor {
     Blue,
     Yellow,
 }
 
-#[derive(Debug, Clone, Copy,PartialEq)]
+impl Not for TeamColor {
+    type Output = Self;
+    fn not(self) -> Self {
+        use TeamColor::*;
+        match self {
+            Blue => Yellow,
+            Yellow => Blue,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
+    //TODO もう少し短く簡潔に
     BlueRightYellowLeft,
-    BlueLeftYellowRight
+    BlueLeftYellowRight,
+}
+
+impl Not for Direction {
+    type Output = Self;
+    fn not(self) -> Self {
+        use Direction::*;
+        match self {
+            BlueLeftYellowRight => BlueRightYellowLeft,
+            BlueRightYellowLeft => BlueLeftYellowRight,
+        }
+    }
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy,PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Command {
     Halt,
     Stop,
@@ -180,8 +200,9 @@ pub enum Command {
     Goal(TeamColor),
     BallPlacement(TeamColor),
 }
+
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy,PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Stage {
     NormalFirstHalfPre,
     NormalFirstHalf,
@@ -216,7 +237,7 @@ impl Default for World {
             balls: vec![],
             blues: Team::default(),
             yellows: Team::default(),
-            field: Field::new_large(),
+            field: Field::new_large(Direction::BlueLeftYellowRight),
             command: None,
             stage: None,
             timestamp: Instant::now(),
@@ -269,9 +290,13 @@ impl World {
         self.stage = newer.stage.or(self.stage);
         self.timestamp = now;
     }
-    pub fn alocate_random<R: Rng + ?Sized>(&mut self,random:&mut R,count:u32){
-        self.blues.robots=(0..count).map(|id:u32|{Box::new(self.field.allocate_robot_by_random(random,id))}).collect();
-        self.yellows.robots=(0..count).map(|id:u32|{Box::new(self.field.allocate_robot_by_random(random,id))}).collect();
-        
+
+    pub fn alocate_random<R: Rng + ?Sized>(&mut self, random: &mut R, count: u32) {
+        self.blues.robots = (0..count)
+            .map(|id: u32| Box::new(self.field.allocate_robot_by_random(random, id)))
+            .collect();
+        self.yellows.robots = (0..count)
+            .map(|id: u32| Box::new(self.field.allocate_robot_by_random(random, id)))
+            .collect();
     }
 }
