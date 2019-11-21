@@ -50,6 +50,7 @@ pub struct Team {
     pub red_card: Option<u32>,
     pub yellow_card: Option<u32>,
     pub goalie: Option<u32>, //ゴールキーパ
+    pub home:Side //自陣の場所
 }
 
 impl Default for Team {
@@ -61,11 +62,18 @@ impl Default for Team {
             red_card: None,
             yellow_card: None,
             goalie: None,
+            home:Side::Right
         }
     }
 }
 
 impl Team {
+
+    pub fn new(home:Side)->Team{
+        Team{home:home,..Team::default()}
+    }
+
+
     pub fn merge(&mut self, newer: Team, now: Instant, options: &MergeOptions) {
         //寿命チェック
         self.robots
@@ -105,10 +113,10 @@ pub struct Field {
     pub goal_width: f32,
     pub penalty_area_width: f32,
     pub penalty_area_depth: f32,
-    pub home: TeamHome,
 }
 impl Field {
-    pub fn new_large(home: TeamHome) -> Field {
+    #[allow(dead_code)]
+    pub fn new_large() -> Field {
         Field {
             infield: Vec2::new(12000.0, 9000.0),
             outfield: Vec2::new(13400.0, 10400.0),
@@ -116,10 +124,11 @@ impl Field {
             goal_width: 1200.0,
             penalty_area_width: 2400.0,
             penalty_area_depth: 1200.0,
-            home: home,
         }
     }
-    pub fn new_small(home: TeamHome) -> Field {
+
+    #[allow(dead_code)]
+    pub fn new_small() -> Field {
         Field {
             infield: Vec2::new(9000.0, 6000.0),
             outfield: Vec2::new(10400.0, 7400.0),
@@ -127,10 +136,9 @@ impl Field {
             goal_width: 1000.0,
             penalty_area_width: 2000.0,
             penalty_area_depth: 1000.0,
-            home: home,
         }
     }
-    
+
     #[allow(dead_code)]
     pub fn allocate_robot_by_random<R: Rng + ?Sized>(&self, random: &mut R, id: u32) -> Robot {
         let position = Vec2::new(
@@ -151,16 +159,23 @@ impl Field {
     }
 
     #[allow(dead_code)]
-    pub fn get_goal(&self,color:&TeamColor)->Vec2{
+    pub fn goal(&self,side:Side)->Vec2{
         let width=self.infield.x/2.0;
-        let (right,left)=(vec2(width,0.0),vec2(-width,0.0));
-
-        match (color,self.home){
-            (TeamColor::Blue,TeamHome::BlueYellow)=>right,
-            (TeamColor::Blue,TeamHome::YellowBlue)=>left,
-            (TeamColor::Yellow,TeamHome::BlueYellow)=>left,
-            (TeamColor::Yellow,TeamHome::YellowBlue)=>right,
+        match side{
+            Side::Right=>vec2(width,0.0),
+            Side::Left=>vec2(-width,0.0)
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn my_goal(&self,team:&Team)->Vec2{
+        self.goal(team.home)
+    }
+
+
+    #[allow(dead_code)]
+    pub fn your_goal(&self,team:&Team)->Vec2{
+        self.goal(!team.home)
     }
 }
 
@@ -183,18 +198,18 @@ impl Not for TeamColor {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum TeamHome {
-    BlueYellow,
-    YellowBlue,
+pub enum Side {
+    Right,
+    Left,
 }
 
-impl Not for TeamHome {
+impl Not for Side {
     type Output = Self;
     fn not(self) -> Self {
-        use TeamHome::*;
+        use Side::*;
         match self {
-            YellowBlue => BlueYellow,
-            BlueYellow => YellowBlue,
+            Right => Left,
+            Left => Right,
         }
     }
 }
@@ -249,9 +264,9 @@ impl Default for World {
     fn default() -> World {
         World {
             balls: vec![],
-            blues: Team::default(),
-            yellows: Team::default(),
-            field: Field::new_large(TeamHome::YellowBlue),
+            blues: Team::new(Side::Right),
+            yellows: Team::new(Side::Left),
+            field: Field::new_large(),
             command: None,
             stage: None,
             timestamp: Instant::now(),
