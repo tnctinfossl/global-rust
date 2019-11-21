@@ -153,14 +153,20 @@ impl Field {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,PartialEq)]
 pub enum TeamColor {
     Blue,
     Yellow,
 }
 
+#[derive(Debug, Clone, Copy,PartialEq)]
+pub enum Direction {
+    BlueRightYellowLeft,
+    BlueLeftYellowRight
+}
+
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,PartialEq)]
 pub enum Command {
     Halt,
     Stop,
@@ -175,7 +181,7 @@ pub enum Command {
     BallPlacement(TeamColor),
 }
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,PartialEq)]
 pub enum Stage {
     NormalFirstHalfPre,
     NormalFirstHalf,
