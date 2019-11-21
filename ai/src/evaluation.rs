@@ -55,9 +55,9 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
     (ret_b, ret_y)
 }
 
-pub fn evaluate_shoot(field: &model::Field, mine: &model::Team, yours: &model::Team) -> (f32, f32) {
+pub fn evaluate_shoot(field: &Field, mine: &Team, yours: &Team) -> (f32, f32) {
     //計算量O(n2)程度
-    filed.    
+    
 
     (0.0, 0.0)
 }

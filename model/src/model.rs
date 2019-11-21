@@ -1,4 +1,4 @@
-use glm::{distance, Vec2};
+use glm::{distance, Vec2,vec2};
 use rand::Rng;
 use std::collections::HashMap;
 use std::ops::*;
@@ -105,10 +105,10 @@ pub struct Field {
     pub goal_width: f32,
     pub penalty_area_width: f32,
     pub penalty_area_depth: f32,
-    pub direction: Direction,
+    pub home: TeamHome,
 }
 impl Field {
-    pub fn new_large(direction: Direction) -> Field {
+    pub fn new_large(home: TeamHome) -> Field {
         Field {
             infield: Vec2::new(12000.0, 9000.0),
             outfield: Vec2::new(13400.0, 10400.0),
@@ -116,10 +116,10 @@ impl Field {
             goal_width: 1200.0,
             penalty_area_width: 2400.0,
             penalty_area_depth: 1200.0,
-            direction: direction,
+            home: home,
         }
     }
-    pub fn new_small(direction: Direction) -> Field {
+    pub fn new_small(home: TeamHome) -> Field {
         Field {
             infield: Vec2::new(9000.0, 6000.0),
             outfield: Vec2::new(10400.0, 7400.0),
@@ -127,10 +127,11 @@ impl Field {
             goal_width: 1000.0,
             penalty_area_width: 2000.0,
             penalty_area_depth: 1000.0,
-            direction: direction,
+            home: home,
         }
     }
-
+    
+    #[allow(dead_code)]
     pub fn allocate_robot_by_random<R: Rng + ?Sized>(&self, random: &mut R, id: u32) -> Robot {
         let position = Vec2::new(
             random.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
@@ -140,12 +141,26 @@ impl Field {
         Robot::new(id, position, angle, 1.0)
     }
 
+    #[allow(dead_code)]
     pub fn allocate_ball_by_random<R: Rng + ?Sized>(&self, random: &mut R) -> Ball {
         let position = Vec2::new(
             random.gen_range(-self.outfield.x / 2.0, self.outfield.x / 2.0),
             random.gen_range(-self.outfield.y / 2.0, self.outfield.y / 2.0),
         );
         Ball::new(position, 1.0)
+    }
+
+    #[allow(dead_code)]
+    pub fn get_goal(&self,color:&TeamColor)->Vec2{
+        let width=self.infield.x/2.0;
+        let (right,left)=(vec2(width,0.0),vec2(-width,0.0));
+
+        match (color,self.home){
+            (TeamColor::Blue,TeamHome::BlueYellow)=>right,
+            (TeamColor::Blue,TeamHome::YellowBlue)=>left,
+            (TeamColor::Yellow,TeamHome::BlueYellow)=>left,
+            (TeamColor::Yellow,TeamHome::YellowBlue)=>right,
+        }
     }
 }
 
@@ -168,19 +183,18 @@ impl Not for TeamColor {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Direction {
-    //TODO もう少し短く簡潔に
-    BlueRightYellowLeft,
-    BlueLeftYellowRight,
+pub enum TeamHome {
+    BlueYellow,
+    YellowBlue,
 }
 
-impl Not for Direction {
+impl Not for TeamHome {
     type Output = Self;
     fn not(self) -> Self {
-        use Direction::*;
+        use TeamHome::*;
         match self {
-            BlueLeftYellowRight => BlueRightYellowLeft,
-            BlueRightYellowLeft => BlueLeftYellowRight,
+            YellowBlue => BlueYellow,
+            BlueYellow => YellowBlue,
         }
     }
 }
@@ -237,7 +251,7 @@ impl Default for World {
             balls: vec![],
             blues: Team::default(),
             yellows: Team::default(),
-            field: Field::new_large(Direction::BlueLeftYellowRight),
+            field: Field::new_large(TeamHome::YellowBlue),
             command: None,
             stage: None,
             timestamp: Instant::now(),
