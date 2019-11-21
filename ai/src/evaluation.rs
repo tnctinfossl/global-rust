@@ -56,19 +56,3 @@ pub fn evaluate_shoot(bitfield:&BitField,field:&Field,robots:&Team)->(f32,f32){
     (0.0,0.0)
 }
 
-
-fn max(a: f32, b: f32) -> f32 {
-    if a < b {
-        b
-    } else {
-        a
-    }
-}
-
-fn min(a: f32, b: f32) -> f32 {
-    if a > b {
-        b
-    } else {
-        a
-    }
-}
