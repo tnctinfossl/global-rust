@@ -1,8 +1,9 @@
 extern crate model;
 use super::bitfield::BitField;
+use super::geometry::*;
 use glm::*;
 use model::*;
-#[feature(test)]
+use std::iter::*;
 
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let p = (field.outfield / 2.0 + position) / field.outfield;
@@ -10,7 +11,7 @@ fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let y = min(p.y * 100.0, 99.0) as usize;
     (x, y)
 }
-
+#[allow(dead_code)]
 fn decode(
     bitfield: &BitField,
     field: &Field,
@@ -25,6 +26,7 @@ fn decode(
     field.outfield * (rate - half)
 }
 
+#[allow(dead_code)]
 pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f32, f32) {
     let locate = |r: &Box<Robot>| encode(&field, r.position);
     let my_team_positions: Vec<_> = my_team.robots.iter().map(locate).collect();
@@ -55,9 +57,49 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
     (ret_b, ret_y)
 }
 
-pub fn evaluate_shoot(field: &Field, mine: &Team, yours: &Team) -> (f32, f32) {
-    //計算量O(n2)程度
-    
+//パス通過性について超過する
+//制約 objects にはbegin,endが含まれていないこと
+#[allow(dead_code)]
+pub fn pathable<I>((begin, end): (Vec2, Vec2), objects: I) -> f32
+where
+    I: Iterator<Item = Vec2>,
+{
+    /* 座標beginを通り、線分[begin,end]に垂直な直線fと
+     ** 座標endを通り、線分[begin,end]に垂直な直線gに挟まれた領域に含まれる
+     ** 座標郡objectsと線分[begin,end]の距離を求め、最短のものを返す
+     */
+    //[begin,end]の順番に制約がある場合が予想される。制約が発生していないか確認すること
 
-    (0.0, 0.0)
+    let d = normal(end - begin);
+    let f = |p: Vec2| dot(p, d) - dot(d, begin);
+    let g = |p: Vec2| dot(p, d) - dot(d, end);
+
+    objects
+        .filter(|p: &Vec2| {
+            0.0 < f(*p) && g(*p) < 0.0 //あっているか要確認
+        })
+        .map(|p: Vec2| distance_line_point((begin, end), p))
+        .fold(std::f32::MAX, |x: f32, y: f32| if x < y { x } else { y })
+}
+
+pub fn evaluate_shoot(field: &Field, mine: &Team, yours: &Team) -> f32 {
+    //計算量O(n2)程度
+    let goal = field.your_goal(mine);
+    /*
+      mine.robots
+          .iter()
+          .map(|target: &Box<Robot>| {
+              let others = mine
+                  .robots
+                  .iter()
+                  .filter(|cmp: &&Box<Robot>| cmp.id != target.id)
+                  .chain(yours.robots.iter());
+              let distance = others
+                  .map(|other: &Box<Robot>| {
+                      distance_segment_point((target.position, goal), other.position)
+                  })
+                  .reduce(util::min)
+          })
+    */
+    0.0 //準備中
 }
