@@ -60,9 +60,7 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
 //パス通過性について超過する
 //制約 objects にはbegin,endが含まれていないこと
 #[allow(dead_code)]
-pub fn pathable<I>((begin, end): (Vec2, Vec2), objects: I) -> f32
-where
-    I: Iterator<Item = Vec2>,
+pub fn passable((begin, end): (Vec2, Vec2), objects:&[Vec2]) -> f32
 {
     /* 座標beginを通り、線分[begin,end]に垂直な直線fと
      ** 座標endを通り、線分[begin,end]に垂直な直線gに挟まれた領域に含まれる
@@ -74,17 +72,26 @@ where
     let f = |p: Vec2| dot(p, d) - dot(d, begin);
     let g = |p: Vec2| dot(p, d) - dot(d, end);
 
-    objects
-        .filter(|p: &Vec2| {
-            0.0 < f(*p) && g(*p) < 0.0 //あっているか要確認
+    objects.iter()
+        .filter(|p: &&Vec2| {
+            0.0 < g(**p) && f(**p) < 0.0 //あっているか要確認
         })
-        .map(|p: Vec2| distance_line_point((begin, end), p))
+        .map(|p: &Vec2| distance_line_point((begin, end), *p))
         .fold(std::f32::MAX, |x: f32, y: f32| if x < y { x } else { y })
 }
 
+#[test]
+fn test_passable(){
+    let objects=vec![vec2(0.5,1.0),vec2(0.5,-1.0)];
+    let responce = passable((vec2(0.0,0.0),vec2(1.0,0.0)),&objects);
+    assert_eq!(responce,1.0);
+}
+
+
+
 pub fn evaluate_shoot(field: &Field, mine: &Team, yours: &Team) -> f32 {
     //計算量O(n2)程度
-    let goal = field.your_goal(mine);
+    //let goal = field.your_goal(mine);
     /*
       mine.robots
           .iter()

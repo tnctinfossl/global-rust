@@ -1,6 +1,6 @@
 extern crate glm;
 
-mod model;
+mod line;
 
 fn main() {
 
