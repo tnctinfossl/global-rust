@@ -44,14 +44,49 @@ pub fn distance_segment_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
 
 //線分[src,dest]と最も近いものとの距離を求める
 #[allow(dead_code)]
-pub fn distance_segment_nearest_points<I>((src, dest): (Vec2, Vec2), points: I) -> f32
+pub fn distance_segment_nearest_points<I>((src, dest): (Vec2, Vec2), points: I) -> Option<f32>
 where
     I: Iterator<Item = Vec2>,
 {
     points
         .map(|point| -> f32 { distance_segment_point((src, dest), point) })
         //.reduce(|a, b| if a > b { b } else { a })
-        .fold(MAX, |x: f32, y: f32| if x < y { x } else { y })
+        .min_by(|a, b| a.partial_cmp(b).unwrap())
+}
+
+//パスの経路[begin,end]に最も近い場所との距離を求める。
+//この際、[,begin],[end,]が最も近い場所は含まない。
+//制約 objects にはbegin,endが含まれていないこと
+#[allow(dead_code)]
+pub fn distance_path_nearest_points<'a, I: Iterator<Item = &'a Vec2>>(
+    (begin, end): (Vec2, Vec2),
+    objects: I,
+) -> Option<f32> {
+    /*  座標beginを通り、線分[begin,end]に垂直な直線fと
+     ** 座標endを通り、線分[begin,end]に垂直な直線gに挟まれた領域に含まれる
+     ** 座標郡objectsと線分[begin,end]の距離を求め、最短のものを返す
+     */
+
+    //[begin,end]を通る直線は ax+by+c=0を満たす
+    let motion = vec2(1.0, -1.0) * (end - begin);
+    let turn = turn_right(motion);
+
+    //[begin,end]の法線かつbeginを通る直線fを求める
+    let f = |p: Vec2| dot(turn, p) - dot(turn, begin);
+
+    //[begin,end]の法線かつendを通る直線gを求める
+    let g = |p: Vec2| dot(turn, p) - dot(turn, end);
+    println!("{},{},{},{}",turn.x,turn.y,- dot(turn, begin),- dot(turn, end));
+    
+    objects
+        .filter_map(|p: &Vec2| {
+            if 0.0 <= f(*p) && g(*p) <= 0.0 {
+                Some(distance_line_point((begin, end), *p))
+            } else {
+                None
+            }
+        })
+        .min_by(|a, b| a.partial_cmp(b).unwrap())
 }
 
 #[cfg(test)]
