@@ -19,14 +19,14 @@ fn test_cross2() {
 
 //90度まわす つまり法線を求める
 #[inline(always)]
-pub fn normal(p: Vec2) -> Vec2 {
+pub fn turn_right(p: Vec2) -> Vec2 {
     vec2(-p.y, p.x)
 }
 
 #[test]
-fn normal() {
-    assert_eq!(normal(vec2(1.0, 0.0)), vec2(0.0, 1.0));
-    assert_eq!(normal(vec2(0.0, 1.0)), vec2(-1.0, 0.0));
+fn test_turn_right() {
+    assert_eq!(turn_right(vec2(1.0, 0.0)), vec2(0.0, 1.0));
+    assert_eq!(turn_right(vec2(0.0, 1.0)), vec2(-1.0, 0.0));
 }
 
 #[inline(always)]
@@ -38,7 +38,7 @@ fn length2<S: BaseFloat, T: GenFloatVec<S>>(x: T) -> S {
 #[allow(dead_code)]
 pub fn distance_line_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
     //導出
-    abs(dot(b - a, normal(p)) + cross2(a, b)) / length(b - a)
+    abs(dot(b - a, turn_right(p)) + cross2(a, b)) / length(b - a)
 }
 
 #[test]

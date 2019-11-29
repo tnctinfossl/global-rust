@@ -60,7 +60,7 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
 //パス通過性について超過する
 //制約 objects にはbegin,endが含まれていないこと
 #[allow(dead_code)]
-pub fn passable((begin, end): (Vec2, Vec2), objects:&[Vec2]) -> f32
+pub fn passable<'a,I:Iterator<Item=&'a Vec2>>((begin, end): (Vec2, Vec2), objects:I) -> Option<f32>
 {
     /* 座標beginを通り、線分[begin,end]に垂直な直線fと
      ** 座標endを通り、線分[begin,end]に垂直な直線gに挟まれた領域に含まれる
@@ -69,39 +69,40 @@ pub fn passable((begin, end): (Vec2, Vec2), objects:&[Vec2]) -> f32
     //[begin,end]の順番に制約がある場合が予想される。制約が発生していないか確認すること
 
     //[begin,end]を通る直線は ax+by+c=0を満たす
-    let d = end-begin;
-    let (a,b)=(d.x,-d.y);
-    let c = -(a*begin.x+b*begin.y);
+    let motion = vec2(1.0,-1.0)*(end-begin);
+    let turn= turn_right(motion);
+
     //println!("{},{},{}",a,b,c);
     
     //[begin,end]の法線かつbeginを通る直線fを求める
-    let fa = b;
-    let fb = -a;
-    let fc = -(fa*begin.x+fb*begin.x);
-    let f = |p: Vec2| fa*p.x+fb*p.y+fc;
-    println!("{},{},{}",fa,fb,fc);
+    let f = |p: Vec2| dot(turn,p)-dot(turn,begin);
+    println!("a={},b={},c={}",turn.x,turn.y,-dot(turn,begin));
 
     //[begin,end]の法線かつendを通る直線gを求める
-    let ga =b;
-    let gb =-a;
-    let gc = -(ga*end.x+gb*end.x);
-    let g = |p: Vec2| ga*p.x+gb*p.y+gc;
-    println!("{},{},{}",ga,gb,gc);
+    let g = |p: Vec2| dot(turn,p)-dot(turn,end);
+    println!("a={},b={},c={}",turn.x,turn.y,-dot(turn,end));
 
-    objects.iter()
-        .filter(|p: &&Vec2| {
-            println!("({},{})",g(**p),f(**p));
-            0.0 < g(**p) && f(**p) < 0.0 //あっているか要確認
-        })
-        .map(|p: &Vec2| distance_line_point((begin, end), *p))
-        .fold(std::f32::MAX, |x: f32, y: f32| if x < y { x } else { y })
+    objects
+        .filter_map(|p: &Vec2| {
+            println!("({},{})",f(*p),g(*p));
+            if 0.0 <= f(*p) && g(*p) <= 0.0{
+                Some(distance_line_point((begin,end), *p))
+            }else{
+                None
+            }
+        }).min_by(|a,b|a.partial_cmp(b).unwrap())
 }
 
 #[test]
 fn test_passable(){
-    let objects=vec![vec2(0.5,1.0),vec2(0.5,-1.0)];
-    let responce = passable((vec2(0.0,0.0),vec2(1.0,0.0)),&objects);
-    assert_eq!(responce,1.0);
+    let (begin,end)=(vec2(1.0,1.0),vec2(3.0,3.0));
+    assert_eq!(passable((begin,end), [].iter()),None);
+    assert_eq!(passable((begin,end), [vec2(2.0,0.0)].iter()),Some(sqrt(2.0)));
+    assert_eq!(passable((begin,end), [vec2(0.0,2.0)].iter()),Some(sqrt(2.0)));
+    assert_eq!(passable((begin,end), [vec2(0.0,0.0)].iter()),None);
+    assert_eq!(passable((end,begin), [vec2(2.0,0.0)].iter()),Some(sqrt(2.0)));
+    assert_eq!(passable((end,begin), [vec2(0.0,2.0)].iter()),Some(sqrt(2.0)));
+    assert_eq!(passable((end,begin), [vec2(0.0,0.0)].iter()),None);
 }
 
 
