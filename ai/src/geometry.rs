@@ -24,7 +24,7 @@ pub fn normal(p: Vec2) -> Vec2 {
 }
 
 #[test]
-fn test_flip() {
+fn normal() {
     assert_eq!(normal(vec2(1.0, 0.0)), vec2(0.0, 1.0));
     assert_eq!(normal(vec2(0.0, 1.0)), vec2(-1.0, 0.0));
 }

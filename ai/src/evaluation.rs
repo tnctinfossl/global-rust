@@ -68,12 +68,29 @@ pub fn passable((begin, end): (Vec2, Vec2), objects:&[Vec2]) -> f32
      */
     //[begin,end]の順番に制約がある場合が予想される。制約が発生していないか確認すること
 
-    let d = normal(end - begin);
-    let f = |p: Vec2| dot(p, d) - dot(d, begin);
-    let g = |p: Vec2| dot(p, d) - dot(d, end);
+    //[begin,end]を通る直線は ax+by+c=0を満たす
+    let d = end-begin;
+    let (a,b)=(d.x,-d.y);
+    let c = -(a*begin.x+b*begin.y);
+    //println!("{},{},{}",a,b,c);
+    
+    //[begin,end]の法線かつbeginを通る直線fを求める
+    let fa = b;
+    let fb = -a;
+    let fc = -(fa*begin.x+fb*begin.x);
+    let f = |p: Vec2| fa*p.x+fb*p.y+fc;
+    println!("{},{},{}",fa,fb,fc);
+
+    //[begin,end]の法線かつendを通る直線gを求める
+    let ga =b;
+    let gb =-a;
+    let gc = -(ga*end.x+gb*end.x);
+    let g = |p: Vec2| ga*p.x+gb*p.y+gc;
+    println!("{},{},{}",ga,gb,gc);
 
     objects.iter()
         .filter(|p: &&Vec2| {
+            println!("({},{})",g(**p),f(**p));
             0.0 < g(**p) && f(**p) < 0.0 //あっているか要確認
         })
         .map(|p: &Vec2| distance_line_point((begin, end), *p))

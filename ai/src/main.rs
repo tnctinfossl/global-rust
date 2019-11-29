@@ -14,9 +14,9 @@ fn main() {
     //let mut world=model::World::new();
     //world.alocate_random( &mut rng, 10);
     //println!("{:?}",evaluation::evaluate_shoot(&world.field, &world.blues, &world.yellows));
-    let begin=vec2(0.0,0.0);
-    let end=vec2(1.0,0.0);
-    let objects=[vec2(0.5,1.0)];
+    let begin=vec2(1.0,1.0);
+    let end=vec2(3.0,3.0);
+    let objects=[vec2(1.0-20.0,3.0)];
     println!("{}",evaluation::passable((begin,end), &objects));
 
 }
