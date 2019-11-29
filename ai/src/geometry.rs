@@ -11,22 +11,10 @@ fn cross2(a: Vec2, b: Vec2) -> f32 {
     x0 * y1 - x1 * y0
 }
 
-#[test]
-fn test_cross2() {
-    assert_eq!(cross2(vec2(1.0, 0.0), vec2(0.0, 1.0)), 1.0);
-    assert_eq!(cross2(vec2(0.0, 1.0), vec2(1.0, 0.0)), -1.0);
-}
-
 //90度まわす つまり法線を求める
 #[inline(always)]
 pub fn turn_right(p: Vec2) -> Vec2 {
     vec2(-p.y, p.x)
-}
-
-#[test]
-fn test_turn_right() {
-    assert_eq!(turn_right(vec2(1.0, 0.0)), vec2(0.0, 1.0));
-    assert_eq!(turn_right(vec2(0.0, 1.0)), vec2(-1.0, 0.0));
 }
 
 #[inline(always)]
@@ -39,12 +27,6 @@ fn length2<S: BaseFloat, T: GenFloatVec<S>>(x: T) -> S {
 pub fn distance_line_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
     //導出
     abs(dot(b - a, turn_right(p)) + cross2(a, b)) / length(b - a)
-}
-
-#[test]
-fn test_distance_line_point() {
-    let d = distance_line_point((vec2(0.0, 0.0), vec2(0.0, 0.2)), vec2(1.0, 1.0));
-    assert_eq!(d, 1.0);
 }
 
 //二点a,bを通る線分と点pの距離
@@ -70,4 +52,24 @@ where
         .map(|point| -> f32 { distance_segment_point((src, dest), point) })
         //.reduce(|a, b| if a > b { b } else { a })
         .fold(MAX, |x: f32, y: f32| if x < y { x } else { y })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_turn_right() {
+        assert_eq!(turn_right(vec2(1.0, 0.0)), vec2(0.0, 1.0));
+        assert_eq!(turn_right(vec2(0.0, 1.0)), vec2(-1.0, 0.0));
+    }
+    #[test]
+    fn test_distance_line_point() {
+        let d = distance_line_point((vec2(0.0, 0.0), vec2(0.0, 0.2)), vec2(1.0, 1.0));
+        assert_eq!(d, 1.0);
+    }
+    #[test]
+    fn test_cross2() {
+        assert_eq!(cross2(vec2(1.0, 0.0), vec2(0.0, 1.0)), 1.0);
+        assert_eq!(cross2(vec2(0.0, 1.0), vec2(1.0, 0.0)), -1.0);
+    }
 }
