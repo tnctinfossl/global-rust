@@ -3,10 +3,8 @@ use model::*;
 mod bitfield;
 mod evaluation;
 mod util;
-mod geometry;
 use evaluation::space_domination;
 use glm::*;
-use geometry::*;
 use std::time::{Duration, Instant};
 use rand::{Rng, SeedableRng};
 fn main() {
@@ -14,7 +12,7 @@ fn main() {
     let mut world=model::World::new();
     world.alocate_random( &mut rng, 10);
     
-    //
+    /*
     let (begin,end)=(world.field.goal(model::Side::Right)+vec2(0.1,0.1),world.field.goal(model::Side::Left));
     let blues=world.blues.robots.iter();
     let yellows=world.yellows.robots.iter();
@@ -22,6 +20,7 @@ fn main() {
         p.position
     }).collect();
     println!("{}",evaluation::passable((begin,end), objects.iter()));
+    */
 }
 
 

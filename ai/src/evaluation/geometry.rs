@@ -1,5 +1,5 @@
 use glm::*;
-use std::f32::*;
+
 //クロス積?を求める
 #[inline(always)]
 fn cross2(a: Vec2, b: Vec2) -> f32 {
@@ -106,5 +106,29 @@ mod tests {
     fn test_cross2() {
         assert_eq!(cross2(vec2(1.0, 0.0), vec2(0.0, 1.0)), 1.0);
         assert_eq!(cross2(vec2(0.0, 1.0), vec2(1.0, 0.0)), -1.0);
+    }
+
+    #[test]
+    fn test_distance_path_nearest_points() {
+        let (begin, end) = (vec2(1.0, 1.0), vec2(3.0, 3.0));
+        assert_eq!(distance_path_nearest_points((begin, end), [].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((begin, end), [vec2(2.0, 0.0)].iter()),
+            Some(sqrt(2.0))
+        );
+        assert_eq!(
+            distance_path_nearest_points((begin, end), [vec2(0.0, 2.0)].iter()),
+            Some(sqrt(2.0))
+        );
+        assert_eq!(distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((end, begin), [vec2(2.0, 0.0)].iter()),
+            Some(sqrt(2.0))
+        );
+        assert_eq!(
+            distance_path_nearest_points((end, begin), [vec2(0.0, 2.0)].iter()),
+            Some(sqrt(2.0))
+        );
+        assert_eq!(distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()), None);
     }
 }
