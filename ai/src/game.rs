@@ -56,5 +56,5 @@ impl Default for Scene{
 pub struct History{
     scenes:VecDeque<Rc<RefCell<Scene>>>,
     score:(f32,f32),
-    //futures:Vec<>
+    futures:Vec<History>
 }
