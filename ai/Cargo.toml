@@ -11,3 +11,4 @@ model={path="../model"}
 glm = "0.2.3"
 rand = "0.7.2"
 rand_xoshiro = "0.4.0"
+rand_distr = "0.2.2"
