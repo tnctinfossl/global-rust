@@ -4,6 +4,7 @@ mod bitfield;
 mod evaluation;
 mod util;
 mod geometry;
+mod game;
 use evaluation::space_domination;
 use glm::*;
 use geometry::*;
