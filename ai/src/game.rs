@@ -129,26 +129,26 @@ impl History {
         }
     }
 
-    pub fn position(&self,id:RobotID)->Option<(Vec2,f32)>{
-        if let Some(r)=self.find(0,id){
+    pub fn position(&self,era:usize,id:RobotID)->Option<(Vec2,f32)>{
+        if let Some(r)=self.find(era,id){
             Some((r.position, r.angle))
+        }else{
+            None
+        }
+    }
+    //TODO 時間の概念
+    pub fn velocity(&self,id: RobotID) -> Option<f32> {
+        if self.elapsed_time > 0.0{
+            let v = distance(self.position(0,id).unwrap().0,self.position(1,id).unwrap().0)  / self.elapsed_time;
+            Some(v)
         }else{
             None
         }
     }
 }
 
-/*pub fn position(&self, id: RobotID) -> Option<(Vec2, f32)> {
-    use RobotID::*;
 
-    if id <= 0 {
-        None
-    } else {
-        (robot.position, robot.angle)
-    }
-}*/
 
-/*pub fn velocity(id: RobotID) -> Option<(Vec2, f32)> {}*/
 
 /*pub fn acceleration(id: RobotID) -> Option<(Vec2, f32)> {}*/
 
