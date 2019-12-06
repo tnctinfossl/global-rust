@@ -88,6 +88,7 @@ impl Default for Scene {
 }
 
 impl Scene {
+    #[allow(dead_code)]
     pub fn new(robots: HashMap<RobotID, RobotID>, balls: Vec<Ball>) -> Scene {
         Scene {
             robots: HashMap::new(),
@@ -155,12 +156,12 @@ impl History {
         let now = Self::rad_range(now);
         let last = Self::rad_range(last);
         //短い経路を選択する
-        if abs(now - last) < (pi+std::f32::EPSILON ){
+        if abs(now - last) < (pi + std::f32::EPSILON) {
             now - last
         } else {
-            if now>last{
+            if now > last {
                 now - two_pi - last
-            }else{
+            } else {
                 now + two_pi - last
             }
         }
@@ -168,13 +169,14 @@ impl History {
     //[x_0 - 2*x_1 + x_2]を求める
     #[inline(always)]
     fn rad_diff3(first: f32, second: f32, third: f32) -> f32 {
-        let two_pi = 2.0 * std::f32::consts::PI;
-        //正規化する[0..2PI]
-        let first = Self::rad_range(first);
-        let second = Self::rad_range(second);
-        let third = Self::rad_range(third);
         //短い経路を求めつつ，[x_0 - 2*x_1 + x_2]を求める
         Self::rad_diff(first, second) - Self::rad_diff(second, third)
+    }
+
+    #[inline(always)]
+    fn rad_diff4(first: f32, second: f32, third: f32,forth:f32) -> f32 {
+        //短い経路を求めつつ，[x_0 - 3*x_1 + 3*x_2 - x_3]を求める
+        Self::rad_diff3(first, second,third) - Self::rad_diff3(second, third,forth)
     }
 
     #[allow(dead_code)]
@@ -195,36 +197,39 @@ impl History {
         let second = self.find(1, id)?;
         let third = self.find(2, id)?;
         //差分方程式を計算する
-        let acc = (first.position - second.position * 2.0 + third.position) / (self.period.powi(3));
-        let alpha = Self::rad_diff3(first.angle, second.angle, third.angle) / (self.period.powi(3));
+        let acc = (first.position - second.position * 2.0 + third.position) / (self.period.powi(2));
+        let alpha = Self::rad_diff3(first.angle, second.angle, third.angle) / (self.period.powi(2));
         Some((acc, alpha))
     }
 
+    #[allow(dead_code)]
     pub fn jerk(&self, id: RobotID) -> Option<(Vec2, f32)> {
         //データの取得
         let first = self.find(0, id)?;
         let second = self.find(1, id)?;
         let third = self.find(2, id)?;
         let forth = self.find(3, id)?;
-        None //TODO 準備中です
+        //差分方程式を解く
+        let jerk = (first.position-second.position*3.0+third.position*3.0-forth.position)/(self.period.powi(3));
+        let jerk_rad  = Self::rad_diff4(first.angle,second.angle,third.angle,forth.angle)/(self.period.powi(3));
+        Some((jerk,jerk_rad))
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Future {
-    history: History,
-}
 
-impl Future {
-    /*pub fn new(history: History) -> Scene {
-        let history = history;
-    }*/
-}
+
+
 
 #[derive(Debug, Clone)]
 pub struct Tree {
-    histories: History,
+    children: History,
     score: (f32, f32),
+}
+
+impl Tree {/*
+    pub fn new(children: History,score: (f32,f32)) -> Scene{
+        let history = children;
+    }*/
 }
 
 #[cfg(test)]
@@ -238,7 +243,7 @@ mod tests {
     #[test]
     fn test_rad_range() {
         let pi = std::f32::consts::PI;
-        assert!(eq(History::rad_range(0.0),0.0));
+        assert!(eq(History::rad_range(0.0), 0.0));
         assert!(eq(History::rad_range(pi), pi));
         assert!(eq(History::rad_range(3.0 * pi), pi));
         assert!(eq(History::rad_range(-pi), pi));
@@ -249,13 +254,13 @@ mod tests {
     fn test_rad_diff() {
         let two_pi = 2.0 * std::f32::consts::PI;
         let pi = std::f32::consts::PI;
-        let pi_2 =std::f32::consts::PI/2.0;
-        let pi_4 =std::f32::consts::PI/4.0;
+        let pi_2 = std::f32::consts::PI / 2.0;
+        let pi_4 = std::f32::consts::PI / 4.0;
 
-        assert!(eq(History::rad_diff(0.0, 0.0),0.0));
-        assert!(eq(History::rad_diff(pi_2,0.0),pi_2));
-        assert!(eq(History::rad_diff(0.0,pi_2),-pi_2));
-        assert!(eq(History::rad_diff(pi+pi_2,0.0),-pi_2));
-        assert!(eq(History::rad_diff(0.0,pi+pi_2),pi_2));
+        assert!(eq(History::rad_diff(0.0, 0.0), 0.0));
+        assert!(eq(History::rad_diff(pi_2, 0.0), pi_2));
+        assert!(eq(History::rad_diff(0.0, pi_2), -pi_2));
+        assert!(eq(History::rad_diff(pi + pi_2, 0.0), -pi_2));
+        assert!(eq(History::rad_diff(0.0, pi + pi_2), pi_2));
     }
 }
