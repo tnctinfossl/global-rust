@@ -1,7 +1,7 @@
 use glm::*;
 use crate::bitfield::BitField;
 use super::model::*;
-
+#[allow(dead_code)]
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let p = (field.outfield / 2.0 + position) / field.outfield;
     let x = min(p.x * 128.0, 127.0) as usize;
@@ -54,3 +54,28 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
     let ret_y = enemy_team_field.count_one() as f32 / enemy_team_field.area() as f32;
     (ret_b, ret_y)
 }
+
+//シュートの可能性を評価する
+#[allow(dead_code)]
+pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
+    //計算量O(n2)程度
+    //let goal = field.your_goal(mine);
+    /*
+      mine.robots
+          .iter()
+          .map(|target: &Box<Robot>| {
+              let others = mine
+                  .robots
+                  .iter()
+                  .filter(|cmp: &&Box<Robot>| cmp.id != target.id)
+                  .chain(yours.robots.iter());
+              let distance = others
+                  .map(|other: &Box<Robot>| {
+                      distance_segment_point((target.position, goal), other.position)
+                  })
+                  .reduce(util::min)
+          })
+    */
+    0.0 //準備中
+}
+
