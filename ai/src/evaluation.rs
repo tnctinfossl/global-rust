@@ -6,6 +6,8 @@ pub mod pass;
 pub use field::*;
 pub use geometry::*;
 use glm::*;
+pub mod bitfield;
+
 //パスの可能性を評価する
 #[allow(dead_code)]
 pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {

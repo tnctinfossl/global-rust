@@ -1,9 +1,7 @@
 extern crate model;
 use model::*;
-mod bitfield;
 mod evaluation;
 mod game;
-mod geometry;
 mod util;
 use evaluation::space_domination;
 use glm::*;

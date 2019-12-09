@@ -1,6 +1,6 @@
-use glm::*;
-use crate::bitfield::BitField;
+use super::bitfield::*;
 use super::model::*;
+use glm::*;
 
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let p = (field.outfield / 2.0 + position) / field.outfield;
@@ -22,7 +22,6 @@ fn decode(
 
     field.outfield * (rate - half)
 }
-
 
 #[allow(dead_code)]
 pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f32, f32) {
