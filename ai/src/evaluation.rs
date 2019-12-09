@@ -1,11 +1,11 @@
 extern crate model;
-
 use model::*;
 pub mod field;
-pub mod pass;
 pub mod geometry;
+pub mod pass;
 pub use field::*;
-
+pub use geometry::*;
+use glm::*;
 //パスの可能性を評価する
 #[allow(dead_code)]
 pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {
@@ -38,35 +38,4 @@ pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
           })
     */
     0.0 //準備中
-}
-
-    #[test]
-    fn test_distance_path_nearest_points() {
-        let (begin, end) = (vec2(1.0, 1.0), vec2(3.0, 3.0));
-        assert_eq!(distance_path_nearest_points((begin, end), [].iter()), None);
-        assert_eq!(
-            distance_path_nearest_points((begin, end), [vec2(2.0, 0.0)].iter()),
-            Some(sqrt(2.0))
-        );
-        assert_eq!(
-            distance_path_nearest_points((begin, end), [vec2(0.0, 2.0)].iter()),
-            Some(sqrt(2.0))
-        );
-        assert_eq!(
-            distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()),
-            None
-        );
-        assert_eq!(
-            distance_path_nearest_points((end, begin), [vec2(2.0, 0.0)].iter()),
-            Some(sqrt(2.0))
-        );
-        assert_eq!(
-            distance_path_nearest_points((end, begin), [vec2(0.0, 2.0)].iter()),
-            Some(sqrt(2.0))
-        );
-        assert_eq!(
-            distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()),
-            None
-        );
-    }
 }
