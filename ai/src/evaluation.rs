@@ -59,11 +59,12 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
 
 //パスの可能性を評価する
 #[allow(dead_code)]
-pub fn passable<'a,I:Iterator<Item=&'a Vec2>>((begin,end):(Vec2,Vec2),objects:I)->f32{
-    let nearest_distance=distance_path_nearest_points((begin,end), objects).unwrap_or(std::f32::MAX);
-    let path_distance= distance(begin, end);
-    println!("{},{}",nearest_distance,path_distance);
-    -log(nearest_distance+1.0)-log(path_distance+1.0)
+pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {
+    let nearest_distance =
+        distance_path_nearest_points((begin, end), objects).unwrap_or(std::f32::MAX);
+    let path_distance = distance(begin, end);
+    println!("{},{}", nearest_distance, path_distance);
+    -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
 
 //シュートの可能性を評価する
@@ -105,7 +106,10 @@ mod tests {
             distance_path_nearest_points((begin, end), [vec2(0.0, 2.0)].iter()),
             Some(sqrt(2.0))
         );
-        assert_eq!(distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()),
+            None
+        );
         assert_eq!(
             distance_path_nearest_points((end, begin), [vec2(2.0, 0.0)].iter()),
             Some(sqrt(2.0))
@@ -114,6 +118,9 @@ mod tests {
             distance_path_nearest_points((end, begin), [vec2(0.0, 2.0)].iter()),
             Some(sqrt(2.0))
         );
-        assert_eq!(distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()),
+            None
+        );
     }
 }

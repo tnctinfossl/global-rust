@@ -11,7 +11,7 @@ members=["vision","model","viewer","refbox","ai"]
 serde = "1.0.101"
 serde_json = "1.0.40"
 serde_derive ="1.0.101"
-glm = "0.2.3"
+glm = {git="https://github.com/tnctinfossl/glm-rs.git"}
 env_logger = "0.6.2"
 log = "0.4.8"
 vision={path="vision"}

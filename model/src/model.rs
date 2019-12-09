@@ -1,19 +1,22 @@
 use glm::{distance, Vec2,vec2};
 use rand::Rng;
+use serde_derive::*;
 use std::collections::HashMap;
 use std::ops::*;
 use std::time::{Duration, Instant};
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Robot {
     pub id: u32,
     pub position: Vec2,
     pub angle: f32,
+    #[serde(skip, default = "Instant::now")]
     pub time: Instant,
     pub confidence: f32,
     pub tags: HashMap<String, String>, //追加する
 }
 
 impl Robot {
+    #[allow(dead_code)]
     pub fn new(id: u32, position: Vec2, angle: f32, confidence: f32) -> Robot {
         Robot {
             id: id,
@@ -26,14 +29,16 @@ impl Robot {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Ball {
     pub position: Vec2,
+    #[serde(skip, default = "Instant::now")]
     pub time: Instant, //追加する
     pub confidence: f32,
 }
 
 impl Ball {
+    #[allow(dead_code)]
     pub fn new(position: Vec2, confidence: f32) -> Ball {
         Ball {
             position: position,
@@ -42,7 +47,7 @@ impl Ball {
         }
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Team {
     pub robots: Vec<Box<Robot>>,
     pub name: Option<String>,
@@ -105,7 +110,7 @@ impl Team {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
@@ -126,7 +131,6 @@ impl Field {
             penalty_area_depth: 1200.0,
         }
     }
-
     #[allow(dead_code)]
     pub fn new_small() -> Field {
         Field {
@@ -138,7 +142,6 @@ impl Field {
             penalty_area_depth: 1000.0,
         }
     }
-
     #[allow(dead_code)]
     pub fn allocate_robot_by_random<R: Rng + ?Sized>(&self, random: &mut R, id: u32) -> Robot {
         let position = Vec2::new(
@@ -148,7 +151,6 @@ impl Field {
         let angle = random.gen_range(0.0, std::f32::consts::PI * 2.0);
         Robot::new(id, position, angle, 1.0)
     }
-
     #[allow(dead_code)]
     pub fn allocate_ball_by_random<R: Rng + ?Sized>(&self, random: &mut R) -> Ball {
         let position = Vec2::new(
@@ -180,7 +182,7 @@ impl Field {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub enum TeamColor {
     Blue,
     Yellow,
@@ -215,7 +217,7 @@ impl Not for Side {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, Ord, Hash, PartialEq, PartialOrd)]
 pub enum Command {
     Halt,
     Stop,
@@ -231,7 +233,7 @@ pub enum Command {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Stage {
     NormalFirstHalfPre,
     NormalFirstHalf,
@@ -249,7 +251,7 @@ pub enum Stage {
     PostGame,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct World {
     pub balls: Vec<Box<Ball>>,
     pub blues: Team,
@@ -257,6 +259,7 @@ pub struct World {
     pub field: Field,
     pub command: Option<Command>,
     pub stage: Option<Stage>,
+    #[serde(skip, default = "Instant::now")]
     pub timestamp: Instant,
 }
 
@@ -273,7 +276,7 @@ impl Default for World {
         }
     }
 }
-
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MergeOptions {
     mergin: f32, //同一オブジェクトとみなす距離[mm]
     time_limit: Duration,
@@ -287,12 +290,13 @@ impl Default for MergeOptions {
         }
     }
 }
-#[allow(dead_code)]
+
 impl World {
+    #[allow(dead_code)]
     pub fn new() -> World {
         World::default()
     }
-
+    #[allow(dead_code)]
     pub fn merge(&mut self, newer: World, options: &MergeOptions) {
         //寿命チェック
         let now = newer.timestamp;
@@ -319,7 +323,7 @@ impl World {
         self.stage = newer.stage.or(self.stage);
         self.timestamp = now;
     }
-
+    #[allow(dead_code)]
     pub fn alocate_random<R: Rng + ?Sized>(&mut self, random: &mut R, count: u32) {
         self.blues.robots = (0..count)
             .map(|id: u32| Box::new(self.field.allocate_robot_by_random(random, id)))

@@ -8,6 +8,6 @@ edition = "2018"
 
 [dependencies]
 model={path="../model"}
-glm = "0.2.3"
+glm = {git="https://github.com/tnctinfossl/glm-rs.git"}
 rand = "0.7.2"
 rand_xoshiro = "0.4.0"
