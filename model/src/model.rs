@@ -1,4 +1,4 @@
-use glm::{distance, Vec2,vec2};
+use glm::{distance, vec2, Vec2};
 use rand::Rng;
 use serde_derive::*;
 use std::collections::HashMap;
@@ -55,7 +55,7 @@ pub struct Team {
     pub red_card: Option<u32>,
     pub yellow_card: Option<u32>,
     pub goalie: Option<u32>, //ゴールキーパ
-    pub home:Side //自陣の場所
+    pub home: Side,          //自陣の場所
 }
 
 impl Default for Team {
@@ -67,18 +67,21 @@ impl Default for Team {
             red_card: None,
             yellow_card: None,
             goalie: None,
-            home:Side::Right
+            home: Side::Right,
         }
     }
 }
 
 impl Team {
-
-    pub fn new(home:Side)->Team{
-        Team{home:home,..Team::default()}
+    #[allow(dead_code)]
+    pub fn new(home: Side) -> Team {
+        Team {
+            home: home,
+            ..Team::default()
+        }
     }
 
-
+    #[allow(dead_code)]
     pub fn merge(&mut self, newer: Team, now: Instant, options: &MergeOptions) {
         //寿命チェック
         self.robots
@@ -161,22 +164,21 @@ impl Field {
     }
 
     #[allow(dead_code)]
-    pub fn goal(&self,side:Side)->Vec2{
-        let width=self.infield.x/2.0;
-        match side{
-            Side::Right=>vec2(width,0.0),
-            Side::Left=>vec2(-width,0.0)
+    pub fn goal(&self, side: Side) -> Vec2 {
+        let width = self.infield.x / 2.0;
+        match side {
+            Side::Right => vec2(width, 0.0),
+            Side::Left => vec2(-width, 0.0),
         }
     }
 
     #[allow(dead_code)]
-    pub fn my_goal(&self,team:&Team)->Vec2{
+    pub fn my_goal(&self, team: &Team) -> Vec2 {
         self.goal(team.home)
     }
 
-
     #[allow(dead_code)]
-    pub fn your_goal(&self,team:&Team)->Vec2{
+    pub fn your_goal(&self, team: &Team) -> Vec2 {
         self.goal(!team.home)
     }
 }
@@ -199,7 +201,7 @@ impl Not for TeamColor {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Side {
     Right,
     Left,
