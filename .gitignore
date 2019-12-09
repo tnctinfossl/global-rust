@@ -1,3 +1,4 @@
 /target
 **/*.rs.bk
 /settings.json
+test_*.png

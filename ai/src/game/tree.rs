@@ -2,12 +2,12 @@ extern crate model;
 extern crate serde;
 extern crate serde_derive;
 use glm::*;
+use rand::Rng;
 use serde_derive::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
-
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
 pub enum RobotID {
@@ -28,8 +28,8 @@ impl Not for RobotID {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Robot {
-    position: Vec2,
-    angle: f32, //rad
+    pub position: Vec2,
+    pub angle: f32, //rad
 }
 
 impl Default for Robot {
@@ -54,7 +54,7 @@ impl Robot {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Ball {
-    position: Vec2,
+    pub position: Vec2,
 }
 
 impl Default for Ball {
@@ -75,8 +75,8 @@ impl Ball {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
-    robots: HashMap<RobotID, Robot>,
-    balls: Vec<Ball>,
+    pub robots: HashMap<RobotID, Robot>,
+    pub balls: Vec<Ball>,
 }
 
 impl Default for Scene {
@@ -102,8 +102,8 @@ const HISTORY_DEPTH: usize = 4;
 
 #[derive(Debug, Clone)]
 pub struct History {
-    period: f32, //非ゼロ
-    scenes: [Rc<RefCell<Scene>>; HISTORY_DEPTH],
+    pub period: f32, //非ゼロ
+    pub scenes: [Rc<RefCell<Scene>>; HISTORY_DEPTH],
 }
 
 impl History {
@@ -222,8 +222,8 @@ impl History {
 
 #[derive(Debug, Clone)]
 pub struct Tree {
-    children: History,
-    score: (f32, f32),
+    pub children: History,
+    pub score: (f32, f32),
 }
 
 impl Tree {
@@ -236,6 +236,66 @@ impl Tree {
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
+}
+
+impl Default for Field {
+    fn default() -> Field {
+        //適当な値で初期化している
+        Field {
+            infield: vec2(10000.0, 10000.0),
+            outfield: vec2(11000.0, 11000.0),
+        }
+    }
+}
+
+impl Field {
+    #[allow(dead_code)]
+    pub fn new(infield: Vec2, outfield: Vec2) -> Field {
+        Field {
+            infield: infield,
+            outfield: outfield,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn ramdon_scene<R: Rng + ?Sized>(
+        &self,
+        random: &mut R,
+        blues: u32,
+        yellows: u32,
+        balls: u32,
+    ) -> Scene {
+        //Scene::default()
+
+        let random_robot = |r: &mut R| -> Robot {
+            Robot::new(
+                vec2(
+                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
+                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+                ),
+                r.gen_range(0.0, 2.0 * std::f32::consts::PI),
+            )
+        };
+
+        let random_ball = |r: &mut R| -> Ball {
+            Ball::new(vec2(
+                r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
+                r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+            ))
+        };
+
+        let robots = (0..blues)
+            .map(|id| RobotID::Blue(id))
+            .chain((0..yellows).map(|id| RobotID::Yellow(id)))
+            .map(|id| (id, random_robot(random)))
+            .collect();
+
+        let balls = (0..balls).map(|_| random_ball(random)).collect();
+        Scene {
+            balls: balls,
+            robots: robots,
+        }
+    }
 }
 
 #[cfg(test)]
