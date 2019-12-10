@@ -33,6 +33,13 @@ impl Plotable for Scene {
             yellow_ys,
             &[PlotOption::Color("orange"), PlotOption::PointSize(5.0)],
         );
+        let ball_xs = self.balls.iter().map(|b| b.position.x);
+        let ball_ys = self.balls.iter().map(|b| b.position.y);
+        axes2d.points(
+            ball_xs,
+            ball_ys,
+            &[PlotOption::Color("red"), PlotOption::PointSize(5.0)],
+        );
     }
 }
 

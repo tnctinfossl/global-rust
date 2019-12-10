@@ -20,7 +20,7 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
 
 //シュートの可能性を評価する
 #[allow(dead_code)]
-pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
+pub fn shootable(_field: &Field, _mine: &Team, _yours: &Team) -> f32 {
     //計算量O(n2)程度
     //let goal = field.your_goal(mine);
     /*

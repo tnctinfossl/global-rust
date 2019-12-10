@@ -4,7 +4,7 @@ extern crate serde_derive;
 use glm::*;
 use rand::Rng;
 use serde_derive::*;
-use std::cell::RefCell;
+//use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
@@ -103,12 +103,12 @@ const HISTORY_DEPTH: usize = 4;
 #[derive(Debug, Clone)]
 pub struct History {
     pub period: f32, //非ゼロ
-    pub scenes: [Rc<RefCell<Scene>>; HISTORY_DEPTH],
+    pub scenes: [Rc<Scene>; HISTORY_DEPTH],
 }
 
 impl History {
     #[allow(dead_code)]
-    pub fn new(period: f32, scenes: [Rc<RefCell<Scene>>; 4]) -> Option<History> {
+    pub fn new(period: f32, scenes: [Rc<Scene>; 4]) -> Option<History> {
         if period <= 0.0 {
             None
         } else {
@@ -122,7 +122,7 @@ impl History {
     #[allow(dead_code)]
     pub fn find(&self, era: usize, id: RobotID) -> Option<Robot> {
         if era < HISTORY_DEPTH {
-            if let Some(&r) = self.scenes[era].borrow().robots.get(&id) {
+            if let Some(&r) = self.scenes[era].robots.get(&id) {
                 Some(r)
             } else {
                 None
@@ -217,6 +217,20 @@ impl History {
         let jerk_rad = Self::rad_diff4(first.angle, second.angle, third.angle, forth.angle)
             / (self.period.powi(3));
         Some((jerk, jerk_rad))
+    }
+
+    #[allow(dead_code)]
+    pub fn next<R: Rng + ?Sized>(&self, _random: &mut R) -> History {
+        let next_scene: Scene = Scene::default();
+        //TODO x+vt+1/2*t^2+1/6*t^3を求める
+        //出力
+        let scenes = [
+            Rc::new(next_scene),
+            self.scenes[0].clone(),
+            self.scenes[1].clone(),
+            self.scenes[2].clone(),
+        ];
+        History::new(self.period, scenes).unwrap()
     }
 }
 
