@@ -1,6 +1,7 @@
 extern crate model;
 extern crate serde;
 extern crate serde_derive;
+use super::vec2rad::*;
 use glm::*;
 use rand::Rng;
 use serde_derive::*;
@@ -26,31 +27,19 @@ impl Not for RobotID {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Robot {
-    pub position: Vec2,
-    pub angle: f32, //rad
-}
-
-impl Default for Robot {
-    #[allow(dead_code)]
-    fn default() -> Robot {
-        Robot {
-            position: vec2(0.0, 0.0),
-            angle: 0.0,
-        }
-    }
+    pub position: Vec2Rad,
 }
 
 impl Robot {
     #[allow(dead_code)]
-    fn new(position: Vec2, angle: f32) -> Robot {
-        Robot {
-            position: position,
-            angle: angle,
-        }
+    pub fn new(position: Vec2Rad) -> Robot {
+        Robot { position }
     }
 }
+
+type BallID = u32;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Ball {
@@ -76,7 +65,7 @@ impl Ball {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
     pub robots: HashMap<RobotID, Robot>,
-    pub balls: Vec<Ball>,
+    pub balls: HashMap<BallID, Ball>,
 }
 
 impl Default for Scene {
@@ -84,43 +73,68 @@ impl Default for Scene {
     fn default() -> Scene {
         Scene {
             robots: HashMap::new(),
-            balls: vec![],
+            balls: HashMap::new(),
         }
     }
 }
 
+pub struct SceneNoise {}
+
 impl Scene {
     #[allow(dead_code)]
-    pub fn new(robots: HashMap<RobotID, Robot>, balls: Vec<Ball>) -> Scene {
+    pub fn new(robots: HashMap<RobotID, Robot>, balls: HashMap<BallID, Ball>) -> Scene {
         Scene {
             robots: robots,
             balls: balls,
         }
+    }
+
+    pub fn noise<R: Rng + ?Sized>(&self, ramdon: &mut R, sn: &SceneNoise) -> Scene {
+        let robots: HashMap<RobotID, Robot> = self
+            .robots
+            .iter()
+            .map(|(id, robot): (&RobotID, &Robot)| {
+                //TODO ここでノイズを与える
+                (*id, *robot)
+            })
+            .collect();
+        let balls: HashMap<BallID, Ball> = self
+            .balls
+            .iter()
+            .map(|(id, ball): (&BallID, &Ball)| {
+                //TODO ここでノイズを与える
+                (*id, *ball)
+            })
+            .collect();
+        Scene::new(robots, balls)
     }
 }
 const HISTORY_DEPTH: usize = 4;
 
 #[derive(Debug, Clone)]
 pub struct History {
-    pub period: f32, //非ゼロ
+    pub period: f32, //非ゼロかつ正の値を保証すること
     pub scenes: [Rc<Scene>; HISTORY_DEPTH],
 }
 
 impl History {
     #[allow(dead_code)]
-    pub fn new(period: f32, scenes: [Rc<Scene>; 4]) -> Option<History> {
+    pub fn new(period: f32, scenes: [Rc<Scene>; 4]) -> History {
         if period <= 0.0 {
-            None
+            panic!();
         } else {
-            Some(History {
+            History {
                 period: period,
                 scenes: scenes,
-            })
+            }
         }
     }
+    #[inline(always)]
+    pub fn now<'a>(&'a self) -> &'a Scene {
+        &self.scenes[0]
+    }
 
-    #[allow(dead_code)]
-    pub fn find(&self, era: usize, id: RobotID) -> Option<Robot> {
+    pub fn robot_find(&self, era: usize, id: RobotID) -> Option<Robot> {
         if era < HISTORY_DEPTH {
             if let Some(&r) = self.scenes[era].robots.get(&id) {
                 Some(r)
@@ -132,105 +146,145 @@ impl History {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn position(&self, id: RobotID) -> Option<(Vec2, f32)> {
-        if let Some(r) = self.find(0, id) {
-            Some((r.position, r.angle))
+    pub fn robot_position(&self, id: RobotID) -> Option<Vec2Rad> {
+        if let Some(r) = self.robot_find(0, id) {
+            Some(r.position)
         } else {
             None
         }
     }
-    //[0..2PI]の範囲に入れる
-    fn rad_range(x: f32) -> f32 {
-        let two_pi = 2.0 * std::f32::consts::PI;
-        if x < 0.0 {
-            (x % two_pi) + two_pi
-        } else {
-            x % two_pi
-        }
-    }
 
-    #[inline(always)]
-    fn rad_diff(now: f32, last: f32) -> f32 {
-        let pi = std::f32::consts::PI;
-        let two_pi = 2.0 * std::f32::consts::PI;
-        //正規化する[0..2PI]
-        let now = Self::rad_range(now);
-        let last = Self::rad_range(last);
-        //短い経路を選択する
-        if abs(now - last) < (pi + std::f32::EPSILON) {
-            now - last
-        } else {
-            if now > last {
-                now - two_pi - last
-            } else {
-                now + two_pi - last
-            }
-        }
-    }
-    //[x_0 - 2*x_1 + x_2]を求める
-    #[inline(always)]
-    fn rad_diff3(first: f32, second: f32, third: f32) -> f32 {
-        //短い経路を求めつつ，[x_0 - 2*x_1 + x_2]を求める
-        Self::rad_diff(first, second) - Self::rad_diff(second, third)
-    }
-
-    #[inline(always)]
-    fn rad_diff4(first: f32, second: f32, third: f32, forth: f32) -> f32 {
-        //短い経路を求めつつ，[x_0 - 3*x_1 + 3*x_2 - x_3]を求める
-        Self::rad_diff3(first, second, third) - Self::rad_diff3(second, third, forth)
-    }
-
-    #[allow(dead_code)]
-    pub fn velocity(&self, id: RobotID) -> Option<(Vec2, f32)> {
+    pub fn robot_velocity(&self, id: RobotID) -> Option<Vec2Rad> {
         //データの取得//use super::*;
-        let now = self.find(0, id)?;
-        let last = self.find(1, id)?;
+        let now = self.robot_find(0, id)?;
+        let last = self.robot_find(1, id)?;
         //計算する
-        let speed = (now.position - last.position) / self.period;
-        let omega = Self::rad_diff(now.angle, last.angle) / self.period;
-        Some((speed, omega))
+        Some(Vec2Rad::diff(self.period, now.position, last.position))
     }
 
-    #[allow(dead_code)]
-    pub fn acceleration(&self, id: RobotID) -> Option<(Vec2, f32)> {
+    pub fn robot_acceleration(&self, id: RobotID) -> Option<Vec2Rad> {
         //データの取得
-        let first = self.find(0, id)?;
-        let second = self.find(1, id)?;
-        let third = self.find(2, id)?;
+        let first = self.robot_find(0, id)?;
+        let second = self.robot_find(1, id)?;
+        let third = self.robot_find(2, id)?;
         //差分方程式を計算する
-        let acc = (first.position - second.position * 2.0 + third.position) / (self.period.powi(2));
-        let alpha = Self::rad_diff3(first.angle, second.angle, third.angle) / (self.period.powi(2));
-        Some((acc, alpha))
+        Some(Vec2Rad::diff3(
+            self.period,
+            first.position,
+            second.position,
+            third.position,
+        ))
     }
 
-    #[allow(dead_code)]
-    pub fn jerk(&self, id: RobotID) -> Option<(Vec2, f32)> {
+    pub fn robot_jerk(&self, id: RobotID) -> Option<Vec2Rad> {
         //データの取得
-        let first = self.find(0, id)?;
-        let second = self.find(1, id)?;
-        let third = self.find(2, id)?;
-        let forth = self.find(3, id)?;
+        let first = self.robot_find(0, id)?;
+        let second = self.robot_find(1, id)?;
+        let third = self.robot_find(2, id)?;
+        let forth = self.robot_find(3, id)?;
         //差分方程式を解く
-        let jerk = (first.position - second.position * 3.0 + third.position * 3.0 - forth.position)
-            / (self.period.powi(3));
-        let jerk_rad = Self::rad_diff4(first.angle, second.angle, third.angle, forth.angle)
-            / (self.period.powi(3));
-        Some((jerk, jerk_rad))
+        Some(Vec2Rad::diff4(
+            self.period,
+            first.position,
+            second.position,
+            third.position,
+            forth.position,
+        ))
     }
 
+    pub fn ball_find(&self, era: usize, id: BallID) -> Option<Ball> {
+        if era < HISTORY_DEPTH {
+            if let Some(&ball) = self.scenes[era].balls.get(&id) {
+                Some(ball)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn ball_position(&self, id: BallID) -> Option<Vec2> {
+        let first = self.ball_find(0, id)?;
+        Some(first.position)
+    }
+
+    pub fn ball_velocity(&self, id: BallID) -> Option<Vec2> {
+        let first = self.ball_find(0, id)?;
+        let second = self.ball_find(1, id)?;
+        //差分方程式を解く (x0 - x1)/t
+        let velocity = (first.position - second.position) / self.period;
+        Some(velocity)
+    }
+
+    pub fn ball_acceleration(&self, id: BallID) -> Option<Vec2> {
+        let first = self.ball_find(0, id)?;
+        let second = self.ball_find(1, id)?;
+        let third = self.ball_find(2, id)?;
+        //差分方程式を解く (x0 - 2x1 + x2)/t^2
+        let acceleration =
+            (first.position - second.position * 2.0 + third.position) / self.period.powi(2);
+        Some(acceleration)
+    }
+
+    pub fn ball_jerk(&self, id: BallID) -> Option<Vec2> {
+        let first = self.ball_find(0, id)?;
+        let second = self.ball_find(1, id)?;
+        let third = self.ball_find(2, id)?;
+        let forth = self.ball_find(3, id)?;
+        //差分方程式を解く (x0 - 3x1 + 3x2 - x3)/t^3
+        let jerk = (first.position - second.position * 3.0 + third.position * 3.0 - forth.position)
+            / self.period.powi(3);
+        Some(jerk)
+    }
+
+    //x+vt+1/2*at^2+1/6*yt^3を求めることで次のシーンを予想する
     #[allow(dead_code)]
-    pub fn next<R: Rng + ?Sized>(&self, _random: &mut R) -> History {
-        let next_scene: Scene = Scene::default();
-        //TODO x+vt+1/2*t^2+1/6*t^3を求める
-        //出力
-        let scenes = [
-            Rc::new(next_scene),
-            self.scenes[0].clone(),
-            self.scenes[1].clone(),
-            self.scenes[2].clone(),
-        ];
-        History::new(self.period, scenes).unwrap()
+    pub fn simulate<R: Rng + ?Sized>(
+        &self,
+        _size: usize,
+        _random: &mut R,
+        _field: &Field,
+    ) -> Scene {
+        let robots: HashMap<RobotID, Robot> = self
+            .now()
+            .robots
+            .keys()
+            .flat_map(|id: &RobotID| {
+                //変数
+                let position = self.robot_position(*id)?;
+                let velocity = self.robot_velocity(*id)?;
+                let acceleration = self.robot_acceleration(*id)?;
+                let jerk = self.robot_jerk(*id)?;
+                let period = self.period;
+                //計算 x+vt+1/2*at^2+1/6*yt^3
+                let mut result = position;
+                result += velocity * period;
+                result += acceleration * period.powi(2) / 2.0;
+                result += jerk * period.powi(3) / 6.0;
+                Some((*id, Robot::new(result)))
+            })
+            .collect();
+        let balls: HashMap<BallID, Ball> = self
+            .now()
+            .balls
+            .keys()
+            .flat_map(|id: &BallID| {
+                //変数
+                let position = self.ball_position(*id)?;
+                let velocity = self.ball_velocity(*id)?;
+                let acceleration = self.ball_acceleration(*id)?;
+                let jerk = self.ball_jerk(*id)?;
+                let period = self.period;
+                //計算 x+vt+1/2*at^2+1/6*yt^3
+                let result = position
+                    + velocity * period
+                    + acceleration * period.powi(2) / 2.0
+                    + jerk * period.powi(3) / 6.0;
+                Some((*id, Ball::new(result)))
+            })
+            .collect();
+        Scene::new(robots, balls)
     }
 }
 
@@ -282,13 +336,11 @@ impl Field {
         //Scene::default()
 
         let random_robot = |r: &mut R| -> Robot {
-            Robot::new(
-                vec2(
-                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-                ),
+            Robot::new(vec2rad(
+                r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
+                r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
                 r.gen_range(0.0, 2.0 * std::f32::consts::PI),
-            )
+            ))
         };
 
         let random_ball = |r: &mut R| -> Ball {
@@ -304,43 +356,10 @@ impl Field {
             .map(|id| (id, random_robot(random)))
             .collect();
 
-        let balls = (0..balls).map(|_| random_ball(random)).collect();
+        let balls: HashMap<BallID, Ball> = (0..balls).map(|id| (id, random_ball(random))).collect();
         Scene {
             balls: balls,
             robots: robots,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn eq(a: f32, b: f32) -> bool {
-        abs(a - b) < std::f32::EPSILON * 100.0
-    }
-
-    #[test]
-    fn test_rad_range() {
-        let pi = std::f32::consts::PI;
-        assert!(eq(History::rad_range(0.0), 0.0));
-        assert!(eq(History::rad_range(pi), pi));
-        assert!(eq(History::rad_range(3.0 * pi), pi));
-        assert!(eq(History::rad_range(-pi), pi));
-        assert!(eq(History::rad_range(-3.0 * pi), pi));
-    }
-
-    #[test] //cargo test
-    fn test_rad_diff() {
-        //let two_pi = 2.0 * std::f32::consts::PI;
-        let pi = std::f32::consts::PI;
-        let pi_2 = std::f32::consts::PI / 2.0;
-        //let pi_4 = std::f32::consts::PI / 4.0;
-
-        assert!(eq(History::rad_diff(0.0, 0.0), 0.0));
-        assert!(eq(History::rad_diff(pi_2, 0.0), pi_2));
-        assert!(eq(History::rad_diff(0.0, pi_2), -pi_2));
-        assert!(eq(History::rad_diff(pi + pi_2, 0.0), -pi_2));
-        assert!(eq(History::rad_diff(0.0, pi + pi_2), pi_2));
     }
 }

@@ -28,6 +28,60 @@ impl Vec2Rad {
             theta: theta,
         }
     }
+
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn to_vec2(&self) -> Vec2 {
+        vec2(self.x, self.y)
+    }
+
+    //thetaを[0..2PI]の範囲に縮小する
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn shrink(&self) -> Vec2Rad {
+        let two_pi = 2.0 * std::f32::consts::PI;
+        if self.theta < 0.0 {
+            vec2rad(self.x, self.y, (self.theta % two_pi) + two_pi)
+        } else {
+            vec2rad(self.x, self.y, self.theta % two_pi)
+        }
+    }
+
+    //差分方程式を解く (p0-p1)/t
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn diff(period: f32, p0: Vec2Rad, p1: Vec2Rad) -> Vec2Rad {
+        let pi = std::f32::consts::PI;
+        let p0 = p0.shrink();
+        let p1 = p1.shrink();
+        //差分方程式を解く
+        let dx = (p0.x - p1.x) / period;
+        let dy = (p0.y - p1.y) / period;
+        let dtheta = if abs(p0.theta - p1.theta) < pi + std::f32::EPSILON {
+            (p0.theta - p1.theta) / period
+        } else {
+            let two_pi = 2.0 * std::f32::consts::PI;
+            if p0.theta > p1.theta {
+                (p0.theta - p1.theta - two_pi) / period
+            } else {
+                (p0.theta - p1.theta + two_pi) / period
+            }
+        };
+        vec2rad(dx, dy, dtheta)
+    }
+    //差分方程式を解く (p0-2p1-p2)/t^2
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn diff3(period: f32, p0: Vec2Rad, p1: Vec2Rad, p2: Vec2Rad) -> Vec2Rad {
+        (Self::diff(period, p0, p1) - Self::diff(period, p1, p2)) / period
+    }
+
+    //差分方程式を解く (p0-2p1-p2)/t^2
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn diff4(period: f32, p0: Vec2Rad, p1: Vec2Rad, p2: Vec2Rad, p3: Vec2Rad) -> Vec2Rad {
+        (Self::diff3(period, p0, p1, p2) - Self::diff3(period, p1, p2, p3)) / period
+    }
 }
 #[inline(always)]
 #[allow(dead_code)]
@@ -121,7 +175,7 @@ impl DivAssign<f32> for Vec2Rad {
 
 impl Into<Vec2> for Vec2Rad {
     fn into(self) -> Vec2 {
-        vec2(self.x, self.y)
+        self.to_vec2()
     }
 }
 
