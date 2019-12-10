@@ -4,6 +4,10 @@
 + libgtk-dev
 + goolgle protcol buffer のコンパイラが動くこと
 
+
+# 補足
+documentに書いたから見てね
+
 # packages
 ```
 sudo apt update

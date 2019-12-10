@@ -1,9 +1,46 @@
 extern crate model;
-
 use model::*;
 pub mod field;
-pub mod pass;
 pub mod geometry;
+pub mod pass;
 pub use field::*;
+pub use geometry::*;
+use glm::*;
+pub mod bitfield;
 
+//パスの可能性を評価する
+#[allow(dead_code)]
+pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {
+    let nearest_distance =
+        distance_path_nearest_points((begin, end), objects).unwrap_or(std::f32::MAX);
+    let path_distance = distance(begin, end);
+    println!("{},{}", nearest_distance, path_distance);
+    -log(nearest_distance + 1.0) - log(path_distance + 1.0)
+}
 
+<<<<<<< HEAD
+=======
+//シュートの可能性を評価する
+#[allow(dead_code)]
+pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
+    //計算量O(n2)程度
+    //let goal = field.your_goal(mine);
+    /*
+      mine.robots
+          .iter()
+          .map(|target: &Box<Robot>| {
+              let others = mine
+                  .robots
+                  .iter()
+                  .filter(|cmp: &&Box<Robot>| cmp.id != target.id)
+                  .chain(yours.robots.iter());
+              let distance = others
+                  .map(|other: &Box<Robot>| {
+                      distance_segment_point((target.position, goal), other.position)
+                  })
+                  .reduce(util::min)
+          })
+    */
+    0.0 //準備中
+}
+>>>>>>> 89864ce53dc2c876593a58169209a2728cb8c173

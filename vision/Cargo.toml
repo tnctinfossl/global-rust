@@ -9,7 +9,7 @@ edition = "2018"
 protoc-rust = "2.8.1"
 [dependencies]
 protobuf = "2.8.1"
-glm = "0.2.3"
+glm = {git="https://github.com/tnctinfossl/glm-rs.git"}
 log = "0.4.8"
 env_logger = "0.7.0"
 serde = "1.0.101"

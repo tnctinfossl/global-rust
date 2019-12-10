@@ -1,7 +1,7 @@
 extern crate glm;
 
-mod line;
+extern crate serde;
+extern crate serde_derive;
+mod model;
 
-fn main() {
-
-}
+fn main() {}
