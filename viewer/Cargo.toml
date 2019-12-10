@@ -11,9 +11,9 @@ model={path="../model"}
 gio = "0.7.0"
 gtk = "0.7.0"
 glm = {git="https://github.com/tnctinfossl/glm-rs.git"}
-serde = "1.0.101"
-serde_json = "1.0.40"
-serde_derive = "1.0.101"
+serde = "1.0.103"
+serde_json = "1.0.44"
+serde_derive = "1.0.103"
 gdk = "0.11.0"
 cairo-rs = "0.7.1"
 glib = "0.8.2"

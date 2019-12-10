@@ -18,8 +18,6 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
     -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
 
-<<<<<<< HEAD
-=======
 //シュートの可能性を評価する
 #[allow(dead_code)]
 pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
@@ -43,4 +41,3 @@ pub fn shootable(field: &Field, mine: &Team, yours: &Team) -> f32 {
     */
     0.0 //準備中
 }
->>>>>>> 89864ce53dc2c876593a58169209a2728cb8c173
