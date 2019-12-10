@@ -29,6 +29,11 @@ impl Vec2Rad {
         }
     }
 }
+#[inline(always)]
+#[allow(dead_code)]
+pub fn vec2rad<T: Into<f32>>(x: T, y: T, theta: T) -> Vec2Rad {
+    Vec2Rad::new(x.into(), y.into(), theta.into())
+}
 
 impl Add for Vec2Rad {
     type Output = Self;
