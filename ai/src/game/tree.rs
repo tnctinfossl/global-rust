@@ -80,7 +80,7 @@ impl Default for Scene {
 }
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
-    standard_deviation: f32, //標準偏差[mm]
+    standard_deviation: f32,     //標準偏差[mm]
     standard_deviation_rad: f32, //標準偏差[rad]
 }
 
@@ -90,17 +90,17 @@ impl Default for SceneNoise {
         //適当な値で初期化している
         SceneNoise {
             standard_deviation: 10.0,
-            standard_deviation_rad:std::f32::consts::PI
+            standard_deviation_rad: std::f32::consts::PI,
         }
     }
 }
 
 impl SceneNoise {
     #[allow(dead_code)]
-    pub fn new( standard_deviation: f32,standard_deviation_rad:f32) -> SceneNoise {
+    pub fn new(standard_deviation: f32, standard_deviation_rad: f32) -> SceneNoise {
         SceneNoise {
             standard_deviation: standard_deviation,
-            standard_deviation_rad:standard_deviation_rad
+            standard_deviation_rad: standard_deviation_rad,
         }
     }
 }
@@ -132,8 +132,8 @@ impl Scene {
             .iter()
             .map(|(id, ball): (&BallID, &Ball)| {
                 let mut noized = ball.position;
-               // noized.x  += normal.sample(random) as f32;
-               // noized.y  += normal.sample(random) as f32;
+                // noized.x  += normal.sample(random) as f32;
+                // noized.y  += normal.sample(random) as f32;
                 (*id, Ball::new(noized))
             })
             .collect();
@@ -330,8 +330,6 @@ impl Tree {
     pub fn new(children: History,score: (f32,f32)) -> Scene{
         let history = children;
     }*/
-
-    
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
@@ -397,7 +395,8 @@ impl Field {
     }
 
     //枝刈りメソッド
-    pub fn prune(&self, field: &Field) -> Option<Tree> {
+    #[allow(dead_code)]
+    pub fn trim<'a>(&self, _scene: &Scene) -> Option<&'a Scene> {
         None
     }
 }

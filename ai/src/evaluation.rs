@@ -7,6 +7,7 @@ pub use field::*;
 pub use geometry::*;
 use glm::*;
 pub mod bitfield;
+pub mod mattrix;
 
 //パスの可能性を評価する
 #[allow(dead_code)]

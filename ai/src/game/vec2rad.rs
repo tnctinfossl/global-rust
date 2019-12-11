@@ -35,6 +35,12 @@ impl Vec2Rad {
         vec2(self.x, self.y)
     }
 
+    #[inline(always)]
+    #[allow(dead_code)]
+    pub fn to_vec3(&self) -> Vec3 {
+        vec3(self.x, self.y, self.theta)
+    }
+
     //thetaを[0..2PI]の範囲に縮小する
     #[inline(always)]
     #[allow(dead_code)]
@@ -176,6 +182,12 @@ impl DivAssign<f32> for Vec2Rad {
 impl Into<Vec2> for Vec2Rad {
     fn into(self) -> Vec2 {
         self.to_vec2()
+    }
+}
+
+impl Into<Vec3> for Vec2Rad {
+    fn into(self) -> Vec3 {
+        self.to_vec3()
     }
 }
 
