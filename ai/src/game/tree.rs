@@ -80,27 +80,25 @@ impl Default for Scene {
 }
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
-    standard_deviation: f32, //標準偏差[mm]
+    standard_deviation: f32,     //標準偏差[mm]
     standard_deviation_rad: f32, //標準偏差[rad]
 }
 
-// default_distribute = 10.0;
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
-        //適当な値で初期化している
         SceneNoise {
             standard_deviation: 10.0,
-            standard_deviation_rad:std::f32::consts::PI
+            standard_deviation_rad: std::f32::consts::PI,
         }
     }
 }
 
 impl SceneNoise {
     #[allow(dead_code)]
-    pub fn new( standard_deviation: f32,standard_deviation_rad:f32) -> SceneNoise {
+    pub fn new(standard_deviation: f32, standard_deviation_rad: f32) -> SceneNoise {
         SceneNoise {
             standard_deviation: standard_deviation,
-            standard_deviation_rad:standard_deviation_rad
+            standard_deviation_rad: standard_deviation_rad,
         }
     }
 }
@@ -115,26 +113,31 @@ impl Scene {
     }
     #[allow(dead_code)]
     pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, sn: &SceneNoise) -> Scene {
-        //let normal = Normal::new(sn.mean as f64, sn.standard_deviation as f64).unwrap();
         let robots: HashMap<RobotID, Robot> = self
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let mut noized = robot.position;
-                //meanは生成したシーンのポジション
-                //noized.x  += normal.sample(random) as f32;
-                //noized.y  += normal.sample(random) as f32;
-                (*id, Robot::new(noized))
+                let mut noised = robot.position;
+                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
+                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
+                let normal_theta =
+                    Normal::new(noised.theta as f64, sn.standard_deviation_rad as f64).unwrap();
+                noised.x += normal_x.sample(random) as f32;
+                noised.y += normal_y.sample(random) as f32;
+                noised.theta += normal_theta.sample(random) as f32;
+                (*id, Robot::new(noised))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
             .balls
             .iter()
             .map(|(id, ball): (&BallID, &Ball)| {
-                let mut noized = ball.position;
-               // noized.x  += normal.sample(random) as f32;
-               // noized.y  += normal.sample(random) as f32;
-                (*id, Ball::new(noized))
+                let mut noised = ball.position;
+                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
+                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
+                noised.x += normal_x.sample(random) as f32;
+                noised.y += normal_y.sample(random) as f32;
+                (*id, Ball::new(noised))
             })
             .collect();
         Scene::new(robots, balls)
@@ -330,8 +333,6 @@ impl Tree {
     pub fn new(children: History,score: (f32,f32)) -> Scene{
         let history = children;
     }*/
-
-    
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
@@ -396,10 +397,18 @@ impl Field {
         }
     }
 
+
     //枝刈りメソッド
-    pub fn prune(&self, field: &Field) -> Option<Tree> {
+    //#[allow(dead_code)]
+   /* pub fn prune(&self, scene: &Scene) -> Option<Scene> {
+        let robots: HashMap<RobotID, Robot> = &scene
+            .robots
+            .iter()
+            .map(|(id, robot): (&RobotID, &Robot)|{
+                
+            })
         None
-    }
+    }*/
 }
 
 /*#[cfg(test)]
