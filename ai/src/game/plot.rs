@@ -43,7 +43,7 @@ impl Plotable for Scene {
     }
 }
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
@@ -55,4 +55,5 @@ mod tests {
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
     }
-}
+}*/
+

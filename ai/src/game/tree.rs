@@ -4,6 +4,7 @@ extern crate serde_derive;
 use super::vec2rad::*;
 use glm::*;
 use rand::Rng;
+use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 //use std::cell::RefCell;
 use std::collections::HashMap;
@@ -77,8 +78,32 @@ impl Default for Scene {
         }
     }
 }
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct SceneNoise {
+    standard_deviation: f32, //標準偏差[mm]
+    standard_deviation_rad: f32, //標準偏差[rad]
+}
 
-pub struct SceneNoise {}
+// default_distribute = 10.0;
+impl Default for SceneNoise {
+    fn default() -> SceneNoise {
+        //適当な値で初期化している
+        SceneNoise {
+            standard_deviation: 10.0,
+            standard_deviation_rad:std::f32::consts::PI
+        }
+    }
+}
+
+impl SceneNoise {
+    #[allow(dead_code)]
+    pub fn new( standard_deviation: f32,standard_deviation_rad:f32) -> SceneNoise {
+        SceneNoise {
+            standard_deviation: standard_deviation,
+            standard_deviation_rad:standard_deviation_rad
+        }
+    }
+}
 
 impl Scene {
     #[allow(dead_code)]
@@ -88,22 +113,28 @@ impl Scene {
             balls: balls,
         }
     }
-
-    pub fn noise<R: Rng + ?Sized>(&self, ramdon: &mut R, sn: &SceneNoise) -> Scene {
+    #[allow(dead_code)]
+    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, sn: &SceneNoise) -> Scene {
+        //let normal = Normal::new(sn.mean as f64, sn.standard_deviation as f64).unwrap();
         let robots: HashMap<RobotID, Robot> = self
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                //TODO ここでノイズを与える
-                (*id, *robot)
+                let mut noized = robot.position;
+                //meanは生成したシーンのポジション
+                //noized.x  += normal.sample(random) as f32;
+                //noized.y  += normal.sample(random) as f32;
+                (*id, Robot::new(noized))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
             .balls
             .iter()
             .map(|(id, ball): (&BallID, &Ball)| {
-                //TODO ここでノイズを与える
-                (*id, *ball)
+                let mut noized = ball.position;
+               // noized.x  += normal.sample(random) as f32;
+               // noized.y  += normal.sample(random) as f32;
+                (*id, Ball::new(noized))
             })
             .collect();
         Scene::new(robots, balls)
@@ -119,7 +150,7 @@ pub struct History {
 
 impl History {
     #[allow(dead_code)]
-    pub fn new(period: f32, scenes: [Rc<Scene>; 4]) -> History {
+    pub fn new(period: f32, scenes: [Rc<Scene>; HISTORY_DEPTH]) -> History {
         if period <= 0.0 {
             panic!();
         } else {
@@ -299,6 +330,8 @@ impl Tree {
     pub fn new(children: History,score: (f32,f32)) -> Scene{
         let history = children;
     }*/
+
+    
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
@@ -362,4 +395,23 @@ impl Field {
             robots: robots,
         }
     }
+
+    //枝刈りメソッド
+    pub fn prune(&self, field: &Field) -> Option<Tree> {
+        None
+    }
 }
+
+/*#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn simulate() {
+        let field = &Field::default();
+        let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scenes = [scene.clone(),scene.clone(),scene.clone(),scene.clone()];
+        let history = History::new(0.0,scenes);
+        history.simulate(1,&mut rand::thread_rng(), &field);
+    }
+}
+*/
