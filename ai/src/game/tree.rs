@@ -11,6 +11,9 @@ use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
+
+static DIAMETOR_ROBOT:f32 = 100.0;//[mm] <-これよろしくないですか？
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
 pub enum RobotID {
@@ -29,15 +32,18 @@ impl Not for RobotID {
     }
 }
 
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Robot {
     pub position: Vec2Rad,
+    pub diametor: f32
 }
+
 
 impl Robot {
     #[allow(dead_code)]
-    pub fn new(position: Vec2Rad) -> Robot {
-        Robot { position }
+    pub fn new(position: Vec2Rad,diametor: f32) -> Robot {
+        Robot { position, diametor}
     }
 }
 
@@ -126,7 +132,7 @@ impl Scene {
                 noised.x += normal_x.sample(random) as f32;
                 noised.y += normal_y.sample(random) as f32;
                 noised.theta += normal_theta.sample(random) as f32;
-                (*id, Robot::new(noised))
+                (*id, Robot::new(noised,DIAMETOR_ROBOT))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
@@ -297,7 +303,7 @@ impl History {
                 result += velocity * period;
                 result += acceleration * period.powi(2) / 2.0;
                 result += jerk * period.powi(3) / 6.0;
-                Some((*id, Robot::new(result)))
+                Some((*id, Robot::new(result,DIAMETOR_ROBOT)))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
@@ -335,11 +341,22 @@ impl Tree {
         let history = children;
     }*/
 }
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
 }
+
+/*trait Has<T>{
+    fn have(&self)->bool;
+}
+
+impl <T>Has<T> for Field{
+    fn has(&self)->bool{
+
+    }
+} */
 
 impl Default for Field {
     fn default() -> Field {
@@ -374,8 +391,9 @@ impl Field {
             Robot::new(vec2rad(
                 r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
                 r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-                r.gen_range(0.0, 2.0 * std::f32::consts::PI),
-            ))
+                r.gen_range(0.0, 2.0 * std::f32::consts::PI))
+                ,DIAMETOR_ROBOT
+            )
         };
 
         let random_ball = |r: &mut R| -> Ball {
@@ -445,12 +463,15 @@ impl Field {
 mod tests {
     use super::*;
     #[test]
-    fn simulate() {
+   fn prune() {
         let field = &Field::default();
-        let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        let scenes = [scene.clone(),scene.clone(),scene.clone(),scene.clone()];
+        let  scenes:[Rc<Scene>;4] = [Rc::default();4];
+        for i in 0..3{
+            let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+            scenes[i] = scene;
+        } 
         let history = History::new(0.0,scenes);
         history.simulate(1,&mut rand::thread_rng(), &field);
     }
-}
-*/
+}*/
+
