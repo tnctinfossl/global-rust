@@ -7,9 +7,13 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 //use std::cell::RefCell;
+use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
+
+static DIAMETOR_ROBOT: f32 = 100.0; //[mm] <-これよろしくないですか？
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
 pub enum RobotID {
@@ -31,12 +35,13 @@ impl Not for RobotID {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Robot {
     pub position: Vec2Rad,
+    pub diametor: f32,
 }
 
 impl Robot {
     #[allow(dead_code)]
-    pub fn new(position: Vec2Rad) -> Robot {
-        Robot { position }
+    pub fn new(position: Vec2Rad, diametor: f32) -> Robot {
+        Robot { position, diametor }
     }
 }
 
@@ -84,10 +89,8 @@ pub struct SceneNoise {
     standard_deviation_rad: f32, //標準偏差[rad]
 }
 
-// default_distribute = 10.0;
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
-        //適当な値で初期化している
         SceneNoise {
             standard_deviation: 10.0,
             standard_deviation_rad: std::f32::consts::PI,
@@ -115,26 +118,31 @@ impl Scene {
     }
     #[allow(dead_code)]
     pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, sn: &SceneNoise) -> Scene {
-        //let normal = Normal::new(sn.mean as f64, sn.standard_deviation as f64).unwrap();
         let robots: HashMap<RobotID, Robot> = self
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let mut noized = robot.position;
-                //meanは生成したシーンのポジション
-                //noized.x  += normal.sample(random) as f32;
-                //noized.y  += normal.sample(random) as f32;
-                (*id, Robot::new(noized))
+                let mut noised = robot.position;
+                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
+                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
+                let normal_theta =
+                    Normal::new(noised.theta as f64, sn.standard_deviation_rad as f64).unwrap();
+                noised.x += normal_x.sample(random) as f32;
+                noised.y += normal_y.sample(random) as f32;
+                noised.theta += normal_theta.sample(random) as f32;
+                (*id, Robot::new(noised, DIAMETOR_ROBOT))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
             .balls
             .iter()
             .map(|(id, ball): (&BallID, &Ball)| {
-                let mut noized = ball.position;
-                // noized.x  += normal.sample(random) as f32;
-                // noized.y  += normal.sample(random) as f32;
-                (*id, Ball::new(noized))
+                let mut noised = ball.position;
+                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
+                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
+                noised.x += normal_x.sample(random) as f32;
+                noised.y += normal_y.sample(random) as f32;
+                (*id, Ball::new(noised))
             })
             .collect();
         Scene::new(robots, balls)
@@ -293,7 +301,7 @@ impl History {
                 result += velocity * period;
                 result += acceleration * period.powi(2) / 2.0;
                 result += jerk * period.powi(3) / 6.0;
-                Some((*id, Robot::new(result)))
+                Some((*id, Robot::new(result, DIAMETOR_ROBOT)))
             })
             .collect();
         let balls: HashMap<BallID, Ball> = self
@@ -331,10 +339,21 @@ impl Tree {
         let history = children;
     }*/
 }
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
+}
+
+trait Contain<T> {
+    fn contain(&self, rhs: &T) -> bool;
+}
+
+impl Contain<Robot> for Field {
+    fn contain(&self, _rhs: &Robot) -> bool {
+        false
+    }
 }
 
 impl Default for Field {
@@ -367,11 +386,14 @@ impl Field {
         //Scene::default()
 
         let random_robot = |r: &mut R| -> Robot {
-            Robot::new(vec2rad(
-                r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-                r.gen_range(0.0, 2.0 * std::f32::consts::PI),
-            ))
+            Robot::new(
+                vec2rad(
+                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
+                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+                    r.gen_range(0.0, 2.0 * std::f32::consts::PI),
+                ),
+                DIAMETOR_ROBOT,
+            )
         };
 
         let random_ball = |r: &mut R| -> Ball {
@@ -394,10 +416,46 @@ impl Field {
         }
     }
 
+    pub fn check_robots_position(&self, position: Vec2Rad) -> bool {
+        let infield = self.infield;
+        let position = vec2(position.x, position.y);
+        if infield.x >= position.x && infield.y >= position.y {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn check_balls_position(&self, position: Vec2) -> bool {
+        let infield = self.infield;
+        let position = vec2(position.x, position.y);
+        if infield.x >= position.x && infield.y >= position.y {
+            true
+        } else {
+            false
+        }
+    }
+
     //枝刈りメソッド
     #[allow(dead_code)]
-    pub fn trim<'a>(&self, _scene: &Scene) -> Option<&'a Scene> {
-        None
+    pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
+        let jodge_robots = scene
+            .robots
+            .values()
+            .map(|r: &Robot| self.check_robots_position(r.position))
+            .find(|x| *x == false)
+            .unwrap();
+        let jodge_balls = scene
+            .balls
+            .values()
+            .map(|b: &Ball| self.check_balls_position(b.position))
+            .find(|x| *x == false)
+            .unwrap();
+        if jodge_robots && jodge_balls {
+            Some(scene)
+        } else {
+            None
+        }
     }
 }
 
@@ -405,12 +463,20 @@ impl Field {
 mod tests {
     use super::*;
     #[test]
-    fn simulate() {
+   fn noise() {
         let field = &Field::default();
         let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        let scenes = [scene.clone(),scene.clone(),scene.clone(),scene.clone()];
+        let scene1 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene2 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene3 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        /*let  scenes:[Rc<Scene>;4] = [Rc::default();4];
+        for i in 0..3{
+            let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+            scenes[i] = scene;
+        } */
+        let scenes=[scene,scene1,scene2,scene3];
         let history = History::new(0.0,scenes);
         history.simulate(1,&mut rand::thread_rng(), &field);
+
     }
-}
-*/
+}*/

@@ -48,12 +48,20 @@ mod tests {
     use super::*;
     #[test]
     fn plot_scene() {
+        let sn = SceneNoise::default();
         let mut figure = gnuplot::Figure::new();
         let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1);
         scene.plot(&mut figure);
 
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
+
+        scene.noise(&mut rand::thread_rng(),&sn);
+        scene.plot(&mut figure);
+        
+        let mut figure = gnuplot::Figure::new();
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
     }
 }*/
 
