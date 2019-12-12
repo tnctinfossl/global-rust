@@ -7,6 +7,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 //use std::cell::RefCell;
+use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
@@ -397,18 +398,47 @@ impl Field {
         }
     }
 
+    pub fn check_robots_position(&self, position: Vec2Rad) -> bool {
+        let infield = self.infield;
+        let position = vec2(position.x, position.y);
+        if infield.x >= position.x && infield.y >= position.y {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn check_balls_position(&self, position: Vec2) -> bool {
+        let infield = self.infield;
+        let position = vec2(position.x, position.y);
+        if infield.x >= position.x && infield.y >= position.y {
+            true
+        } else {
+            false
+        }
+    }
 
     //枝刈りメソッド
-    //#[allow(dead_code)]
-   /* pub fn prune(&self, scene: &Scene) -> Option<Scene> {
-        let robots: HashMap<RobotID, Robot> = &scene
+    #[allow(dead_code)]
+    pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
+        let jodge_robots = scene
             .robots
-            .iter()
-            .map(|(id, robot): (&RobotID, &Robot)|{
-                
-            })
-        None
-    }*/
+            .values()
+            .map(|r: &Robot| self.check_robots_position(r.position))
+            .find(|x| *x == false)
+            .unwrap();
+        let jodge_balls = scene
+            .balls
+            .values()
+            .map(|b: &Ball| self.check_balls_position(b.position))
+            .find(|x| *x == false)
+            .unwrap();
+        if jodge_robots && jodge_balls {
+            Some(scene)
+        } else {
+            None
+        }
+    }
 }
 
 /*#[cfg(test)]
