@@ -348,15 +348,15 @@ pub struct Field {
     pub outfield: Vec2,
 }
 
-/*trait Has<T>{
-    fn have(&self)->bool;
+trait Contain<T>{
+    fn contain(&self,rhs:&T)->bool;
 }
 
-impl <T>Has<T> for Field{
-    fn has(&self)->bool{
-
+impl Contain<Robot>for Field{
+    fn contain(&self,_rhs:&Robot)->bool{
+        false
     }
-} */
+}
 
 impl Default for Field {
     fn default() -> Field {
@@ -463,15 +463,21 @@ impl Field {
 mod tests {
     use super::*;
     #[test]
-   fn prune() {
+   fn noise() {
         let field = &Field::default();
-        let  scenes:[Rc<Scene>;4] = [Rc::default();4];
+        let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene1 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene2 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene3 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        /*let  scenes:[Rc<Scene>;4] = [Rc::default();4];
         for i in 0..3{
             let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
             scenes[i] = scene;
-        } 
+        } */
+        let scenes=[scene,scene1,scene2,scene3];
         let history = History::new(0.0,scenes);
         history.simulate(1,&mut rand::thread_rng(), &field);
+
     }
 }*/
 
