@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::ops::Not;
 use std::rc::Rc;
 
-static DIAMETOR_ROBOT: f32 = 100.0; //[mm] <-これよろしくないですか？
+static DIAMETOR_ROBOT: f32 = 0.10; //[m]
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
@@ -85,14 +85,14 @@ impl Default for Scene {
 }
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
-    standard_deviation: f32,     //標準偏差[mm]
+    standard_deviation: f32,     //標準偏差[m]
     standard_deviation_rad: f32, //標準偏差[rad]
 }
 
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 10.0,
+            standard_deviation: 0.01, //[mm]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -360,8 +360,8 @@ impl Default for Field {
     fn default() -> Field {
         //適当な値で初期化している
         Field {
-            infield: vec2(10000.0, 10000.0),
-            outfield: vec2(11000.0, 11000.0),
+            infield: vec2(1.0, 1.0),
+            outfield: vec2(1.1, 1.1),
         }
     }
 }
