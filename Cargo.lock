@@ -291,6 +291,7 @@ dependencies = [
  "glm 0.2.3 (git+https://github.com/tnctinfossl/glm-rs.git)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "model 0.1.0",
+ "radio 0.1.0",
  "refbox 0.1.0",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -591,6 +592,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "radio"
+version = "0.1.0"
 
 [[package]]
 name = "rand"
