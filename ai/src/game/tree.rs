@@ -7,6 +7,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 //use std::cell::RefCell;
+use std::borrow::*;
 use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::ops::Not;
@@ -68,12 +69,6 @@ impl Ball {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Scene {
-    pub robots: HashMap<RobotID, Robot>,
-    pub balls: HashMap<BallID, Ball>,
-}
-
 impl Default for Scene {
     #[allow(dead_code)]
     fn default() -> Scene {
@@ -92,7 +87,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 0.01, //[mm]
+            standard_deviation: 0.01, //[m]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -106,6 +101,12 @@ impl SceneNoise {
             standard_deviation_rad: standard_deviation_rad,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Scene {
+    pub robots: HashMap<RobotID, Robot>,
+    pub balls: HashMap<BallID, Ball>,
 }
 
 impl Scene {
@@ -327,17 +328,60 @@ impl History {
     }
 }
 
+
+
 #[derive(Debug, Clone)]
 pub struct Tree {
-    pub children: History,
+    pub parent: History,
+    pub children: Vec<History>,
     pub score: (f32, f32),
 }
 
 impl Tree {
-    /*
-    pub fn new(children: History,score: (f32,f32)) -> Scene{
-        let history = children;
-    }*/
+    #[allow(dead_code)]
+    pub fn new(parent_history: &History) -> Tree {
+        let parent = parent_history.clone();
+        let children = Vec::new();
+        Tree {
+            parent: parent,
+            children: children,
+            score: (0.0, 0.0),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn new_children(&self, number: u32) -> Tree {
+        let parent = self.parent.clone();
+        let score = &self.score;
+        let mut children = self.children.clone();
+        let scenenoise = SceneNoise::default();
+        let tmp = &self.parent.scenes;
+        let target = &self.parent.scenes[0].clone();
+        let mut num = number;
+
+        loop {
+            children.push(History::new(
+                1.0,
+                [
+                    Rc::new(target.noise(&mut rand::thread_rng(), &scenenoise)),
+                    tmp[0].clone(),
+                    tmp[1].clone(),
+                    tmp[2].clone(),
+                ],
+            ));
+            num = num - 1;
+            if num <= 0 {
+                break;
+            }
+        }
+        Tree {
+            parent: parent,
+            children: children,
+            score: *score,
+        }
+    }
+    //ジェネリクスでかく
+    //pub fn evaluation<T>(fn:T)->{}
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -458,25 +502,3 @@ impl Field {
         }
     }
 }
-
-/*#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-   fn noise() {
-        let field = &Field::default();
-        let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        let scene1 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        let scene2 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        let scene3 = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-        /*let  scenes:[Rc<Scene>;4] = [Rc::default();4];
-        for i in 0..3{
-            let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
-            scenes[i] = scene;
-        } */
-        let scenes=[scene,scene1,scene2,scene3];
-        let history = History::new(0.0,scenes);
-        history.simulate(1,&mut rand::thread_rng(), &field);
-
-    }
-}*/

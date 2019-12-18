@@ -1,4 +1,5 @@
 use super::tree::*;
+use std::rc::Rc;
 
 use gnuplot::*;
 
@@ -65,3 +66,48 @@ mod tests {
     }
 }*/
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn tree() {
+        let sn = &SceneNoise::default();
+        let mut figure = gnuplot::Figure::new();
+        let field = &Field::default();
+        let scene = Rc::new(field.ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+        let scene1 = Rc::new(
+            Rc::try_unwrap(scene.clone())
+                .ok()
+                .unwrap()
+                .noise(&mut rand::thread_rng(), &sn),
+        );
+        let scene2 = Rc::new(
+            Rc::try_unwrap(scene1.clone())
+                .ok()
+                .unwrap()
+                .noise(&mut rand::thread_rng(), &sn),
+        );
+        let scene3 = Rc::new(
+            Rc::try_unwrap(scene2.clone())
+                .ok()
+                .unwrap()
+                .noise(&mut rand::thread_rng(), &sn),
+        );
+        /*let  scenes:[Rc<Scene>;4] = [Rc::default();4];
+
+        for i in 0..3{
+            let scene = Rc::new(Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1));
+            scenes[i] = scene;
+        } */
+        let scenes = [scene, scene1, scene2, scene3];
+        let history = History::new(1.0, scenes);
+        //history.simulate(1, &mut rand::thread_rng(), &field);
+        let tree = Tree::new(&history);
+        tree.new_children(1);
+        Rc::try_unwrap(tree.parent.scenes[0].clone()).ok().unwrap().plot(&mut figure);
+        figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
+        Rc::try_unwrap(tree.children[0].scenes[0].clone()).ok().unwrap().plot(&mut figure);
+        figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
+
+    }
+}
