@@ -66,7 +66,7 @@ mod tests {
     }
 }*/
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
@@ -110,4 +110,4 @@ mod tests {
         figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
 
     }
-}
+}*/

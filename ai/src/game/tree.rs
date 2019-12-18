@@ -328,8 +328,6 @@ impl History {
     }
 }
 
-
-
 #[derive(Debug, Clone)]
 pub struct Tree {
     pub parent: History,
@@ -396,7 +394,25 @@ trait Contain<T> {
 
 impl Contain<Robot> for Field {
     fn contain(&self, _rhs: &Robot) -> bool {
-        false
+        let infield = self.infield;
+        let robot_abs = _rhs.position.to_vec2().abs();
+        if infield.x / 2.0 >= robot_abs.x && infield.y / 2.0 >= robot_abs.y {
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Contain<Ball> for Field {
+    fn contain(&self, _bhs: &Ball) -> bool {
+        let infield = self.infield;
+        let ball_abs = _bhs.position.abs();
+        if infield.x / 2.0 >= ball_abs.x && infield.y / 2.0 >= ball_abs.y {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -434,7 +450,7 @@ impl Field {
                 vec2rad(
                     r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
                     r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-                    r.gen_range(0.0, 2.0 * std::f32::consts::PI),
+                    r.gen_range(0.0, 2.0 * std::f32::consts::PI)
                 ),
                 DIAMETOR_ROBOT,
             )
@@ -460,7 +476,7 @@ impl Field {
         }
     }
 
-    pub fn check_robots_position(&self, position: Vec2Rad) -> bool {
+   /* pub fn check_robots_position(&self, position: Vec2Rad) -> bool {
         let infield = self.infield;
         let position = vec2(position.x, position.y);
         if infield.x >= position.x && infield.y >= position.y {
@@ -478,7 +494,7 @@ impl Field {
         } else {
             false
         }
-    }
+    }*/
 
     //枝刈りメソッド
     #[allow(dead_code)]
@@ -486,13 +502,15 @@ impl Field {
         let jodge_robots = scene
             .robots
             .values()
-            .map(|r: &Robot| self.check_robots_position(r.position))
+            //.map(|r: &Robot| self.check_robots_position(r.position))
+            .map(|r: &Robot|self.contain(r))
             .find(|x| *x == false)
             .unwrap();
         let jodge_balls = scene
             .balls
             .values()
-            .map(|b: &Ball| self.check_balls_position(b.position))
+            //.map(|b: &Ball| self.check_balls_position(b.position))
+            .map(|b:&Ball|self.contain(b))
             .find(|x| *x == false)
             .unwrap();
         if jodge_robots && jodge_balls {
@@ -500,5 +518,16 @@ impl Field {
         } else {
             None
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn prune() {
+        let scene = Scene::default();
+
     }
 }
