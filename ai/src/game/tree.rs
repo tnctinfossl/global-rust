@@ -140,7 +140,7 @@ impl Scene {
             })
             .collect();
         if let Some(ball) = self.ball {
-            let ball=Ball::new( ball.position + sn.gen_vec2(random));
+            let ball = Ball::new(ball.position + sn.gen_vec2(random));
             Scene::new(robots, Some(ball))
         } else {
             Scene::new(robots, None)
@@ -321,17 +321,6 @@ impl History {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
 #[derive(Debug, Clone)]
 pub struct TreeBuilder {
     pub max_node: u32,
@@ -498,22 +487,12 @@ impl Field {
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
-        let jodge_robots = scene
-            .robots
-            .values()
-            .map(|r: &Robot| self.overlap(r))
-            .find(|x| *x == false)?;
-        
-        let jodge_balls = scene
-            .ball
-            .iter()
-            .map(|b: &Ball| self.overlap(b))
-            .find(|x| *x == false)?;
-        if jodge_robots || jodge_balls {
-            //どちらかに範囲外があるとき
-            Some(scene)
+        if !scene.robots.values().all(|r: &Robot| self.overlap(r)) {
+            return None;
+        }if !scene.ball.iter().all(|b: &Ball| self.overlap(b)) {
+            return None;
         } else {
-            None
+            return Some(scene);
         }
     }
 }
