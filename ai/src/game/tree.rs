@@ -316,6 +316,48 @@ impl History {
     }
 }
 
+trait Shape{
+    
+}
+
+#[derive(Debug, Clone,Copy)]
+pub struct Rectangle{
+    top_left:Vec2,//左上
+    diagonal:Vec2//対角
+}
+
+#[derive(Debug, Clone,Copy)]
+pub struct Circle{
+    radius:f32,
+    center:u32
+}
+
+impl Rectangle{
+    pub fn new(top_left:Vec2,diagonal:Vec2)->Rectangle{
+        Rectangle{
+            top_left:top_left,
+            diagonal:diagonal
+        }
+    }
+}
+
+impl Circle{
+    pub fn new(radius:f32,center:u32)->Circle{
+        Circle{
+            radius:radius,
+            center:center
+        }
+    }
+}
+
+impl Shape for Rectangle{
+
+}
+
+impl Shape for Circle{
+
+}
+
 #[derive(Debug, Clone)]
 pub struct TreeBuilder {
     pub max_node: u32,
@@ -407,15 +449,6 @@ impl Overlap<Ball> for Field {
     }
 }
 
-/*trait Intrusion<T> {
-    fn intrusion(&self,rhs: &T) -> bool;
-}
-
-impl Intrusion<Robot> for Field{
-    fn intrusion(&self,_rhs: &Robot) -> bool{
-    }
-}*/
-
 impl Default for Field {
     fn default() -> Field {
         //適当な値で初期化している[m]
@@ -491,31 +524,12 @@ impl Field {
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
-        let jodge_robots = scene
-            .robots
-            .values()
-            .map(|r: &Robot| self.overlap(r))
-            .find(|x| *x == false);
-        let unwrap_robots = match jodge_robots {
-            //範囲外があったらtrue
-            None => false,
-            Some(i) => i,
-        };
-        let jodge_balls = scene
-            .ball
-            .iter()
-            .map(|b: &Ball| self.overlap(b))
-            .find(|x| *x == false);
-        let unwrap_balls = match jodge_balls {
-            //範囲外があったらtrue
-            None => false,
-            Some(i) => i,
-        };
-        if unwrap_robots || unwrap_balls {
-            //どちらかに範囲外があるとき
-            Some(scene)
+        if !scene.robots.values().all(|r: &Robot| self.overlap(r)) {
+            return None;
+        }if !scene.ball.iter().all(|b: &Ball| self.overlap(b)) {
+            return None;
         } else {
-            None
+            return Some(scene);
         }
     }
 }
