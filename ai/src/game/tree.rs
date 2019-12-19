@@ -321,6 +321,48 @@ impl History {
     }
 }
 
+trait Shape{
+    
+}
+
+#[derive(Debug, Clone,Copy)]
+pub struct Rectangle{
+    top_left:Vec2,//左上
+    diagonal:Vec2//対角
+}
+
+#[derive(Debug, Clone,Copy)]
+pub struct Circle{
+    radius:f32,
+    center:u32
+}
+
+impl Rectangle{
+    pub fn new(top_left:Vec2,diagonal:Vec2)->Rectangle{
+        Rectangle{
+            top_left:top_left,
+            diagonal:diagonal
+        }
+    }
+}
+
+impl Circle{
+    pub fn new(radius:f32,center:u32)->Circle{
+        Circle{
+            radius:radius,
+            center:center
+        }
+    }
+}
+
+impl Shape for Rectangle{
+
+}
+
+impl Shape for Circle{
+
+}
+
 #[derive(Debug, Clone)]
 pub struct TreeBuilder {
     pub max_node: u32,
