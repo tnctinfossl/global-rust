@@ -32,9 +32,10 @@ impl Rectangle {
 }
 
 impl Overlap<Rectangle> for Rectangle {
-    fn overlap(&self, _rhs: &Rectangle) -> bool {
-        //TODO: 後で書く
-        false
+    fn overlap(&self, rhs: &Rectangle) -> bool {
+        let check_x = abs(self.center().x - rhs.center().x) < self.size.x / 2.0 + rhs.size.x / 2.0;
+        let check_y = abs(self.center().y - rhs.center().y) < self.size.y / 2.0 + rhs.size.y / 2.0;
+        check_x && check_y
     }
 }
 
