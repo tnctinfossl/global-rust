@@ -504,23 +504,14 @@ impl Field {
             .robots
             .values()
             .map(|r: &Robot| self.overlap(r))
-            .find(|x| *x == false);
-        let unwrap_robots = match jodge_robots {
-            //範囲外があったらtrue
-            None => false,
-            Some(i) => i,
-        };
+            .find(|x| *x == false)?;
+        
         let jodge_balls = scene
             .balls
             .values()
             .map(|b: &Ball| self.overlap(b))
-            .find(|x| *x == false);
-        let unwrap_balls = match jodge_balls {
-            //範囲外があったらtrue
-            None => false,
-            Some(i) => i,
-        };
-        if unwrap_robots || unwrap_balls {
+            .find(|x| *x == false)?;
+        if jodge_robots || jodge_balls {
             //どちらかに範囲外があるとき
             Some(scene)
         } else {
