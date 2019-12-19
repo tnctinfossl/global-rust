@@ -140,7 +140,7 @@ impl Scene {
             })
             .collect();
         if let Some(ball) = self.ball {
-            let ball=Ball::new( ball.position + sn.gen_vec2(random));
+            let ball = Ball::new(ball.position + sn.gen_vec2(random));
             Scene::new(robots, Some(ball))
         } else {
             Scene::new(robots, None)
@@ -274,29 +274,24 @@ impl History {
 
     //x+vt+1/2*at^2+1/6*yt^3を求めることで次のシーンを予想する
     #[allow(dead_code)]
-    pub fn simulate<R: Rng + ?Sized>(
-        &self,
-        _size: usize,
-        _random: &mut R,
-        _field: &Field,
-    ) -> Scene {
+    pub fn simulate<R: Rng + ?Sized>(&self) -> Scene {
         let robots: HashMap<RobotID, Robot> = self
             .now()
             .robots
-            .keys()
-            .flat_map(|id: &RobotID| {
+            .iter()
+            .map(|(id, robot): (&RobotID, &Robot)| {
                 //変数
-                let position = self.robot_position(*id)?;
-                let velocity = self.robot_velocity(*id)?;
-                let acceleration = self.robot_acceleration(*id)?;
-                let jerk = self.robot_jerk(*id)?;
+                let position = robot.position;
+                let velocity = self.robot_velocity(*id).unwrap_or_default();
+                let acceleration = self.robot_acceleration(*id).unwrap_or_default();
+                let jerk = self.robot_jerk(*id).unwrap_or_default();
                 let period = self.period;
                 //計算 x+vt+1/2*at^2+1/6*yt^3
                 let mut result = position;
                 result += velocity * period;
                 result += acceleration * period.powi(2) / 2.0;
                 result += jerk * period.powi(3) / 6.0;
-                Some((*id, Robot::new(result, DIAMETOR_ROBOT)))
+                (*id, Robot::new(result, DIAMETOR_ROBOT))
             })
             .collect();
 
