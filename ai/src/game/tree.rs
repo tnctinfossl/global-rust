@@ -1,154 +1,12 @@
 extern crate model;
 extern crate serde;
 extern crate serde_derive;
-use super::vec2rad::*;
+use super::*;
 use glm::*;
-use rand::Rng;
-use rand_distr::{Distribution, Normal};
-use serde_derive::*;
-//use std::cell::RefCell;
-//use std::borrow::*;
-use std::cmp::PartialOrd;
+use rand::*;
 use std::collections::HashMap;
-use std::ops::Not;
 use std::rc::Rc;
-
-static DIAMETOR_ROBOT: f32 = 0.10; //[m]
-
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
-pub enum RobotID {
-    Blue(u32),
-    Yellow(u32),
-}
-
-impl Not for RobotID {
-    type Output = RobotID;
-    fn not(self) -> RobotID {
-        use RobotID::*;
-        match self {
-            Blue(number) => Yellow(number),
-            Yellow(number) => Blue(number),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
-pub struct Robot {
-    pub position: Vec2Rad,
-    pub diametor: f32,
-}
-
-impl Robot {
-    #[allow(dead_code)]
-    pub fn new(position: Vec2Rad, diametor: f32) -> Robot {
-        Robot { position, diametor }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Ball {
-    pub position: Vec2,
-}
-
-impl Default for Ball {
-    #[allow(dead_code)]
-    fn default() -> Ball {
-        Ball {
-            position: vec2(0.0, 0.0),
-        }
-    }
-}
-
-impl Ball {
-    #[allow(dead_code)]
-    pub fn new(position: Vec2) -> Ball {
-        Ball { position: position }
-    }
-}
-
-impl Default for Scene {
-    #[allow(dead_code)]
-    fn default() -> Scene {
-        Scene {
-            robots: HashMap::new(),
-            ball: None,
-        }
-    }
-}
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct SceneNoise {
-    standard_deviation: f32,     //標準偏差[m]
-    standard_deviation_rad: f32, //標準偏差[rad]
-}
-
-impl Default for SceneNoise {
-    fn default() -> SceneNoise {
-        SceneNoise {
-            standard_deviation: 0.01, //[m]
-            standard_deviation_rad: std::f32::consts::PI,
-        }
-    }
-}
-
-impl SceneNoise {
-    #[allow(dead_code)]
-    pub fn new(standard_deviation: f32, standard_deviation_rad: f32) -> SceneNoise {
-        SceneNoise {
-            standard_deviation: standard_deviation,
-            standard_deviation_rad: standard_deviation_rad,
-        }
-    }
-    pub fn gen_vec2<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2 {
-        let normal = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
-        vec2(normal.sample(ramdom), normal.sample(ramdom))
-    }
-
-    pub fn gen_vec2rad<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2Rad {
-        let normal_xy = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
-        let normal_theta = Normal::new(0.0 as f32, self.standard_deviation_rad as f32).unwrap();
-        vec2rad(
-            normal_xy.sample(ramdom),
-            normal_xy.sample(ramdom),
-            normal_theta.sample(ramdom),
-        )
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Scene {
-    pub robots: HashMap<RobotID, Robot>,
-    pub ball: Option<Ball>,
-}
-
-impl Scene {
-    #[allow(dead_code)]
-    pub fn new(robots: HashMap<RobotID, Robot>, ball: Option<Ball>) -> Scene {
-        Scene {
-            robots: robots,
-            ball: ball,
-        }
-    }
-    #[allow(dead_code)]
-    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, sn: &SceneNoise) -> Scene {
-        let robots: HashMap<RobotID, Robot> = self
-            .robots
-            .iter()
-            .map(|(id, robot): (&RobotID, &Robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random);
-                (*id, Robot::new(noised, DIAMETOR_ROBOT))
-            })
-            .collect();
-        if let Some(ball) = self.ball {
-            let ball = Ball::new(ball.position + sn.gen_vec2(random));
-            Scene::new(robots, Some(ball))
-        } else {
-            Scene::new(robots, None)
-        }
-    }
-}
 const HISTORY_DEPTH: usize = 4;
-
 #[derive(Debug, Clone)]
 pub struct History {
     pub period: f32, //非ゼロかつ正の値を保証すること
@@ -183,7 +41,7 @@ impl History {
             None
         }
     }
-
+#[allow(dead_code)]
     pub fn robot_position(&self, id: RobotID) -> Option<Vec2Rad> {
         if let Some(r) = self.robot_find(0, id) {
             Some(r.position)
@@ -237,7 +95,7 @@ impl History {
             None
         }
     }
-
+#[allow(dead_code)]
     pub fn ball_position(&self) -> Option<Vec2> {
         let first = self.ball_find(0)?;
         Some(first.position)
@@ -291,7 +149,7 @@ impl History {
                 result += velocity * period;
                 result += acceleration * period.powi(2) / 2.0;
                 result += jerk * period.powi(3) / 6.0;
-                (*id, Robot::new(result, DIAMETOR_ROBOT))
+                (*id, Robot::new(result, robot.diametor))
             })
             .collect();
 
@@ -314,48 +172,6 @@ impl History {
         };
         Scene::new(robots, ball)
     }
-}
-
-trait Shape{
-    
-}
-
-#[derive(Debug, Clone,Copy)]
-pub struct Rectangle{
-    top_left:Vec2,//左上
-    diagonal:Vec2//対角
-}
-
-#[derive(Debug, Clone,Copy)]
-pub struct Circle{
-    radius:f32,
-    center:u32
-}
-
-impl Rectangle{
-    pub fn new(top_left:Vec2,diagonal:Vec2)->Rectangle{
-        Rectangle{
-            top_left:top_left,
-            diagonal:diagonal
-        }
-    }
-}
-
-impl Circle{
-    pub fn new(radius:f32,center:u32)->Circle{
-        Circle{
-            radius:radius,
-            center:center
-        }
-    }
-}
-
-impl Shape for Rectangle{
-
-}
-
-impl Shape for Circle{
-
 }
 
 #[derive(Debug, Clone)]
@@ -418,120 +234,6 @@ impl Tree {
     }
     //ジェネリクスでかく
     //pub fn evaluation<T>(fn:T)->{}
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Field {
-    pub infield: Vec2,
-    pub outfield: Vec2,
-    pub penalty_area_width: f32,
-    pub penalty_area_depth: f32,
-}
-
-trait Overlap<T> {
-    //重なっている
-    fn overlap(&self, rhs: &T) -> bool;
-}
-
-impl Overlap<Robot> for Field {
-    fn overlap(&self, rhs: &Robot) -> bool {
-        let infield = self.infield / 2.0;
-        let robot_abs = rhs.position.to_vec2().abs();
-        infield.x >= robot_abs.x && infield.y >= robot_abs.y
-    }
-}
-
-impl Overlap<Ball> for Field {
-    fn overlap(&self, rhs: &Ball) -> bool {
-        let infield = self.infield / 2.0;
-        let ball_abs = rhs.position.abs();
-        infield.x >= ball_abs.x && infield.y >= ball_abs.y
-    }
-}
-
-impl Default for Field {
-    fn default() -> Field {
-        //適当な値で初期化している[m]
-        Field {
-            infield: vec2(1.0, 1.0),
-            outfield: vec2(1.1, 1.1),
-            penalty_area_width: 0.5,
-            penalty_area_depth: 0.2,
-        }
-    }
-}
-
-impl Field {
-    #[allow(dead_code)]
-    pub fn new(
-        infield: Vec2,
-        outfield: Vec2,
-        penalty_area_width: f32,
-        penalty_area_depth: f32,
-    ) -> Field {
-        Field {
-            infield: infield,
-            outfield: outfield,
-            penalty_area_width: penalty_area_width,
-            penalty_area_depth: penalty_area_depth,
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn ramdon_scene<R: Rng + ?Sized>(
-        &self,
-        random: &mut R,
-        blues: u32,
-        yellows: u32,
-        ball: bool,
-    ) -> Scene {
-        //Scene::default()
-
-        let random_robot = |r: &mut R| -> Robot {
-            Robot::new(
-                vec2rad(
-                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-                    r.gen_range(0.0, 2.0 * std::f32::consts::PI),
-                ),
-                DIAMETOR_ROBOT,
-            )
-        };
-
-        let random_ball = |r: &mut R| -> Ball {
-            Ball::new(vec2(
-                r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
-            ))
-        };
-
-        let robots = (0..blues)
-            .map(|id| RobotID::Blue(id))
-            .chain((0..yellows).map(|id| RobotID::Yellow(id)))
-            .map(|id| (id, random_robot(random)))
-            .collect();
-        let ball = if ball {
-            Some(random_ball(random))
-        } else {
-            None
-        };
-        Scene {
-            ball: ball,
-            robots: robots,
-        }
-    }
-
-    //枝刈りメソッド
-    #[allow(dead_code)]
-    pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
-        if !scene.robots.values().all(|r: &Robot| self.overlap(r)) {
-            return None;
-        }if !scene.ball.iter().all(|b: &Ball| self.overlap(b)) {
-            return None;
-        } else {
-            return Some(scene);
-        }
-    }
 }
 
 /*#[cfg(test)]

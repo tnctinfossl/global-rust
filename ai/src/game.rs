@@ -1,4 +1,16 @@
-pub mod plot;
+pub mod ball;
+pub mod field;
+pub mod robot;
+pub mod scene;
+pub mod shape;
+pub mod traits;
 pub mod tree;
 pub mod vec2rad;
+pub use ball::Ball;
+pub use field::Field;
+pub use robot::{Robot, RobotID};
+pub use scene::{Scene, SceneNoise};
+pub use shape::{Circle, Rectangle};
+pub use traits::{Overlap, Plotable};
 pub use tree::Tree;
+pub use vec2rad::*;
