@@ -85,10 +85,10 @@ impl Field {
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
-        if !scene.robots.values().all(|r: &Robot| self.overlap(r)) {
+        if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
             return None;
         }
-        if !scene.ball.iter().all(|b: &Ball| self.overlap(b)) {
+        if !scene.ball.iter().all(|b: &Ball| self.overlap(*b)) {
             return None;
         } else {
             return Some(scene);
@@ -96,18 +96,15 @@ impl Field {
     }
 }
 
-impl Overlap<Robot> for Field {
-    fn overlap(&self, rhs: &Robot) -> bool {
+impl<T> Overlap<T> for Field
+where
+    T: Into<Circle>,
+{
+    fn overlap(&self, rhs: T) -> bool {
+        let circle = rhs.into();
         let infield = self.infield / 2.0;
-        let robot_abs = rhs.position.to_vec2().abs();
-        infield.x >= robot_abs.x && infield.y >= robot_abs.y
-    }
-}
-
-impl Overlap<Ball> for Field {
-    fn overlap(&self, rhs: &Ball) -> bool {
-        let infield = self.infield / 2.0;
-        let ball_abs = rhs.position.abs();
-        infield.x >= ball_abs.x && infield.y >= ball_abs.y
+        let check_x = -infield.x < circle.center.x && circle.center.x < infield.x;
+        let check_y = -infield.y < circle.center.y && circle.center.y < infield.y;
+        check_x && check_y
     }
 }

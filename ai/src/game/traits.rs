@@ -4,5 +4,5 @@ pub trait Plotable<Rhs> {
 
 pub trait Overlap<T> {
     //重なっている
-    fn overlap(&self, rhs: &T) -> bool;
+    fn overlap(&self, rhs: T) -> bool;
 }

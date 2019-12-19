@@ -1,4 +1,4 @@
-pub use super::vec2rad::*;
+pub use super::*;
 use serde_derive::*;
 use std::ops::Not;
 pub static DIAMETOR_ROBOT: f32 = 0.10; //[m]
@@ -31,5 +31,11 @@ impl Robot {
     #[allow(dead_code)]
     pub fn new(position: Vec2Rad, diametor: f32) -> Robot {
         Robot { position, diametor }
+    }
+}
+
+impl From<Robot> for Circle {
+    fn from(robot: Robot) -> Circle {
+        Circle::new(robot.position.into(), robot.diametor)
     }
 }
