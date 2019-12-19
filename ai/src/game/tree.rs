@@ -355,16 +355,6 @@ pub struct Tree {
 }
 
 impl Tree {
-    /*#[allow(dead_code)]
-    pub fn new(parent_history: &History) -> Tree {
-        let parent = parent_history.clone();
-        let children = Vec::new();
-        Tree {
-            parent: parent,
-            children: children,
-            score: (0.0, 0.0),
-        }
-    }*/
 
     #[allow(dead_code)]
     pub fn new_children(&self, number: u32) -> Tree {
@@ -405,6 +395,8 @@ impl Tree {
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
+    pub penalty_area_width: f32,
+    pub penalty_area_depth: f32,
 }
 
 trait Contain<T> {
@@ -413,44 +405,40 @@ trait Contain<T> {
 
 impl Contain<Robot> for Field {
     fn contain(&self, _rhs: &Robot) -> bool {
-        let infield = self.infield;
+        let infield = self.infield / 2.0;
         let robot_abs = _rhs.position.to_vec2().abs();
-        if infield.x / 2.0 >= robot_abs.x && infield.y / 2.0 >= robot_abs.y {
-            true
-        } else {
-            false
-        }
+        infield.x >= robot_abs.x && infield.y >= robot_abs.y
     }
 }
 
 impl Contain<Ball> for Field {
     fn contain(&self, _bhs: &Ball) -> bool {
-        let infield = self.infield;
+        let infield = self.infield /2.0;
         let ball_abs = _bhs.position.abs();
-        if infield.x / 2.0 >= ball_abs.x && infield.y / 2.0 >= ball_abs.y {
-            true
-        } else {
-            false
-        }
+        infield.x >= ball_abs.x && infield.y  >= ball_abs.y
     }
 }
 
 impl Default for Field {
     fn default() -> Field {
-        //適当な値で初期化している
+        //適当な値で初期化している[m]
         Field {
             infield: vec2(1.0, 1.0),
             outfield: vec2(1.1, 1.1),
+            penalty_area_width:0.5,
+            penalty_area_depth:0.2
         }
     }
 }
 
 impl Field {
     #[allow(dead_code)]
-    pub fn new(infield: Vec2, outfield: Vec2) -> Field {
+    pub fn new(infield: Vec2, outfield: Vec2,penalty_area_width:f32,penalty_area_depth:f32) -> Field {
         Field {
             infield: infield,
             outfield: outfield,
+            penalty_area_width:penalty_area_width,
+            penalty_area_depth:penalty_area_depth
         }
     }
 
@@ -523,20 +511,43 @@ impl Field {
             Some(i) => i
         };
         if unwrap_robots || unwrap_balls {//どちらかに範囲外があるとき
+           // println!("枝切りしよ！" );
             Some(scene)
         } else {
+            //println!("枝切りしない！");
             None
         }
     }
 }
 
 
+
+
+
+
+
+
+
 /*#[cfg(test)]
 mod tests {
-    use super::*;
+    use super ::*;
+    use super::super::plot::Plotable; 
     #[test]
     fn prune() {
-        let scene = Scene::default();
+        let mut robots = HashMap::new();
+        let mut figure = gnuplot::Figure::new();
+        let position = Vec2Rad::new(0.51,0.51,0.0);
+        robots.insert(RobotID::Blue(1), Robot::new(position,0.1));
+        let mut balls = HashMap::new();
+        let ballid:BallID = 1; 
+        balls.insert(ballid,Ball::new(vec2(0.0,0.0)));
+        let scene = Scene::new(robots, balls);
+        let field = Field::default();
+        let scene_prune = field.prune(&scene).unwrap();
+        scene_prune.plot(&mut figure);
 
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
     }
 }*/
+
