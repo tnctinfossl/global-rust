@@ -46,8 +46,6 @@ impl Robot {
     }
 }
 
-type BallID = u32;
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Ball {
     pub position: Vec2,
@@ -74,7 +72,7 @@ impl Default for Scene {
     fn default() -> Scene {
         Scene {
             robots: HashMap::new(),
-            balls: HashMap::new(),
+            ball: None,
         }
     }
 }
@@ -101,20 +99,34 @@ impl SceneNoise {
             standard_deviation_rad: standard_deviation_rad,
         }
     }
+    pub fn gen_vec2<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2 {
+        let normal = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
+        vec2(normal.sample(ramdom), normal.sample(ramdom))
+    }
+
+    pub fn gen_vec2rad<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2Rad {
+        let normal_xy = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
+        let normal_theta = Normal::new(0.0 as f32, self.standard_deviation_rad as f32).unwrap();
+        vec2rad(
+            normal_xy.sample(ramdom),
+            normal_xy.sample(ramdom),
+            normal_theta.sample(ramdom),
+        )
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
     pub robots: HashMap<RobotID, Robot>,
-    pub balls: HashMap<BallID, Ball>,
+    pub ball: Option<Ball>,
 }
 
 impl Scene {
     #[allow(dead_code)]
-    pub fn new(robots: HashMap<RobotID, Robot>, balls: HashMap<BallID, Ball>) -> Scene {
+    pub fn new(robots: HashMap<RobotID, Robot>, ball: Option<Ball>) -> Scene {
         Scene {
             robots: robots,
-            balls: balls,
+            ball: ball,
         }
     }
     #[allow(dead_code)]
@@ -123,30 +135,16 @@ impl Scene {
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let mut noised = robot.position;
-                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
-                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
-                let normal_theta =
-                    Normal::new(noised.theta as f64, sn.standard_deviation_rad as f64).unwrap();
-                noised.x += normal_x.sample(random) as f32;
-                noised.y += normal_y.sample(random) as f32;
-                noised.theta += normal_theta.sample(random) as f32;
+                let noised = robot.position + sn.gen_vec2rad(random);
                 (*id, Robot::new(noised, DIAMETOR_ROBOT))
             })
             .collect();
-        let balls: HashMap<BallID, Ball> = self
-            .balls
-            .iter()
-            .map(|(id, ball): (&BallID, &Ball)| {
-                let mut noised = ball.position;
-                let normal_x = Normal::new(noised.x as f64, sn.standard_deviation as f64).unwrap();
-                let normal_y = Normal::new(noised.y as f64, sn.standard_deviation as f64).unwrap();
-                noised.x += normal_x.sample(random) as f32;
-                noised.y += normal_y.sample(random) as f32;
-                (*id, Ball::new(noised))
-            })
-            .collect();
-        Scene::new(robots, balls)
+        if let Some(ball) = self.ball {
+            let ball=Ball::new( ball.position + sn.gen_vec2(random));
+            Scene::new(robots, Some(ball))
+        } else {
+            Scene::new(robots, None)
+        }
     }
 }
 const HISTORY_DEPTH: usize = 4;
@@ -232,46 +230,42 @@ impl History {
         ))
     }
 
-    pub fn ball_find(&self, era: usize, id: BallID) -> Option<Ball> {
+    pub fn ball_find(&self, era: usize) -> Option<Ball> {
         if era < HISTORY_DEPTH {
-            if let Some(&ball) = self.scenes[era].balls.get(&id) {
-                Some(ball)
-            } else {
-                None
-            }
+            self.scenes[era].ball
         } else {
             None
         }
     }
 
-    pub fn ball_position(&self, id: BallID) -> Option<Vec2> {
-        let first = self.ball_find(0, id)?;
+    pub fn ball_position(&self) -> Option<Vec2> {
+        let first = self.ball_find(0)?;
         Some(first.position)
     }
 
-    pub fn ball_velocity(&self, id: BallID) -> Option<Vec2> {
-        let first = self.ball_find(0, id)?;
-        let second = self.ball_find(1, id)?;
+    pub fn ball_velocity(&self) -> Option<Vec2> {
+        let first = self.ball_find(0)?;
+        let second = self.ball_find(1)?;
         //差分方程式を解く (x0 - x1)/t
         let velocity = (first.position - second.position) / self.period;
         Some(velocity)
     }
 
-    pub fn ball_acceleration(&self, id: BallID) -> Option<Vec2> {
-        let first = self.ball_find(0, id)?;
-        let second = self.ball_find(1, id)?;
-        let third = self.ball_find(2, id)?;
+    pub fn ball_acceleration(&self) -> Option<Vec2> {
+        let first = self.ball_find(0)?;
+        let second = self.ball_find(1)?;
+        let third = self.ball_find(2)?;
         //差分方程式を解く (x0 - 2x1 + x2)/t^2
         let acceleration =
             (first.position - second.position * 2.0 + third.position) / self.period.powi(2);
         Some(acceleration)
     }
 
-    pub fn ball_jerk(&self, id: BallID) -> Option<Vec2> {
-        let first = self.ball_find(0, id)?;
-        let second = self.ball_find(1, id)?;
-        let third = self.ball_find(2, id)?;
-        let forth = self.ball_find(3, id)?;
+    pub fn ball_jerk(&self) -> Option<Vec2> {
+        let first = self.ball_find(0)?;
+        let second = self.ball_find(1)?;
+        let third = self.ball_find(2)?;
+        let forth = self.ball_find(3)?;
         //差分方程式を解く (x0 - 3x1 + 3x2 - x3)/t^3
         let jerk = (first.position - second.position * 3.0 + third.position * 3.0 - forth.position)
             / self.period.powi(3);
@@ -305,26 +299,25 @@ impl History {
                 Some((*id, Robot::new(result, DIAMETOR_ROBOT)))
             })
             .collect();
-        let balls: HashMap<BallID, Ball> = self
-            .now()
-            .balls
-            .keys()
-            .flat_map(|id: &BallID| {
-                //変数
-                let position = self.ball_position(*id)?;
-                let velocity = self.ball_velocity(*id)?;
-                let acceleration = self.ball_acceleration(*id)?;
-                let jerk = self.ball_jerk(*id)?;
-                let period = self.period;
-                //計算 x+vt+1/2*at^2+1/6*yt^3
-                let result = position
-                    + velocity * period
-                    + acceleration * period.powi(2) / 2.0
-                    + jerk * period.powi(3) / 6.0;
-                Some((*id, Ball::new(result)))
-            })
-            .collect();
-        Scene::new(robots, balls)
+
+        let ball = if let Some(ball) = self.now().ball {
+            //変数
+            let default = vec2(0.0, 0.0);
+            let position = ball.position;
+            let velocity = self.ball_velocity().unwrap_or(default);
+            let acceleration = self.ball_acceleration().unwrap_or(default);
+            let jerk = self.ball_jerk().unwrap_or(default);
+            let period = self.period;
+            //計算 x+vt+1/2*at^2+1/6*yt^3
+            let result = position
+                + velocity * period
+                + acceleration * period.powi(2) / 2.0
+                + jerk * period.powi(3) / 6.0;
+            Some(Ball::new(result))
+        } else {
+            None
+        };
+        Scene::new(robots, ball)
     }
 }
 
@@ -398,7 +391,8 @@ pub struct Field {
     pub penalty_area_depth: f32,
 }
 
-trait Overlap<T> {//重なっている
+trait Overlap<T> {
+    //重なっている
     fn overlap(&self, rhs: &T) -> bool;
 }
 
@@ -424,7 +418,6 @@ impl Overlap<Ball> for Field {
 
 impl Intrusion<Robot> for Field{
     fn intrusion(&self,_rhs: &Robot) -> bool{
-        
     }
 }*/
 
@@ -462,7 +455,7 @@ impl Field {
         random: &mut R,
         blues: u32,
         yellows: u32,
-        balls: u32,
+        ball: bool,
     ) -> Scene {
         //Scene::default()
 
@@ -489,10 +482,13 @@ impl Field {
             .chain((0..yellows).map(|id| RobotID::Yellow(id)))
             .map(|id| (id, random_robot(random)))
             .collect();
-
-        let balls: HashMap<BallID, Ball> = (0..balls).map(|id| (id, random_ball(random))).collect();
+        let ball = if ball {
+            Some(random_ball(random))
+        } else {
+            None
+        };
         Scene {
-            balls: balls,
+            ball: ball,
             robots: robots,
         }
     }
@@ -511,8 +507,8 @@ impl Field {
             Some(i) => i,
         };
         let jodge_balls = scene
-            .balls
-            .values()
+            .ball
+            .iter()
             .map(|b: &Ball| self.overlap(b))
             .find(|x| *x == false);
         let unwrap_balls = match jodge_balls {

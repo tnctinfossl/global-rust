@@ -33,8 +33,8 @@ impl Plotable for Scene {
             yellow_ys,
             &[PlotOption::Color("orange"), PlotOption::PointSize(5.0)],
         );
-        let ball_xs = self.balls.values().map(|b| b.position.x);
-        let ball_ys = self.balls.values().map(|b| b.position.y);
+        let ball_xs = self.ball.iter().map(|b| b.position.x);
+        let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
@@ -50,18 +50,19 @@ mod tests {
     fn plot_scene() {
         let sn = SceneNoise::default();
         let mut figure = gnuplot::Figure::new();
-        let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, 1);
+        let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, true);
         scene.plot(&mut figure);
 
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
 
-        scene.noise(&mut rand::thread_rng(),&sn);
+        scene.noise(&mut rand::thread_rng(), &sn);
         scene.plot(&mut figure);
-        
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
+        figure
+            .save_to_png("img/test_plot1.png", 1000, 1000)
+            .unwrap();
     }
 }
 
@@ -110,4 +111,3 @@ mod tests {
 
     }
 }*/
-
