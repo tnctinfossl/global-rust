@@ -328,6 +328,17 @@ impl History {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
 #[derive(Debug, Clone)]
 pub struct TreeBuilder {
     pub max_node: u32,
@@ -418,15 +429,6 @@ impl Overlap<Ball> for Field {
     }
 }
 
-/*trait Intrusion<T> {
-    fn intrusion(&self,rhs: &T) -> bool;
-}
-
-impl Intrusion<Robot> for Field{
-    fn intrusion(&self,_rhs: &Robot) -> bool{
-        
-    }
-}*/
 
 impl Default for Field {
     fn default() -> Field {
