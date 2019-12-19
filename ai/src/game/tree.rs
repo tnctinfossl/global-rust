@@ -7,7 +7,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 //use std::cell::RefCell;
-use std::borrow::*;
+//use std::borrow::*;
 use std::cmp::PartialOrd;
 use std::collections::HashMap;
 use std::ops::Not;
@@ -329,13 +329,12 @@ impl History {
 }
 
 #[derive(Debug, Clone)]
-pub struct Tree {
-    pub parent: History,
-    pub children: Vec<History>,
-    pub score: (f32, f32),
+pub struct TreeBuilder {
+    pub max_node: u32,
+    pub max_depth: u32,
 }
 
-impl Tree {
+impl TreeBuilder {
     #[allow(dead_code)]
     pub fn new(parent_history: &History) -> Tree {
         let parent = parent_history.clone();
@@ -346,11 +345,31 @@ impl Tree {
             score: (0.0, 0.0),
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct Tree {
+    pub parent: History,
+    pub children: Vec<History>,
+    pub score: (f32, f32),
+}
+
+impl Tree {
+    /*#[allow(dead_code)]
+    pub fn new(parent_history: &History) -> Tree {
+        let parent = parent_history.clone();
+        let children = Vec::new();
+        Tree {
+            parent: parent,
+            children: children,
+            score: (0.0, 0.0),
+        }
+    }*/
 
     #[allow(dead_code)]
     pub fn new_children(&self, number: u32) -> Tree {
         let parent = self.parent.clone();
-        let score = &self.score;
+        let score = self.score;
         let mut children = self.children.clone();
         let scenenoise = SceneNoise::default();
         let tmp = &self.parent.scenes;
@@ -375,7 +394,7 @@ impl Tree {
         Tree {
             parent: parent,
             children: children,
-            score: *score,
+            score: score,
         }
     }
     //ジェネリクスでかく
@@ -476,44 +495,34 @@ impl Field {
         }
     }
 
-   /* pub fn check_robots_position(&self, position: Vec2Rad) -> bool {
-        let infield = self.infield;
-        let position = vec2(position.x, position.y);
-        if infield.x >= position.x && infield.y >= position.y {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn check_balls_position(&self, position: Vec2) -> bool {
-        let infield = self.infield;
-        let position = vec2(position.x, position.y);
-        if infield.x >= position.x && infield.y >= position.y {
-            true
-        } else {
-            false
-        }
-    }*/
 
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
         let jodge_robots = scene
-            .robots
-            .values()
-            //.map(|r: &Robot| self.check_robots_position(r.position))
-            .map(|r: &Robot|self.contain(r))
-            .find(|x| *x == false)
-            .unwrap();
+        .robots
+        .values()
+        //.map(|r: &Robot| self.check_robots_position(r.position))
+        .map(|r: &Robot|self.contain(r))
+        .find(|x| *x == false);
+        let unwrap_robots = 
+            match jodge_robots{//範囲外があったらtrue
+            None => false,
+            Some(i) => i
+            };
+        
         let jodge_balls = scene
             .balls
             .values()
             //.map(|b: &Ball| self.check_balls_position(b.position))
             .map(|b:&Ball|self.contain(b))
-            .find(|x| *x == false)
-            .unwrap();
-        if jodge_robots && jodge_balls {
+            .find(|x| *x == false);
+        let unwrap_balls = 
+            match jodge_balls{//範囲外があったらtrue
+            None => false,
+            Some(i) => i
+        };
+        if unwrap_robots || unwrap_balls {//どちらかに範囲外があるとき
             Some(scene)
         } else {
             None
@@ -522,7 +531,7 @@ impl Field {
 }
 
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
@@ -530,4 +539,4 @@ mod tests {
         let scene = Scene::default();
 
     }
-}
+}*/
