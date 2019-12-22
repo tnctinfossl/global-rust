@@ -605,6 +605,7 @@ name = "radio"
 version = "0.1.0"
 dependencies = [
  "glm 0.2.3 (git+https://github.com/tnctinfossl/glm-rs.git)",
+ "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.44 (registry+https://github.com/rust-lang/crates.io-index)",

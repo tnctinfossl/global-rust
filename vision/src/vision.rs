@@ -20,19 +20,16 @@ impl Default for Settings {
         }
     }
 }
-
+#[derive(Debug)]
 pub struct Listener {
     sender: Sender<model::World>,
     socket: UdpSocket,
 }
 
 impl Listener {
-    pub fn spawn(settings: &Settings,sender:Sender<model::World>) -> Result<(), String> {
+    pub fn spawn(settings: &Settings, sender: Sender<model::World>) -> Result<(), String> {
         //socket open
-        let addr = {
-            let [a, b, c, d] = settings.ip4;
-            Ipv4Addr::new(a, b, c, d)
-        };
+        let addr = Ipv4Addr::from(settings.ip4);
         let socket = UdpSocket::bind(&SocketAddr::from((addr, settings.port)))
             .map_err(|e| format!("Cannot bind vision server:{:?}", e))?;
         socket
@@ -40,7 +37,7 @@ impl Listener {
             .map_err(|e| format!("Cannot join vision server:{:?}", e))?;
 
         let listener = Listener {
-            sender:sender,
+            sender: sender,
             socket: socket,
         };
 
