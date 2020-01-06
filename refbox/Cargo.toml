@@ -10,8 +10,8 @@ edition = "2018"
 protoc-rust = "2.8.1"
 [dependencies]
 protobuf = "2.8.1"
-serde = "1.0.101"
-serde_derive = "1.0.101"
+serde = "1.0.103"
+serde_derive = "1.0.103"
 model={path="../model"}
 log = "0.4.8"
-env_logger = "0.7.0"
+env_logger = "0.7.1"
