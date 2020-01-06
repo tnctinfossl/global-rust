@@ -1,5 +1,5 @@
 [package]
-name = "radio"
+name = "radio-send"
 version = "0.1.0"
 authors = ["terurin <hamusutaateru@live.jp>"]
 edition = "2018"
