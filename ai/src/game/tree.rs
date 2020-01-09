@@ -234,8 +234,12 @@ impl Tree {
     }
     //途中
     /*#[allow(dead_code)]
-    pub Fn evaluation<G:Fn(History)->Scene, E:Fn(Scene)->(f32,f32),C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->{
-        
+    pub fn evaluation<G:Fn(History)->Scene, E:Fn(Scene)->(f32,f32),C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->{
+        (0..1<<d).flat_map(|_|if let Some(s) = c(g(h)){
+            Some(s.e(s) + evaluation(history,g,e,c,d-1))
+        }else{
+            None
+        }.max()
     }*/
 }
 
