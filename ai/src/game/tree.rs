@@ -232,8 +232,11 @@ impl Tree {
             score: score,
         }
     }
-    //ジェネリクスでかく
-    //pub fn evaluation<T>(fn:T)->{}
+    //途中
+    /*#[allow(dead_code)]
+    pub Fn evaluation<G:Fn(History)->Scene, E:Fn(Scene)->(f32,f32),C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->{
+        
+    }*/
 }
 
 /*#[cfg(test)]
