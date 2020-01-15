@@ -232,16 +232,19 @@ impl Tree {
             score: score,
         }
     }
-    //途中
+    
     /*#[allow(dead_code)]
-    pub fn evaluation<G:Fn(History)->Scene, E:Fn(Scene)->(f32,f32),C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->{
-        (0..1<<d).flat_map(|_|if let Some(s) = c(g(h)){
-            Some(s.e(s) + evaluation(history,g,e,c,d-1))
+    pub fn evaluation< G:Fn(History)->Scene, E:Fn(Scene)->f32,C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->(f32,Scene){
+        let e_value = (0..1<<d).flat_map(|_|if let Some(s) = c(g(h)){
+            Some(e(s) + evaluation(h,g,e,c,d-1).0)
         }else{
             None
-        }.max()
+        }).max().unwrap();
+        (e_value,s)
+
     }*/
 }
+
 
 /*#[cfg(test)]
 mod tests {
