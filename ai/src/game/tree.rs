@@ -25,6 +25,16 @@ impl History {
             }
         }
     }
+
+    #[allow(dead_code)]
+    pub fn push(&self,inserter:Rc<Scene>) -> History {
+        History{
+            period:self.period,
+            scenes:[inserter,self.scenes[0].clone(),self.scenes[1].clone(),self.scenes[2].clone()]
+        }
+    }
+
+
     #[inline(always)]
     pub fn now<'a>(&'a self) -> &'a Scene {
         &self.scenes[0]
@@ -215,7 +225,7 @@ impl Tree {
             children.push(History::new(
                 1.0,
                 [
-                    Rc::new(target.noise(&mut rand::thread_rng(), &scenenoise)),
+                    Rc::new(target.noise(&mut rand::thread_rng(),10.0, &scenenoise)),//要修正
                     tmp[0].clone(),
                     tmp[1].clone(),
                     tmp[2].clone(),
@@ -233,16 +243,38 @@ impl Tree {
         }
     }
     
-    /*#[allow(dead_code)]
-    pub fn evaluation< G:Fn(History)->Scene, E:Fn(Scene)->f32,C:Fn(Scene)->Option<Scene> >(h:History,g:G,e:E,c:C,d:u32)->(f32,Scene){
-        let e_value = (0..1<<d).flat_map(|_|if let Some(s) = c(g(h)){
-            Some(e(s) + evaluation(h,g,e,c,d-1).0)
-        }else{
-            None
-        }).max().unwrap();
-        (e_value,s)
+    #[allow(dead_code)]
+    pub fn evaluation< G:Fn(&History)->Scene, SE:Fn(&Scene)->f32,P:Fn(Scene)->Option<Scene> >(history:&History,generator:&G,static_evaluation:&SE,prune:&P,depth:u32)->(f32,Vec<Rc<Scene>>){
+        fn inner < G:Fn(&History)->Scene, SE:Fn(&Scene)->f32,P:Fn(Scene)->Option<Scene> >(history:&History,generator:&G,static_evaluation:&SE,prune:&P,depth:u32)->(f32,Vec<Rc<Scene>>){
+            let branches:Vec<_>=(0..1<<depth).flat_map(|_| prune(generator(history))).map(|scene:Scene|{
+                let now_score = static_evaluation(&scene);
+                let scene = Rc::new(scene);
+                if depth==0{
+                    return (now_score,vec![scene]);
+                }
+                let fiture= history.push(scene.clone());
+                let (next_score,mut scenes) = inner(&fiture, generator, static_evaluation, prune, depth-1);
+                
+                let score= (now_score+next_score)/2.0;
+                scenes.push(scene);
+                (score,scenes)
+            }).collect();
+            //find best snene
+            let sum:f32=branches.iter().map(|(score,_)|score).sum();
+            let score=sum/(1<<depth) as f32;
+            let (_,best_branch) = branches.into_iter().max_by(|(sa,_),(sb,_)|{
+                use std::cmp::Ordering;
+                if sa>sb{
+                    Ordering::Greater
+                }else{
+                    Ordering::Less
+                }
+            }).unwrap();
+            (score,best_branch)//strub
+        }
+        inner(history,generator,static_evaluation,prune,depth)
+    }
 
-    }*/
 }
 
 
