@@ -137,7 +137,7 @@ mod tests {
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
 
-        scene.noise(&mut rand::thread_rng(),60.0, &sn);
+        scene.noise(&mut rand::thread_rng(),16.66, &sn);
         scene.plot(&mut figure.axes2d());
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();
