@@ -196,13 +196,12 @@ pub struct TreeBuilder {
 
 impl TreeBuilder {
     #[allow(dead_code)]
-    pub fn new(parent_history: &History) -> Tree {
+    pub fn new(parent_history: &History , children:History) -> Tree {
         let parent = parent_history.clone();
-        let children = Vec::new();
         Tree {
             parent: parent,
             children: children,
-            score: (0.0, 0.0),
+            //score: (0.0, 0.0),
         }
     }
 }
@@ -210,23 +209,23 @@ impl TreeBuilder {
 #[derive(Debug, Clone)]
 pub struct Tree {
     pub parent: History,
-    pub children: Vec<History>,
-    pub score: (f32, f32),
+    pub children: History,
+    //pub score: (f32, f32),
 }
 
 impl Tree {
     #[allow(dead_code)]
     pub fn new_children(&self, number: u32) -> Tree {
         let parent = self.parent.clone();
-        let score = self.score;
-        let mut children = self.children.clone();
+        //let score = self.score;
+        let children = self.children.clone();
         let scenenoise = SceneNoise::default();
         let tmp = &self.parent.scenes;
         let target = &self.parent.scenes[0].clone();
         let mut num = number;
 
         loop {
-            children.push(History::new(
+            History::new(
                 1.0,
                 [
                     Rc::new(target.noise(&mut rand::thread_rng(), 10.0, &scenenoise)), //要修正
@@ -234,7 +233,7 @@ impl Tree {
                     tmp[1].clone(),
                     tmp[2].clone(),
                 ],
-            ));
+            );
             num = num - 1;
             if num <= 0 {
                 break;
@@ -243,7 +242,7 @@ impl Tree {
         Tree {
             parent: parent,
             children: children,
-            score: score,
+            //score: score,
         }
     }
     #[allow(dead_code)]
@@ -302,7 +301,10 @@ impl Tree {
     }
 
     #[allow(dead_code)]
-    fn plot_next_act(scenes:Vec<Rc<Scene>>){
+    fn plot_evaluation(scenes: Vec<Rc<Scene>>){
+
+        
+
         let mut figure = gnuplot::Figure::new();
         scenes[0].plot(&mut figure.axes2d());
         std::fs::create_dir_all("img").unwrap();

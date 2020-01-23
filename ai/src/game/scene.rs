@@ -59,7 +59,7 @@ impl Scene {
         }
     }
     #[allow(dead_code)]
-    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R,period: f32, sn: &SceneNoise) -> Scene {
+    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
         let robots: HashMap<RobotID, Robot> = self
             .robots
             .iter()
@@ -126,9 +126,62 @@ impl Plotable<gnuplot::Axes2D> for Scene {
 
 #[cfg(test)]
 mod tests {
+    use super::tree::*;
     use super::*;
+    use std::rc::Rc;
     #[test]
-    fn plot_scene() {
+    fn plot() {//子を生成してプロットする
+        let sn = SceneNoise::default();
+        
+        let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, true); //親
+        let scene0 = Rc::new(scene.noise(&mut rand::thread_rng(), 10.0, &sn));
+        let scene1 = Rc::new(scene.noise(&mut rand::thread_rng(), 10.0, &sn));
+        let scene2 = Rc::new(scene.noise(&mut rand::thread_rng(), 10.0, &sn));
+        let scene3 = Rc::new(scene.noise(&mut rand::thread_rng(), 10.0, &sn));
+        let scenes = [scene0, scene1, scene2, scene3] ;
+        
+        let history = History::new(1.0, scenes); //親History作成
+        
+        let tree = TreeBuilder::new(&history,history.clone());
+        tree.new_children(4);
+        
+        println!("{:?}",tree.children.scenes[0]);
+
+        let children = tree.children;
+        let target0 = Rc::try_unwrap(children.scenes[0].clone()).ok().unwrap();//ここで落ちる
+        let target1 = Rc::try_unwrap(children.scenes[1].clone()).ok().unwrap();
+        let target2 = Rc::try_unwrap(children.scenes[2].clone()).ok().unwrap();
+        let target3 = Rc::try_unwrap(children.scenes[3].clone()).ok().unwrap();
+
+        println!("b");
+
+        let mut figure = gnuplot::Figure::new();
+        target0.plot(&mut figure.axes2d());
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot0.png", 1000, 1000).unwrap();
+
+        let mut figure = gnuplot::Figure::new();
+        target1.plot(&mut figure.axes2d());
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
+
+        let mut figure = gnuplot::Figure::new();
+        target2.plot(&mut figure.axes2d());
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot2.png", 1000, 1000).unwrap();
+
+        let mut figure = gnuplot::Figure::new();
+        target3.plot(&mut figure.axes2d());
+        std::fs::create_dir_all("img").unwrap();
+        figure.save_to_png("img/test_plot3.png", 1000, 1000).unwrap();
+
+        println!("c");
+
+
+
+    }
+
+    /*fn plot_scene() {
         let sn = SceneNoise::default();
         let mut figure = gnuplot::Figure::new();
         let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, true);
@@ -145,4 +198,5 @@ mod tests {
             .save_to_png("img/test_plot1.png", 1000, 1000)
             .unwrap();
     }
+    */
 }
