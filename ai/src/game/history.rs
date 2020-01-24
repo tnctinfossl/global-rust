@@ -188,143 +188,90 @@ impl History {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TreeBuilder {
-    pub max_node: u32,
-    pub max_depth: u32,
-}
-
-impl TreeBuilder {
-    #[allow(dead_code)]
-    pub fn new(parent_history: &History , children:History) -> Tree {
-        let parent = parent_history.clone();
-        Tree {
-            parent: parent,
-            children: children,
-            //score: (0.0, 0.0),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Tree {
-    pub parent: History,
-    pub children: History,
-    //pub score: (f32, f32),
-}
-
-impl Tree {
-    #[allow(dead_code)]
-    pub fn new_children(&self, number: u32) -> Tree {
-        let parent = self.parent.clone();
-        //let score = self.score;
-        let children = self.children.clone();
-        let scenenoise = SceneNoise::default();
-        let tmp = &self.parent.scenes;
-        let target = &self.parent.scenes[0].clone();
-        let mut num = number;
-
-        loop {
-            History::new(
-                1.0,
-                [
-                    Rc::new(target.noise(&mut rand::thread_rng(), 10.0, &scenenoise)), //要修正
-                    tmp[0].clone(),
-                    tmp[1].clone(),
-                    tmp[2].clone(),
-                ],
-            );
-            num = num - 1;
-            if num <= 0 {
-                break;
-            }
-        }
-        Tree {
-            parent: parent,
-            children: children,
-            //score: score,
-        }
-    }
-    #[allow(dead_code)]
-    pub fn evaluation<
-        G: Fn(&History) -> Scene,
-        SE: Fn(&Scene) -> f32,
-        P: Fn(Scene) -> Option<Scene>,
-    >(
+#[allow(dead_code)]
+pub fn tree_plan<
+    G: Fn(&History) -> Scene,
+    SE: Fn(&Scene) -> f32,
+    P: Fn(Scene) -> Option<Scene>,
+>(
+    history: &History,
+    generator: &G,
+    static_evaluation: &SE,
+    prune: &P,
+    depth: u32,
+) -> (f32, Vec<Rc<Scene>>) {
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
         history: &History,
         generator: &G,
         static_evaluation: &SE,
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
-            history: &History,
-            generator: &G,
-            static_evaluation: &SE,
-            prune: &P,
-            depth: u32,
-        ) -> (f32, Vec<Rc<Scene>>) {
-            let branches: Vec<_> = (0..1 << depth)
-                .flat_map(|_| prune(generator(history)))
-                .map(|scene: Scene| {
-                    let now_score = static_evaluation(&scene);
-                    let scene = Rc::new(scene);
-                    if depth == 0 {
-                        return (now_score, vec![scene]);
-                    }
-                    let fiture = history.push(scene.clone());
-                    let (next_score, mut scenes) =
-                        inner(&fiture, generator, static_evaluation, prune, depth - 1);
+        let branches: Vec<_> = (0..1 << depth)
+            .flat_map(|_| prune(generator(history)))
+            .map(|scene: Scene| {
+                let now_score = static_evaluation(&scene);
+                let scene = Rc::new(scene);
+                if depth == 0 {
+                    return (now_score, vec![scene]);
+                }
+                let fiture = history.push(scene.clone());
+                let (next_score, mut scenes) =
+                    inner(&fiture, generator, static_evaluation, prune, depth - 1);
 
-                    let score = (now_score + next_score) / 2.0;
-                    scenes.push(scene);
-                    (score, scenes)
-                })
-                .collect();
-            //find best snene
-            let sum: f32 = branches.iter().map(|(score, _)| score).sum();
-            let score = sum / (1 << depth) as f32;
-            let (_, best_branch) = branches
-                .into_iter()
-                .max_by(|(sa, _), (sb, _)| {
-                    use std::cmp::Ordering;
-                    if sa > sb {
-                        Ordering::Greater
-                    } else {
-                        Ordering::Less
-                    }
-                })
-                .unwrap();
-            (score, best_branch) //strub
-        }
-        inner(history, generator, static_evaluation, prune, depth)
+                let score = (now_score + next_score) / 2.0;
+                scenes.push(scene);
+                (score, scenes)
+            })
+            .collect();
+        //find best snene
+        let sum: f32 = branches.iter().map(|(score, _)| score).sum();
+        let score = sum / (1 << depth) as f32;
+        let (_, best_branch) = branches
+            .into_iter()
+            .max_by(|(sa, _), (sb, _)| {
+                use std::cmp::Ordering;
+                if sa > sb {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }
+            })
+            .unwrap();
+        (score, best_branch) //strub
     }
+    inner(history, generator, static_evaluation, prune, depth)
+}
 
-    #[allow(dead_code)]
-    fn plot_evaluation(scenes: Vec<Rc<Scene>>){
+#[allow(dead_code)]
+fn plot_evaluation(scenes: Vec<Rc<Scene>>) {
+    let mut figure = gnuplot::Figure::new();
+    scenes[0].plot(&mut figure.axes2d());
+    std::fs::create_dir_all("img").unwrap();
+    figure
+        .save_to_png("img/test_plot0.png", 1000, 1000)
+        .unwrap();
 
-        
+    let mut figure = gnuplot::Figure::new();
+    scenes[1].plot(&mut figure.axes2d());
+    std::fs::create_dir_all("img").unwrap();
+    figure
+        .save_to_png("img/test_plot1.png", 1000, 1000)
+        .unwrap();
 
-        let mut figure = gnuplot::Figure::new();
-        scenes[0].plot(&mut figure.axes2d());
-        std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot0.png", 1000, 1000).unwrap();
+    let mut figure = gnuplot::Figure::new();
+    scenes[2].plot(&mut figure.axes2d());
+    std::fs::create_dir_all("img").unwrap();
+    figure
+        .save_to_png("img/test_plot2.png", 1000, 1000)
+        .unwrap();
 
-        let mut figure = gnuplot::Figure::new();
-        scenes[1].plot(&mut figure.axes2d());
-        std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot1.png", 1000, 1000).unwrap();
-
-        let mut figure = gnuplot::Figure::new();
-        scenes[2].plot(&mut figure.axes2d());
-        std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot2.png", 1000, 1000).unwrap();
-
-        let mut figure = gnuplot::Figure::new();
-        scenes[3].plot(&mut figure.axes2d());
-        std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot3.png", 1000, 1000).unwrap();
-    }
+    let mut figure = gnuplot::Figure::new();
+    scenes[3].plot(&mut figure.axes2d());
+    std::fs::create_dir_all("img").unwrap();
+    figure
+        .save_to_png("img/test_plot3.png", 1000, 1000)
+        .unwrap();
 }
 
 /*#[cfg(test)]

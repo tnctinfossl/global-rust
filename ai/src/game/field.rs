@@ -16,8 +16,8 @@ impl Default for Field {
         Field {
             infield: vec2(1.0, 1.0),
             outfield: vec2(1.1, 1.1),
-            penalty_area_width: 0.5,
-            penalty_area_depth: 0.2,
+            penalty_area_width: 0.1,
+            penalty_area_depth: 0.05,
         }
     }
 }
@@ -84,7 +84,7 @@ impl Field {
 
     //枝刈りメソッド
     #[allow(dead_code)]
-    pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
+    pub fn prune(&self, scene:  Scene) -> Option<Scene> {
         if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
             return None;
         }
