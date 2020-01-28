@@ -8,6 +8,8 @@ pub use geometry::*;
 use glm::*;
 pub mod bitfield;
 pub mod mattrix;
+pub use super::game::robot::*;
+pub use super::game::scene::*;
 
 //パスの可能性を評価する
 #[allow(dead_code)]
@@ -19,8 +21,69 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
     -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
 
+//Sceneをもらってパスを評価
+pub fn scene_passable(scene: &Scene) -> f32 {
+    let mut positions = Vec::new();
+    positions.push(scene.clone()
+    .robots
+    .get(&RobotID::Blue(0))
+    .unwrap()
+    .position
+    .to_vec2());
+    positions.push(scene.clone()
+    .robots
+    .get(&RobotID::Blue(1))
+    .unwrap()
+    .position
+    .to_vec2());
+    positions.push(scene.clone()
+    .robots
+    .get(&RobotID::Blue(2))
+    .unwrap()
+    .position
+    .to_vec2());
+    positions.push(scene.clone()
+    .robots
+    .get(&RobotID::Blue(3))
+    .unwrap()
+    .position
+    .to_vec2());
+    positions.push(scene.clone()
+    .robots
+    .get(&RobotID::Blue(4))
+    .unwrap()
+    .position
+    .to_vec2());
+    
+    
+
+    let mut scores = Vec::new();
+    for i in 0..4 {
+        
+        scores.push(passable(
+            (
+                scene
+                    .robots
+                    .get(&RobotID::Blue(i))
+                    .unwrap()
+                    .position
+                    .to_vec2(),
+                scene
+                    .robots
+                    .get(&RobotID::Blue(i + 1))
+                    .unwrap()
+                    .position
+                    .to_vec2(),
+            ),
+            [positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap()].iter()
+        ));
+    }
+    let ave = (scores[0] + scores[1] + scores[2] + scores[3] + scores[4]) / 5.0;
+    ave
+}
+
 //シュートの可能性を評価する
-#[allow(dead_code)]
+/*#[allow(dead_code)]
 pub fn shootable(_field: &Field, _mine: &Team, _yours: &Team) -> f32 {
     //計算量O(n2)程度
     //let goal = field.your_goal(mine);
@@ -41,4 +104,4 @@ pub fn shootable(_field: &Field, _mine: &Team, _yours: &Team) -> f32 {
           })
     */
     0.0 //準備中
-}
+}*/

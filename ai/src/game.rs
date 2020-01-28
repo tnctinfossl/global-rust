@@ -14,6 +14,7 @@ pub use shape::{Circle, Rectangle};
 pub use traits::{Overlap, Plotable};
 pub use history::{History,tree_plan};
 pub use vec2rad::{vec2rad, Vec2Rad};
+pub use rand::*;
 
 
 #[cfg(test)]
@@ -35,6 +36,6 @@ mod tests {
         let scenes = [scene0, scene1, scene2, scene3] ;
         
         let history = History::new(1.0, scenes); //親History作成
-        //let output = tree_plan(&history,&|&h|h.simulate(),&passable,&|s|field.prune(s),3);
+        //let output = tree_plan(&history,&|&h|h.simulate(),&|&s|scene_passable(&s),&|s|field.prune(s),3);
     }
 }
