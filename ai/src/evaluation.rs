@@ -3,6 +3,7 @@ use model::*;
 pub mod field;
 pub mod geometry;
 pub mod pass;
+pub mod triangle;
 pub use field::*;
 pub use geometry::*;
 use glm::*;
