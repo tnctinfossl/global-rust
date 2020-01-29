@@ -24,10 +24,10 @@ fn decode(
 }
 
 #[allow(dead_code)]
-pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f32, f32) {
-    let locate = |r: &Box<Robot>| encode(&field, r.position);
-    let my_team_positions: Vec<_> = my_team.robots.iter().map(locate).collect();
-    let enemy_team_positions: Vec<_> = enemy_team.robots.iter().map(locate).collect();
+pub fn space_domination(mine: &[Vec2], yours: &[Vec2], field: &Field) -> (f32, f32) {
+    let locate = |&p| encode(&field, p);
+    let my_team_positions: Vec<_> = mine.iter().map(locate).collect();
+    let enemy_team_positions: Vec<_> = yours.iter().map(locate).collect();
 
     let mut used_field = BitField::new();
     let mut my_team_field = BitField::new();

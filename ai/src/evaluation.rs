@@ -3,14 +3,15 @@ use model::*;
 pub mod field;
 pub mod geometry;
 pub mod pass;
-pub use field::*;
-pub use geometry::*;
-use glm::*;
+
 pub mod bitfield;
 pub mod mattrix;
 pub use super::game::robot::*;
 pub use super::game::scene::*;
-
+pub use field::space_domination;
+pub use field::*;
+pub use geometry::*;
+use glm::*;
 //パスの可能性を評価する
 #[allow(dead_code)]
 pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {
@@ -22,44 +23,23 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
 }
 
 //Sceneをもらってパスを評価
+/*#[allow(dead_code)]
 pub fn scene_passable(scene: &Scene) -> f32 {
-    let mut positions = Vec::new();
-    positions.push(scene.clone()
-    .robots
-    .get(&RobotID::Blue(0))
-    .unwrap()
-    .position
-    .to_vec2());
-    positions.push(scene.clone()
-    .robots
-    .get(&RobotID::Blue(1))
-    .unwrap()
-    .position
-    .to_vec2());
-    positions.push(scene.clone()
-    .robots
-    .get(&RobotID::Blue(2))
-    .unwrap()
-    .position
-    .to_vec2());
-    positions.push(scene.clone()
-    .robots
-    .get(&RobotID::Blue(3))
-    .unwrap()
-    .position
-    .to_vec2());
-    positions.push(scene.clone()
-    .robots
-    .get(&RobotID::Blue(4))
-    .unwrap()
-    .position
-    .to_vec2());
-    
-    
+    let mut blue_points: Vec<_> = Vec::new();
+    let mut yellow_points: Vec<_> = Vec::new();
+    for (id, robot) in scene.robots {
+         match id {
+            RobotID::Blue(_) => blue_points.push(robot.position),
+            RobotID::Yellow(_) => yellow_points.push(robot.position),
+            }
+    }
+    let blue_vec2 = blue_points.iter().map(|bp|bp.to_vec2());
+    let ave = Vec::new();
+    for positions in blue_vec2{
+        ave.push(passable((positions[0],positions[1]),positions ));
+    }*/
 
-    let mut scores = Vec::new();
-    for i in 0..4 {
-        
+/*for i in 0..4 {
         scores.push(passable(
             (
                 scene
@@ -77,10 +57,9 @@ pub fn scene_passable(scene: &Scene) -> f32 {
             ),
             [positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap()].iter()
         ));
-    }
-    let ave = (scores[0] + scores[1] + scores[2] + scores[3] + scores[4]) / 5.0;
+    ;
     ave
-}
+}*/
 
 //シュートの可能性を評価する
 /*#[allow(dead_code)]
