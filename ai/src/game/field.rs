@@ -12,12 +12,12 @@ pub struct Field {
 
 impl Default for Field {
     fn default() -> Field {
-        //適当な値で初期化している[m]
+        //適当な値で初期化している[mm]
         Field {
-            infield: vec2(1.0, 1.0),
-            outfield: vec2(1.1, 1.1),
-            penalty_area_width: 0.1,
-            penalty_area_depth: 0.05,
+            infield: vec2(12000.0, 9000.0),
+            outfield: vec2(13400.0, 10400.0),
+            penalty_area_width: 2400.0,
+            penalty_area_depth: 1200.0,
         }
     }
 }
