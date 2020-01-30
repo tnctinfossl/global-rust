@@ -14,7 +14,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 100.0, //[m]
+            standard_deviation: 500.0, //[mm]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -105,16 +105,16 @@ impl Plotable<gnuplot::Axes2D> for Scene {
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(5.0)]);
+            &[PlotOption::Color("blue"), PlotOption::PointSize(10.0)]);
         let yellow_xs = yellow_points.iter().map(|p| p.x);
         let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(5.0)]);
+        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(10.0)]);
         let ball_xs = self.ball.iter().map(|b| b.position.x);
         let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(5.0)],
+            &[PlotOption::Color("red"), PlotOption::PointSize(10.0)],
         );
     }
 }

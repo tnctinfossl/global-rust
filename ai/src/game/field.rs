@@ -51,8 +51,8 @@ impl Field {
         let random_robot = |r: &mut R| -> Robot {
             Robot::new(
                 vec2rad(
-                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+                    r.gen_range(-self.infield.x / 2.0 * 0.8, self.infield.x / 2.0 * 0.8),
+                    r.gen_range(-self.infield.y / 2.0 * 0.8, self.infield.y / 2.0 * 0.8),
                     r.gen_range(0.0, 2.0 * std::f32::consts::PI),
                 ),
                 robot::DIAMETOR_ROBOT,
@@ -84,7 +84,7 @@ impl Field {
 
     //枝刈りメソッド
     #[allow(dead_code)]
-    pub fn prune(&self, scene:  Scene) -> Option<Scene> {
+    pub fn prune(&self, scene: Scene) -> Option<Scene> {
         if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
             return None;
         }
