@@ -207,7 +207,7 @@ pub fn tree_plan<
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..1 << depth)
+        let branches: Vec<_> = (0..2)
             .flat_map(|_| prune(generator(history)))
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
@@ -247,36 +247,6 @@ pub fn tree_plan<
     inner(history, generator, static_evaluation, prune, depth)
 }
 
-#[allow(dead_code)]
-pub fn plot_evaluation(scenes: Vec<Rc<Scene>>) {
-    let mut figure = gnuplot::Figure::new();
-    scenes[0].plot(&mut figure.axes2d());
-    std::fs::create_dir_all("img").unwrap();
-    figure
-        .save_to_png("img/test_plot0.png", 1000, 1000)
-        .unwrap();
-
-    let mut figure = gnuplot::Figure::new();
-    scenes[1].plot(&mut figure.axes2d());
-    std::fs::create_dir_all("img").unwrap();
-    figure
-        .save_to_png("img/test_plot1.png", 1000, 1000)
-        .unwrap();
-
-    let mut figure = gnuplot::Figure::new();
-    scenes[2].plot(&mut figure.axes2d());
-    std::fs::create_dir_all("img").unwrap();
-    figure
-        .save_to_png("img/test_plot2.png", 1000, 1000)
-        .unwrap();
-
-    let mut figure = gnuplot::Figure::new();
-    scenes[3].plot(&mut figure.axes2d());
-    std::fs::create_dir_all("img").unwrap();
-    figure
-        .save_to_png("img/test_plot3.png", 1000, 1000)
-        .unwrap();
-}
 
 /*-> (f32, Vec<Rc<Scene>>) {
     /*let mut vec = Vec::new();

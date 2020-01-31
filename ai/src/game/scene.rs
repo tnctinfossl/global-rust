@@ -105,16 +105,16 @@ impl Plotable<gnuplot::Axes2D> for Scene {
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(10.0)]);
+            &[PlotOption::Color("blue"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);
         let yellow_xs = yellow_points.iter().map(|p| p.x);
         let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(10.0)]);
+        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
         let ball_xs = self.ball.iter().map(|b| b.position.x);
         let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(10.0)],
+            &[PlotOption::Color("red"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')],
         );
     }
 }
