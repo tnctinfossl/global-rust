@@ -14,7 +14,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 500.0, //[mm]
+            standard_deviation: 1200.0, //[mm]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -119,13 +119,9 @@ impl Plotable<gnuplot::Axes2D> for Scene {
     }
 }
 
-/*#[cfg(test)]
+#[cfg(test)]
 mod tests {
     use super::*;
-    use tree::*;
-    use evaluation::*;
-    use field::*;
-    use std::rc::Rc;
     #[test]
     fn plot_scene() {
         let sn = SceneNoise::default();
@@ -144,5 +140,4 @@ mod tests {
             .save_to_png("img/test_plot1.png", 1000, 1000)
             .unwrap();
     }
-    */
-
+}

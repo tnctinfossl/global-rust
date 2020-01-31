@@ -20,11 +20,35 @@ mod tests {
     use super::super::evaluation::*;
     use super::*;
     pub use rand::*;
-    use std::borrow::Borrow;
-    use std::rc::*;
+   // use std::borrow::Borrow;
+    //use std::rc::*;
+    use std::collections::HashMap;
     
     #[test]
-    fn plot() {
+    fn function_evalution(){
+        let mut robots: HashMap<RobotID, Robot> = HashMap::new();
+        robots.insert(RobotID::Blue(0),Robot::new(vec2rad(1300.0,9000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(1),Robot::new(vec2rad(1300.0,8000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(2),Robot::new(vec2rad(1300.0,7000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(3),Robot::new(vec2rad(1300.0,6000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(4),Robot::new(vec2rad(1300.0,5000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(5),Robot::new(vec2rad(1300.0,4000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(6),Robot::new(vec2rad(1300.0,3000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(7),Robot::new(vec2rad(1300.0,2000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(8),Robot::new(vec2rad(1300.0,1000.0,0.0),0.1));
+        robots.insert(RobotID::Blue(9),Robot::new(vec2rad(1300.0,500.0,0.0),0.1));
+        robots.insert(RobotID::Blue(10),Robot::new(vec2rad(1300.0,0.0,0.0),0.1));
+        robots.insert(RobotID::Yellow(8),Robot::new(vec2rad(1300.0,0.0,0.0),0.1));
+
+    }
+
+
+
+
+}
+
+
+/*fn plot() {
         let sn = SceneNoise::default();
         let mut gen = rand::thread_rng();
         let field = Field::default();
@@ -67,9 +91,15 @@ mod tests {
             let filename = format!("img/tree_plot{0:02}.png", number);
             figure.save_to_png(&filename, 400,300).unwrap();
         }
-    }
+    }*/
 
-}
+
+
+
+
+
+
+
 
 
 /*#[cfg(test)]
@@ -118,3 +148,5 @@ mod bench{
         };
     }
 }*/
+
+

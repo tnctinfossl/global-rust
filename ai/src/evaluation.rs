@@ -22,44 +22,7 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
     -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
 
-//Sceneをもらってパスを評価
-/*#[allow(dead_code)]
-pub fn scene_passable(scene: &Scene) -> f32 {
-    let mut blue_points: Vec<_> = Vec::new();
-    let mut yellow_points: Vec<_> = Vec::new();
-    for (id, robot) in scene.robots {
-         match id {
-            RobotID::Blue(_) => blue_points.push(robot.position),
-            RobotID::Yellow(_) => yellow_points.push(robot.position),
-            }
-    }
-    let blue_vec2 = blue_points.iter().map(|bp|bp.to_vec2());
-    let ave = Vec::new();
-    for positions in blue_vec2{
-        ave.push(passable((positions[0],positions[1]),positions ));
-    }*/
 
-/*for i in 0..4 {
-        scores.push(passable(
-            (
-                scene
-                    .robots
-                    .get(&RobotID::Blue(i))
-                    .unwrap()
-                    .position
-                    .to_vec2(),
-                scene
-                    .robots
-                    .get(&RobotID::Blue(i + 1))
-                    .unwrap()
-                    .position
-                    .to_vec2(),
-            ),
-            [positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap(),positions.pop().unwrap()].iter()
-        ));
-    ;
-    ave
-}*/
 
 //シュートの可能性を評価する
 /*#[allow(dead_code)]
