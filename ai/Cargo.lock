@@ -60,7 +60,8 @@ name = "evaluation"
 version = "0.1.0"
 dependencies = [
  "glm 0.2.3 (git+https://github.com/tnctinfossl/glm-rs.git)",
- "model 0.1.0",
+ "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -1,16 +1,8 @@
-extern crate model;
-use model::*;
-pub mod field;
-pub mod geometry;
-pub mod pass;
-pub mod triangle;
-
-pub mod bitfield;
-pub mod mattrix;
-pub use field::space_domination;
-pub use field::*;
-pub use geometry::*;
-use glm::*;
+pub mod common;
+pub mod player;
+pub mod route;
+pub mod team;
+/*
 //パスの可能性を評価する
 #[allow(dead_code)]
 pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), objects: I) -> f32 {
@@ -20,7 +12,7 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
     // println!("{},{}", nearest_distance, path_distance);
     -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
-
+*/
 //シュートの可能性を評価する
 /*#[allow(dead_code)]
 pub fn shootable(_field: &Field, _mine: &Team, _yours: &Team) -> f32 {
@@ -43,4 +35,4 @@ pub fn shootable(_field: &Field, _mine: &Team, _yours: &Team) -> f32 {
           })
     */
     0.0 //準備中
-}*/
+*/

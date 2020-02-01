@@ -2,7 +2,7 @@ use glm::*;
 
 //クロス積?を求める
 #[inline(always)]
-fn cross2(a: Vec2, b: Vec2) -> f32 {
+pub fn cross2d(a: Vec2, b: Vec2) -> f32 {
     //分解
     let unpack = |p: Vec2| (p.x, p.y);
     let (x0, y0) = unpack(a);
@@ -26,7 +26,7 @@ fn length2<S: BaseFloat, T: GenFloatVec<S>>(x: T) -> S {
 #[allow(dead_code)]
 pub fn distance_line_point((a, b): (Vec2, Vec2), p: Vec2) -> f32 {
     //導出
-    abs(dot(b - a, turn_right(p)) + cross2(a, b)) / length(b - a)
+    abs(dot(b - a, turn_right(p)) + cross2d(a, b)) / length(b - a)
 }
 
 //二点a,bを通る線分と点pの距離
@@ -76,8 +76,13 @@ pub fn distance_path_nearest_points<'a, I: Iterator<Item = &'a Vec2>>(
 
     //[begin,end]の法線かつendを通る直線gを求める
     let g = |p: Vec2| dot(turn, p) - dot(turn, end);
-    println!("{},{},{},{}",turn.x,turn.y,- dot(turn, begin),- dot(turn, end));
-    
+    println!(
+        "{},{},{},{}",
+        turn.x,
+        turn.y,
+        -dot(turn, begin),
+        -dot(turn, end)
+    );
     objects
         .filter_map(|p: &Vec2| {
             if 0.0 <= f(*p) && g(*p) <= 0.0 {
@@ -104,8 +109,8 @@ mod tests {
     }
     #[test]
     fn test_cross2() {
-        assert_eq!(cross2(vec2(1.0, 0.0), vec2(0.0, 1.0)), 1.0);
-        assert_eq!(cross2(vec2(0.0, 1.0), vec2(1.0, 0.0)), -1.0);
+        assert_eq!(cross2d(vec2(1.0, 0.0), vec2(0.0, 1.0)), 1.0);
+        assert_eq!(cross2d(vec2(0.0, 1.0), vec2(1.0, 0.0)), -1.0);
     }
 
     #[test]
@@ -120,7 +125,10 @@ mod tests {
             distance_path_nearest_points((begin, end), [vec2(0.0, 2.0)].iter()),
             Some(sqrt(2.0))
         );
-        assert_eq!(distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((begin, end), [vec2(0.0, 0.0)].iter()),
+            None
+        );
         assert_eq!(
             distance_path_nearest_points((end, begin), [vec2(2.0, 0.0)].iter()),
             Some(sqrt(2.0))
@@ -129,6 +137,9 @@ mod tests {
             distance_path_nearest_points((end, begin), [vec2(0.0, 2.0)].iter()),
             Some(sqrt(2.0))
         );
-        assert_eq!(distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()), None);
+        assert_eq!(
+            distance_path_nearest_points((end, begin), [vec2(0.0, 0.0)].iter()),
+            None
+        );
     }
 }
