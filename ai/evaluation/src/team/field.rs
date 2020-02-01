@@ -1,6 +1,5 @@
 use crate::common::BitField;
 use glm::*;
-
 /*
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let p = (field.outfield / 2.0 + position) / field.outfield;

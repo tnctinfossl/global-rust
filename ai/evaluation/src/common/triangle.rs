@@ -26,6 +26,11 @@ impl Triangle {
         let z = Triangle::new(self.a, self.b, point).rocation();
         (x == y) && (x == z) //回転方向がすべて一致するか?
     }
+
+    #[allow(dead_code)]
+    pub fn center(&self) -> Vec2 {
+        (self.a + self.b + self.c) / 3.0
+    }
 }
 #[cfg(test)]
 mod test {
