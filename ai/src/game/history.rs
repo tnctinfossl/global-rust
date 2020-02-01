@@ -25,6 +25,20 @@ impl History {
             }
         }
     }
+
+    #[allow(dead_code)]
+    pub fn push(&self, inserter: Rc<Scene>) -> History {
+        History {
+            period: self.period,
+            scenes: [
+                inserter,
+                self.scenes[0].clone(),
+                self.scenes[1].clone(),
+                self.scenes[2].clone(),
+            ],
+        }
+    }
+
     #[inline(always)]
     pub fn now<'a>(&'a self) -> &'a Scene {
         &self.scenes[0]
@@ -41,7 +55,7 @@ impl History {
             None
         }
     }
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub fn robot_position(&self, id: RobotID) -> Option<Vec2Rad> {
         if let Some(r) = self.robot_find(0, id) {
             Some(r.position)
@@ -95,7 +109,7 @@ impl History {
             None
         }
     }
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub fn ball_position(&self) -> Option<Vec2> {
         let first = self.ball_find(0)?;
         Some(first.position)
@@ -132,7 +146,7 @@ impl History {
 
     //x+vt+1/2*at^2+1/6*yt^3を求めることで次のシーンを予想する
     #[allow(dead_code)]
-    pub fn simulate<R: Rng + ?Sized>(&self) -> Scene {
+    pub fn simulate(&self) -> Scene {
         let robots: HashMap<RobotID, Robot> = self
             .now()
             .robots
@@ -174,75 +188,124 @@ impl History {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TreeBuilder {
-    pub max_node: u32,
-    pub max_depth: u32,
-}
+#[allow(dead_code)]
+pub fn tree_plan<
+    G: Fn(&History) -> Scene,
+    SE: Fn(&Scene) -> f32,
+    P: Fn(Scene) -> Option<Scene>,
+>(
+    history: &History,
+    generator: &G,
+    static_evaluation: &SE,
+    prune: &P,
+    depth: u32,
+) -> (f32, Vec<Rc<Scene>>) {
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
+        history: &History,
+        generator: &G,
+        static_evaluation: &SE,
+        prune: &P,
+        depth: u32,
+    ) -> (f32, Vec<Rc<Scene>>) {
+        let branches: Vec<_> = (0..2)
+            .flat_map(|_| prune(generator(history)))
+            .map(|scene: Scene| {
+                let now_score = static_evaluation(&scene);
+                let scene = Rc::new(scene);
+                if depth == 0 {
+                    return (now_score, vec![scene]);
+                }
+                let fiture = history.push(scene.clone());
+                let (next_score, mut scenes) =
+                    inner(&fiture, generator, static_evaluation, prune, depth - 1);
 
-impl TreeBuilder {
-    #[allow(dead_code)]
-    pub fn new(parent_history: &History) -> Tree {
-        let parent = parent_history.clone();
-        let children = Vec::new();
-        Tree {
-            parent: parent,
-            children: children,
-            score: (0.0, 0.0),
+                let score = (now_score + next_score) / 2.0;
+                scenes.push(scene);
+                (score, scenes)
+            })
+            .collect();
+        //find best snene
+        let sum: f32 = branches.iter().map(|(score, _)| score).sum();
+        let score = sum / (1 << depth) as f32;
+
+        if branches.len() == 0 {
+            return (0.0, vec![]);
         }
+        let (_, best_branch) = branches
+            .into_iter()
+            .max_by(|(sa, _), (sb, _)| {
+                use std::cmp::Ordering;
+                if sa > sb {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }
+            })
+            .unwrap();
+        (score, best_branch) //strub
     }
+    inner(history, generator, static_evaluation, prune, depth)
 }
 
-#[derive(Debug, Clone)]
-pub struct Tree {
-    pub parent: History,
-    pub children: Vec<History>,
-    pub score: (f32, f32),
-}
 
-impl Tree {
-    #[allow(dead_code)]
-    pub fn new_children(&self, number: u32) -> Tree {
-        let parent = self.parent.clone();
-        let score = self.score;
-        let mut children = self.children.clone();
-        let scenenoise = SceneNoise::default();
-        let tmp = &self.parent.scenes;
-        let target = &self.parent.scenes[0].clone();
-        let mut num = number;
+/*-> (f32, Vec<Rc<Scene>>) {
+    /*let mut vec = Vec::new();
+    vec.push(Rc::new(history.now().clone()));
+    (static_evaluation(history.now()),vec)*/
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
+        history: &History,
+        generator: &G,
+        static_evaluation: &SE,
+        prune: &P,
+        depth: u32,
+    )   -> (f32, Vec<Rc<Scene>>) {
 
-        loop {
-            children.push(History::new(
-                1.0,
-                [
-                    Rc::new(target.noise(&mut rand::thread_rng(), &scenenoise)),
-                    tmp[0].clone(),
-                    tmp[1].clone(),
-                    tmp[2].clone(),
-                ],
-            ));
-            num = num - 1;
-            if num <= 0 {
-                break;
-            }
+        let branches: Vec<_> = (0..1 << depth)
+            .flat_map(|_| prune(generator(history)))
+            .map(|scene: Scene| {
+                let now_score = static_evaluation(&scene);
+                let scene = Rc::new(scene);
+                if depth == 0 {
+                    return (now_score, vec![scene]);
+                }
+                let fiture = history.push(scene.clone());
+                let (next_score, mut scenes) =
+                    inner(&fiture, generator, static_evaluation, prune, depth - 1);
+
+                let score = (now_score + next_score) / 2.0;
+                scenes.push(scene);
+                (score, scenes)
+            })
+            .collect();
+        //find best snene
+        let sum: f32 = branches.iter().map(|(score, _)| score).sum();
+        let score = sum / (1 << depth) as f32;
+        if branches.len() == 0{
+            return (0.0,vec![]);
         }
-        Tree {
-            parent: parent,
-            children: children,
-            score: score,
-        }
+        let (_, best_branch) = branches
+            .into_iter()
+            .max_by(|(sa, _), (sb, _)| {
+                use std::cmp::Ordering;
+                if sa > sb {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }
+            })
+            .unwrap();
+        (score, best_branch) //strub
     }
-    //ジェネリクスでかく
-    //pub fn evaluation<T>(fn:T)->{}
-}
+    inner(history, generator, static_evaluation, prune, depth)
+}*/
 
 /*#[cfg(test)]
 mod tests {
     use super ::*;
     use super::super::plot::Plotable;
     #[test]
-    fn prune() {
-        let mut robots = HashMap::new();
+    fn tree() {
+        /*let mut robots = HashMap::new();
         let mut figure = gnuplot::Figure::new();
         let position = Vec2Rad::new(0.51,0.51,0.0);
         robots.insert(RobotID::Blue(1), Robot::new(position,0.1));
@@ -255,6 +318,5 @@ mod tests {
         scene_prune.plot(&mut figure);
 
         std::fs::create_dir_all("img").unwrap();
-        figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
-    }
+        figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();*/
 }*/

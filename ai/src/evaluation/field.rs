@@ -2,6 +2,7 @@ use super::bitfield::*;
 use super::model::*;
 use glm::*;
 
+
 fn encode(field: &Field, position: Vec2) -> (usize, usize) {
     let p = (field.outfield / 2.0 + position) / field.outfield;
     let x = min(p.x * 128.0, 127.0) as usize;
@@ -24,10 +25,10 @@ fn decode(
 }
 
 #[allow(dead_code)]
-pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f32, f32) {
-    let locate = |r: &Box<Robot>| encode(&field, r.position);
-    let my_team_positions: Vec<_> = my_team.robots.iter().map(locate).collect();
-    let enemy_team_positions: Vec<_> = enemy_team.robots.iter().map(locate).collect();
+pub fn space_domination(mine: &[Vec2], yours: &[Vec2], field: &Field) -> (f32, f32) {
+    let locate = |&p| encode(&field, p);
+    let my_team_positions: Vec<_> = mine.iter().map(locate).collect();
+    let enemy_team_positions: Vec<_> = yours.iter().map(locate).collect();
 
     let mut used_field = BitField::new();
     let mut my_team_field = BitField::new();
@@ -53,3 +54,5 @@ pub fn space_domination(my_team: &Team, enemy_team: &Team, field: &Field) -> (f3
     let ret_y = enemy_team_field.count_one() as f32 / enemy_team_field.area() as f32;
     (ret_b, ret_y)
 }
+
+

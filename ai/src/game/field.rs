@@ -12,12 +12,12 @@ pub struct Field {
 
 impl Default for Field {
     fn default() -> Field {
-        //適当な値で初期化している[m]
+        //適当な値で初期化している[mm]
         Field {
-            infield: vec2(1.0, 1.0),
-            outfield: vec2(1.1, 1.1),
-            penalty_area_width: 0.5,
-            penalty_area_depth: 0.2,
+            infield: vec2(12000.0, 9000.0),
+            outfield: vec2(13400.0, 10400.0),
+            penalty_area_width: 2400.0,
+            penalty_area_depth: 1200.0,
         }
     }
 }
@@ -51,8 +51,8 @@ impl Field {
         let random_robot = |r: &mut R| -> Robot {
             Robot::new(
                 vec2rad(
-                    r.gen_range(-self.infield.x / 2.0, self.infield.x / 2.0),
-                    r.gen_range(-self.infield.y / 2.0, self.infield.y / 2.0),
+                    r.gen_range(-self.infield.x / 2.0 * 0.8, self.infield.x / 2.0 * 0.8),
+                    r.gen_range(-self.infield.y / 2.0 * 0.8, self.infield.y / 2.0 * 0.8),
                     r.gen_range(0.0, 2.0 * std::f32::consts::PI),
                 ),
                 robot::DIAMETOR_ROBOT,
@@ -84,7 +84,7 @@ impl Field {
 
     //枝刈りメソッド
     #[allow(dead_code)]
-    pub fn prune<'a>(&self, scene: &'a Scene) -> Option<&'a Scene> {
+    pub fn prune(&self, scene: Scene) -> Option<Scene> {
         if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
             return None;
         }

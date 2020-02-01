@@ -14,7 +14,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 0.01, //[m]
+            standard_deviation: 1200.0, //[mm]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -59,17 +59,17 @@ impl Scene {
         }
     }
     #[allow(dead_code)]
-    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, sn: &SceneNoise) -> Scene {
+    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
         let robots: HashMap<RobotID, Robot> = self
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random);
+                let noised = robot.position + sn.gen_vec2rad(random) / period;
                 (*id, Robot::new(noised, robot.diametor))
             })
             .collect();
         if let Some(ball) = self.ball {
-            let ball = Ball::new(ball.position + sn.gen_vec2(random));
+            let ball = Ball::new(ball.position + sn.gen_vec2(random) / period);
             Scene::new(robots, Some(ball))
         } else {
             Scene::new(robots, None)
@@ -105,21 +105,16 @@ impl Plotable<gnuplot::Axes2D> for Scene {
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(5.0)],
-        );
+            &[PlotOption::Color("blue"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);
         let yellow_xs = yellow_points.iter().map(|p| p.x);
         let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(
-            yellow_xs,
-            yellow_ys,
-            &[PlotOption::Color("orange"), PlotOption::PointSize(5.0)],
-        );
+        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
         let ball_xs = self.ball.iter().map(|b| b.position.x);
         let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(5.0)],
+            &[PlotOption::Color("red"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')],
         );
     }
 }
@@ -137,7 +132,7 @@ mod tests {
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
 
-        scene.noise(&mut rand::thread_rng(), &sn);
+        scene.noise(&mut rand::thread_rng(),16.66, &sn);
         scene.plot(&mut figure.axes2d());
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();
