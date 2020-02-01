@@ -7,8 +7,6 @@ pub mod triangle;
 
 pub mod bitfield;
 pub mod mattrix;
-pub use super::game::robot::*;
-pub use super::game::scene::*;
 pub use field::space_domination;
 pub use field::*;
 pub use geometry::*;

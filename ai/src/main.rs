@@ -1,6 +1,7 @@
+extern crate evaluation;
 extern crate model;
 //use model::*;
-mod evaluation;
+
 mod game;
 mod util;
 //use evaluation::space_domination;
@@ -101,7 +102,9 @@ fn main() {
     scene.plot(&mut figure.axes2d());
 
     std::fs::create_dir_all("img").unwrap();
-    figure.save_to_png("img/test_plot000.png", 1200, 900).unwrap();
+    figure
+        .save_to_png("img/test_plot000.png", 1200, 900)
+        .unwrap();
 
     let mut mine = vec![];
     let mut yours = vec![];
