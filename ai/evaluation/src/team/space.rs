@@ -35,9 +35,9 @@ impl CellDomination {
         let normal = (position - self.field.point) / self.field.size;
         //bitfieldに合わせる
         let resized = clamp(
-            normal * vec2(128.0, 100.0),
+            normal * vec2(BitField::width() as f32, BitField::height() as f32),
             vec2(0.0, 0.0),
-            vec2(128.0, 100.0),
+            vec2(BitField::width() as f32, BitField::height() as f32),
         );
         (resized.x as usize, resized.y as usize)
     }
@@ -59,7 +59,8 @@ impl CellDomination {
         let mut left = BitField::new();
         let mut used_last = BitField::new();
 
-        for i in 0..127 {
+        let limit = std::cmp::max(BitField::width(), BitField::height()) - 1;
+        for i in 0..limit {
             let right_new = merge(&rights, i);
             let left_new = merge(&lefts, i);
             let conflict = &used | &(&right_new & &left_new);
