@@ -1,8 +1,8 @@
-pub mod rectangle;
-pub use rectangle::Rectangle;
-pub mod triangle;
-pub use triangle::Triangle;
-pub mod geometry;
-pub use geometry::cross2d;
 pub mod bitfield;
+pub mod geometry;
+pub mod rectangle;
+pub mod triangle;
 pub use bitfield::BitField;
+pub use geometry::*;
+pub use rectangle::Rectangle;
+pub use triangle::Triangle;

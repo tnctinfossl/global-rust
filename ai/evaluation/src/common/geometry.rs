@@ -94,6 +94,22 @@ pub fn distance_path_nearest_points<'a, I: Iterator<Item = &'a Vec2>>(
         .min_by(|a, b| a.partial_cmp(b).unwrap())
 }
 
+#[allow(dead_code)]
+#[inline(always)]
+pub fn touch_segment_circle((begin, end): (Vec2, Vec2), (center, radius): (Vec2, f32)) -> bool {
+    //参考資料　http://marupeke296.com/COL_2D_No5_PolygonToCircle.html
+    //線分[begin,end]と半径radius中心centerの円との衝突確認
+    let a = center - begin;
+    let b = center - begin;
+    let s = end - begin;
+    let d = abs(cross2d(s, a)) / length(a);
+    if d < radius {
+        dot(a, s) * dot(b, s) <= 0.0
+    } else {
+        radius > length(a) || radius > length(b)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
