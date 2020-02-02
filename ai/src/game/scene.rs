@@ -105,16 +105,23 @@ impl Plotable<gnuplot::Axes2D> for Scene {
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);
+            &[PlotOption::Color("blue"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')]);
         let yellow_xs = yellow_points.iter().map(|p| p.x);
         let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
+        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
         let ball_xs = self.ball.iter().map(|b| b.position.x);
         let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')],
+            &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
+        );
+        let field_x = [-6000,6000].into_iter();
+        let field_y = [-4500,4500].into_iter();
+        axes2d.points(
+            field_x,
+            field_y,
+            &[PlotOption::Color("#000000"), PlotOption::PointSize(1.0),PlotOption::PointSymbol('o')],
         );
     }
 }
