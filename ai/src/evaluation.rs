@@ -18,7 +18,7 @@ pub fn passable<'a, I: Iterator<Item = &'a Vec2>>((begin, end): (Vec2, Vec2), ob
     let nearest_distance =
         distance_path_nearest_points((begin, end), objects).unwrap_or(std::f32::MAX);
     let path_distance = distance(begin, end);
-    println!("{},{}", nearest_distance, path_distance);
+   // println!("{},{}", nearest_distance, path_distance);
     -log(nearest_distance + 1.0) - log(path_distance + 1.0)
 }
 
