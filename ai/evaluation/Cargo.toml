@@ -12,4 +12,5 @@ serde = "1.0.104"
 serde_derive = "1.0.104"
 rand = "0.7.3"
 gnuplot = "0.0.34"
+lazy_static = "1.4.0"
 

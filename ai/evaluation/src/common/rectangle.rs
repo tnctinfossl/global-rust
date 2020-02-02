@@ -1,6 +1,8 @@
 use glm::*;
+use lazy_static::*;
 use rand::Rng;
 use serde_derive::*;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Rectangle {
     pub point: Vec2, //左上の座標
@@ -15,6 +17,7 @@ impl Rectangle {
             size: size,
         }
     }
+
     #[allow(dead_code)]
     pub fn points(&self) -> Vec<Vec2> {
         let point = self.point;
@@ -58,4 +61,15 @@ impl Rectangle {
         let y = rand.gen_range(y_min, y_max);
         vec2(x, y)
     }
+}
+
+pub fn rectangle(point: Vec2, size: Vec2) -> Rectangle {
+    Rectangle::new(point, size)
+}
+
+lazy_static! {
+    static ref DIVISON_A: Rectangle =
+        rectangle(vec2(-13.400 / 2.0, 10.400 / 2.0), vec2(13.400, -10.400));
+    static ref DIVISON_B: Rectangle =
+        rectangle(vec2(-10.400 / 2.0, 7.400 / 2.0), vec2(10.400, -7.400));
 }

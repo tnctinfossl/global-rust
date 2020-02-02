@@ -5,6 +5,11 @@ use glm::*;
 pub struct LinkResolver<R> {
     resolver: R,
 }
+
+pub struct LinkMattrix<T> {
+    mattrix: Vec<Vec<T>>,
+}
+
 /*
 impl<R> LinkResolver{
     pub fn new(R)
