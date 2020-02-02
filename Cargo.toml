@@ -6,7 +6,7 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members=["vision","model","viewer","refbox","ai","radio-send"]
+members=["vision","model","viewer","refbox","ai","radio-send","ai/evaluation"]
 [dependencies]
 serde = "1.0.103"
 serde_json = "1.0.44"
