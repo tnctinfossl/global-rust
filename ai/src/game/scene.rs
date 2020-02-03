@@ -117,11 +117,11 @@ impl Plotable<gnuplot::Axes2D> for Scene {
             &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
         );
         let field_x = [-6000,6000].into_iter();
-        let field_y = [-4500,4500].into_iter();
+        let field_y = [-4400,400].into_iter();
         axes2d.points(
             field_x,
             field_y,
-            &[PlotOption::Color("#000000"), PlotOption::PointSize(1.0),PlotOption::PointSymbol('o')],
+            &[PlotOption::Color("#FFFFFF"), PlotOption::PointSize(1.0),PlotOption::PointSymbol('o')],
         );
     }
 }
