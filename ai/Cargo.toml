@@ -5,7 +5,8 @@ authors = ["sim0822 <Rsim08@outlook.jp>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
+[workspace]
+members=["evaluation"]
 [dependencies]
 model={path="../model"}
 glm = {git="https://github.com/tnctinfossl/glm-rs.git"}
@@ -15,3 +16,4 @@ rand_distr = "0.2.2"
 serde_derive = "1.0.103"
 serde = "1.0.103"
 gnuplot = "0.0.32"
+evaluation={path="./evaluation"}
