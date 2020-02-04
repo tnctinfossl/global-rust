@@ -15,7 +15,9 @@ pub use shape::{Circle, Rectangle};
 pub use traits::{Overlap, Plotable};
 pub use vec2rad::{vec2rad, Vec2Rad};
 
-#[cfg(test)]
+
+
+/*#[cfg(test)]
 mod tests {
     use super::super::evaluation::*;
     use super::*;
@@ -24,6 +26,7 @@ mod tests {
     use std::borrow::Borrow;
     use std::collections::HashMap;
     use std::rc::*;
+    //use crate::common::Rectangle;//TODO
 
     #[test]
 
@@ -51,9 +54,8 @@ mod tests {
                     Yellow(_) => yours.push(robot.position.to_vec2()),
                 }
             }
-            let (my_score, your_score) =
-                space_domination(&mine[..], &yours[..], &model::Field::new_large()); //TODO fieldを統一する
-            my_score - your_score
+            //let score =cell.evaluate(&mine[..], &yours[..]); 
+            1.0//stuhb
         };
 
         /* let pass_evaluation = move|scene: &Scene| ->f32{
@@ -78,7 +80,7 @@ mod tests {
             figure.save_to_png(&filename, 400, 300).unwrap();
         }
     }
-}
+}*/
 
 /*#[cfg(test)]
 

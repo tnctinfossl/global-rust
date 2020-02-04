@@ -207,8 +207,8 @@ pub fn tree_plan<
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..2)
-            .flat_map(|_| prune(generator(history)))
+        let branches: Vec<_> = (0..1 <<depth)
+            .flat_map(|_| prune(generator(history)))//sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
                 let scene = Rc::new(scene);

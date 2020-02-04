@@ -3,7 +3,7 @@ use rand::Rng;
 use serde_derive::*;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Rectangle {
-    pub point: Vec2, //右上の座標
+    pub point: Vec2, //左上の座標
     pub size: Vec2,  //フィールドの大きさ
 }
 
