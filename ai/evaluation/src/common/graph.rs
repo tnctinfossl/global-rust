@@ -16,35 +16,59 @@ impl Index<usize> for Graph {
 
 impl Graph {
     #[allow(dead_code)]
-    pub fn new(points: Vec<Vec2>) -> Graph {
+    pub fn new(points: &[Vec2]) -> Graph {
         let size = points.len();
         let mut mattrix = vec![vec![None; size]; size];
-        let d = distance(points[0], points[1]);
-        mattrix[0][1] = Some(d);
-        mattrix[1][0] = Some(d);
-        for (index, &point) in points.iter().enumerate().skip(2) {
-            //一番近い点を求める
-            let (near_index, &near_point) = points
-                .iter()
-                .enumerate()
-                .take(index)
-                .min_by(|(_, &p), (_, &q)| {
-                    use std::cmp::Ordering::*;
-                    if distance(point, p) > distance(point, q) {
-                        return Greater;
-                    }
-                    Less
-                })
-                .unwrap();
-            let d = distance(point, near_point);
-            mattrix[index][near_index] = Some(d);
-            mattrix[near_index][index] = Some(d);
-        }
 
-        Graph {
-            points: points,
+        let mut result = Graph {
+            points: points.to_vec(),
             mattrix: mattrix,
+        };
+        result.connect(0, 1);
+        result.connect(0, 2);
+        result.connect(1, 2);
+
+        for (index, point) in points.iter().enumerate().skip(3) {
+            result.insert(index, *point);
         }
+        result
+    }
+
+    fn connect(&mut self, i: usize, j: usize) {
+        let d = distance(self.points[i], self.points[j]);
+        self.mattrix[i][j] = Some(d);
+        self.mattrix[j][i] = Some(d);
+    }
+
+    fn connected(&self, i: usize) -> Vec<usize> {
+        let mut result = vec![];
+        for (index, value) in self.mattrix[i].iter().enumerate() {
+            if let Some(_) = value {
+                result.push(index);
+            }
+        }
+        result
+    }
+
+    fn insert(&mut self, index: usize, point: Vec2) {
+        //一番近い点を求める
+        let (nearest_index, _) = self
+            .points
+            .iter()
+            .enumerate()
+            .take(index)
+            .min_by(|(_, &p), (_, &q)| {
+                use std::cmp::Ordering::*;
+                if distance(point, p) > distance(point, q) {
+                    return Greater;
+                }
+                Less
+            })
+            .unwrap();
+        self.connect(index, nearest_index);
+        /*for near_index in self.connected(nearest_index) {
+            self.connect(index, near_index);
+        }*/
     }
 
     /*
