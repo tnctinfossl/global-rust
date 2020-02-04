@@ -55,6 +55,14 @@ impl BitField {
         BitField { field: field }
     }
 
+    pub fn new_points(&self, points: &[(usize, usize)]) -> BitField {
+        let mut field = BitField::default();
+        for (i, j) in points {
+            field.field[*j] |= (1 << i) as u64;
+        }
+        field
+    }
+
     pub fn dump(&self) -> String {
         self.field
             .iter()
@@ -231,6 +239,11 @@ impl BitOrAssign<&BitField> for BitField {
         self.op_assign(rhs, |x, y| *x |= y);
     }
 }
+/*
+pub fn expand_9(self)->Self{
+    self
+}
+*/
 
 #[test]
 fn bitfield_and() {

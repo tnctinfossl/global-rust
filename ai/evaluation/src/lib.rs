@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 pub mod common;
+pub mod demo;
 pub mod player;
 pub mod route;
 pub mod team;

@@ -9,8 +9,3 @@ pub struct LinkResolver<R> {
 pub struct LinkMattrix<T> {
     mattrix: Vec<Vec<T>>,
 }
-
-/*
-impl<R> LinkResolver{
-    pub fn new(R)
-}*/
