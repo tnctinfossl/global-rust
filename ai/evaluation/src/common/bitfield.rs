@@ -1,5 +1,5 @@
 use std::cmp::{max, min};
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Fn, Not};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Fn, Not,Index,IndexMut};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BitField {
@@ -32,6 +32,25 @@ impl BitField {
         Self::default()
     }
 
+    pub fn new_value(value: bool) -> BitField {
+        if value {
+            BitField {
+                field: vec![!0; Self::height()],
+            }
+        } else {
+            BitField {
+                field: vec![0; Self::height()],
+            }
+        }
+    }
+    pub fn new_points(points: &[(usize, usize)]) -> BitField {
+        let mut field = Self::default();
+        for (i, j) in points {
+            field.field[*j] |= 1u64 << i;
+        }
+        field
+    }
+
     pub fn new_rect((i, j): (usize, usize), k: usize) -> BitField {
         let mut field = vec![0; Self::height()];
         let i = i as isize;
@@ -54,6 +73,13 @@ impl BitField {
         }
         BitField { field: field }
     }
+
+    pub fn clear(&mut self){
+        for i in 0..Self::height(){
+            self.field[i]=0;
+        }
+    }
+
 
     pub fn dump(&self) -> String {
         self.field
@@ -190,6 +216,37 @@ impl BitField {
     pub fn rate(&self) -> f32 {
         self.count_ones() as f32 / Self::area() as f32
     }
+
+    //膨張処理 
+    #[allow(dead_code)]
+    pub fn expand9<'a>(dest:&'a mut Self,src:&Self) ->&'a mut Self {
+        
+        let field = &src.field;
+
+        dest.field[0] =
+            field[0] << 1 | field[0] | field[0] >> 1 | field[1] << 1 | field[1] | field[1] >> 1;
+        for index in 1..Self::height() - 1 {
+            dest.field[index] = field[index] << 1
+                | field[index]
+                | field[index] >> 1
+                | field[index - 1] << 1
+                | field[index - 1]
+                | field[index - 1] >> 1
+                | field[index + 1] << 1
+                | field[index + 1]
+                | field[index + 1] >> 1;
+        }
+        let end = Self::height() - 1;
+        dest.field[end] = field[end] << 1
+            | field[end]
+            | field[end] >> 1
+            | field[end - 1] << 1
+            | field[end - 1]
+            | field[end - 1] >> 4;
+  
+        dest
+    }
+   
 }
 
 impl BitAnd<&BitField> for &BitField {
@@ -232,6 +289,20 @@ impl BitOrAssign<&BitField> for BitField {
     }
 }
 
+impl Index<usize> for BitField{
+    type Output = u64;
+    fn index(&self,index:usize)->&u64{
+        &self.field[index]
+    }
+}
+
+
+impl IndexMut<usize> for BitField{
+    fn index_mut(&mut self,index:usize)->&mut u64{
+        &mut self.field[index]
+    }
+}
+
 #[test]
 fn bitfield_and() {
     let mut a = BitField::new();
@@ -242,3 +313,4 @@ fn bitfield_and() {
     and.write((0, 0), true);
     assert_eq!(&a & &b, and);
 }
+

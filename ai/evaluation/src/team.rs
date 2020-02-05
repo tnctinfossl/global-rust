@@ -1,3 +1,3 @@
 pub mod space;
 pub mod triangle;
-pub use space::CellDomination;
+pub use space::{CellDomination,CellDomination2};

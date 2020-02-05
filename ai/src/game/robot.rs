@@ -1,7 +1,7 @@
 pub use super::*;
 use serde_derive::*;
 use std::ops::Not;
-pub static DIAMETOR_ROBOT: f32 = 0.10; //[m]
+pub static DIAMETOR_ROBOT: f32 = 0.18; //[m]
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
