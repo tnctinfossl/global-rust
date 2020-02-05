@@ -115,6 +115,7 @@ fn main() {
         }
     }
     let (my_score, your_score) = cell.evaluate(&mine[..], &yours[..]);
+    let before = my_score;
     println!("before:{}", my_score);
     println!("before{}", your_score);
 
@@ -144,6 +145,7 @@ fn main() {
     println!("{}", your_score);*/
 
     //実行時間計測
+    
     let sn = SceneNoise::default();
     let mut gen = rand::thread_rng();
     let field = Field::default();
@@ -177,9 +179,9 @@ fn main() {
         let mut gen_sim = rand::thread_rng();
         h.simulate().noise(&mut gen_sim, 1.0, &sn)
     };
+   
     let start = Instant::now();
-
-    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 5);
+    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 4);
 
     let end = start.elapsed();
 
@@ -208,8 +210,10 @@ fn main() {
         let bitfield = Rectangle::new(vec2(-6000.0, 4500.0), vec2(12000.0, -9000.0));
         let cell = team::CellDomination::new(bitfield);
         let (my_score, your_score) = cell.evaluate(&mine[..], &yours[..]);
+        let difference = my_score - before;
         println!("after:{}", my_score);
         println!("after:{}", your_score);
+        println!("difference:{}", difference);
     }
 }
 

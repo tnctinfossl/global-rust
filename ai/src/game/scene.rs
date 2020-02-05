@@ -14,7 +14,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 500.0, //[mm]
+            standard_deviation: 1200.0, //[mm]
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
