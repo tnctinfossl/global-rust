@@ -1,126 +1,86 @@
 use glm::*;
+use std::borrow::*;
+use std::cell::*;
+use std::collections::HashMap;
+use std::fmt::Debug;
 use std::ops::*;
+use std::rc::*;
+use typed_arena::Arena;
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Node(usize);
 
-#[derive(Debug, Clone)]
-pub struct Graph {
-    points: Vec<Vec2>,
-    mattrix: Vec<Vec<Option<f32>>>,
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Edge(usize, usize);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Face(usize, usize, usize);
+
+#[derive(Debug, Clone, Default)]
+pub struct Graph<N, E, F> {
+    nodes: Vec<N>,
+    edeges: HashMap<(usize, usize), E>,
+    faces: HashMap<(usize, usize, usize), F>,
 }
 
-impl Index<usize> for Graph {
-    type Output = Vec2;
-    fn index(&self, index: usize) -> &Vec2 {
-        &self.points[index]
+impl<N, E, F> Graph<N, E, F> {
+    #[allow(dead_code)]
+    pub fn new() -> Graph<N, E, F> {
+        Graph {
+            nodes: Vec::new(),
+            edeges: HashMap::new(),
+            faces: HashMap::new(),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn add_node(&mut self, value: N) -> Node {
+        let result = Node(self.nodes.len());
+        self.nodes.push(value);
+        result
+    }
+    #[allow(dead_code)]
+    pub fn add_edge(&mut self, (begin, end): (Node, Node), value: E) -> Edge {
+        //self.edeges[&] = value;
+        self.edeges.insert((begin.0, end.0), value);
+        Edge(begin.0, end.0)
     }
 }
 
-impl Graph {
-    #[allow(dead_code)]
-    pub fn new(points: &[Vec2]) -> Graph {
-        let size = points.len();
-        let mut mattrix = vec![vec![None; size]; size];
-
-        let mut result = Graph {
-            points: points.to_vec(),
-            mattrix: mattrix,
-        };
-        result.connect(0, 1);
-        result.connect(0, 2);
-        result.connect(1, 2);
-
-        for (index, point) in points.iter().enumerate().skip(3) {
-            result.insert(index, *point);
-        }
-        result
+impl<N, E, F> Index<Node> for Graph<N, E, F> {
+    type Output = N;
+    fn index(&self, index: Node) -> &N {
+        &self.nodes[index.0]
     }
+}
 
-    fn connect(&mut self, i: usize, j: usize) {
-        let d = distance(self.points[i], self.points[j]);
-        self.mattrix[i][j] = Some(d);
-        self.mattrix[j][i] = Some(d);
+impl<N, E, F> IndexMut<Node> for Graph<N, E, F> {
+    fn index_mut(&mut self, index: Node) -> &mut N {
+        &mut self.nodes[index.0]
     }
+}
 
-    fn connected(&self, i: usize) -> Vec<usize> {
-        let mut result = vec![];
-        for (index, value) in self.mattrix[i].iter().enumerate() {
-            if let Some(_) = value {
-                result.push(index);
-            }
-        }
-        result
+impl<N, E, F> Index<Edge> for Graph<N, E, F> {
+    type Output = E;
+    fn index<'a>(&'a self, index: Edge) -> &'a E {
+        &self.edeges[&(index.0, index.1)]
     }
+}
 
-    fn insert(&mut self, index: usize, point: Vec2) {
-        //一番近い点を求める
-        let (nearest_index, _) = self
-            .points
-            .iter()
-            .enumerate()
-            .take(index)
-            .min_by(|(_, &p), (_, &q)| {
-                use std::cmp::Ordering::*;
-                if distance(point, p) > distance(point, q) {
-                    return Greater;
-                }
-                Less
-            })
-            .unwrap();
-        self.connect(index, nearest_index);
-        /*for near_index in self.connected(nearest_index) {
-            self.connect(index, near_index);
-        }*/
+impl<N, E, F> IndexMut<Edge> for Graph<N, E, F> {
+    fn index_mut(&mut self, index: Edge) -> &mut E {
+        self.edeges.get_mut(&(index.0, index.1)).unwrap()
     }
+}
 
-    /*
-      #[allow(dead_code)]
-      pub fn insert_points(&mut self, points: &[Vec2]) -> Vec<usize> {
-          let mut result = Vec::with_capacity(points.len());
-          self.points.reserve(points.len());
-          for point in points {
-              result.push(self.points.len());
-              self.points.push(*point);
-          }
-          result
-      }
+impl<N, E, F> Index<Face> for Graph<N, E, F> {
+    type Output = F;
+    fn index<'a>(&'a self, index: Face) -> &'a F {
+        &self.faces[&(index.0, index.1, index.2)]
+    }
+}
 
-      #[allow(dead_code)]
-      pub fn insert_lines(&mut self, lines: &[(usize, usize)]) {
-          self.lines.reserve(lines.len());
-          for line in lines {
-              self.lines.push(*line);
-          }
-      }
-    */
-
-    #[allow(dead_code)]
-    pub fn show(&self) {
-        use gnuplot::*;
-        let mut figure = Figure::new();
-        let mut axe2d = figure.axes2d();
-        //point
-        let xs = self.points.iter().map(|p| p.x);
-        let ys = self.points.iter().map(|p| p.y);
-        axe2d.points(xs, ys, &[]);
-        //arrows
-        for begin in 0..self.points.len() {
-            for end in begin + 1..self.points.len() {
-                if let Some(_) = self.mattrix[begin][end] {
-                    let xs_begin = Coordinate::Axis(self.points[begin].x as f64);
-                    let ys_begin = Coordinate::Axis(self.points[begin].y as f64);
-                    let xs_end = Coordinate::Axis(self.points[end].x as f64);
-                    let ys_end = Coordinate::Axis(self.points[end].y as f64);
-                    axe2d.arrow(
-                        xs_begin,
-                        ys_begin,
-                        xs_end,
-                        ys_end,
-                        &[PlotOption::ArrowType(ArrowheadType::NoArrow)],
-                    );
-                }
-            }
-        }
-
-        //show
-        figure.show().unwrap();
+impl<N, E, F> IndexMut<Face> for Graph<N, E, F> {
+    fn index_mut(&mut self, index: Face) -> &mut F {
+        self.faces.get_mut(&(index.0, index.1, index.2)).unwrap()
     }
 }
