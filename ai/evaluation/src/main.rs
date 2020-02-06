@@ -11,11 +11,14 @@ fn main() {
     let field = Rectangle::new(vec2(-64.0, 50.0), vec2(128.0, -100.0));
     let mine: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
 
-    let mut graph: Graph<Vec2, f32, f32> = Graph::new();
-    let node_a = graph.add_node(vec2(0.0, 0.0));
-    let node_b = graph.add_node(vec2(1.0, 0.0));
-    println!("{:?}", graph[node_a]);
-    println!("{:?}", graph);
+    let mut graph: Graph<i32, ()> = Graph::new();
+    let mut a = graph.add_node(0);
+    let mut b = graph.add_node(1);
+    let c = graph.add_node(2);
+    let d = graph.add_node(3);
 
+    a.connect(b, ());
+    b.connect(c, ());
+    b.connect(d, ());
     //let mut graph: Graph<Vec2, f32, bool> = Graph::new();
 }
