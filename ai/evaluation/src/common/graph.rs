@@ -1,13 +1,8 @@
-use glm::*;
-use std::borrow::*;
-use std::cell::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::Debug;
-use std::marker::PhantomData;
+use std::fmt::Write;
 use std::ops::*;
-use std::rc::*;
-use typed_arena::Arena;
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub struct NodeId {
     id: usize,
 }
@@ -43,6 +38,11 @@ impl From<(usize, usize)> for EdgeId {
 }
 
 impl EdgeId {
+    #[allow(dead_code)]
+    pub fn begin(&self) -> NodeId {
+        NodeId { id: self.begin }
+    }
+    #[allow(dead_code)]
     pub fn end(&self) -> NodeId {
         NodeId { id: self.end }
     }
@@ -69,6 +69,22 @@ impl<N, E> Graph<N, E> {
         //result
         NodeId::from(self.nodes.len() - 1)
     }
+    #[allow(dead_code)]
+    pub fn list_nodes(&self) -> Vec<(NodeId, &N)> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .map(|(id, value)| (NodeId::from(id), value))
+            .collect()
+    }
+    #[allow(dead_code)]
+    pub fn get_nodes(&self) -> &[N] {
+        &self.nodes
+    }
+    #[allow(dead_code)]
+    pub fn get_edges(&self) -> &HashMap<EdgeId, E> {
+        &self.edges
+    }
 
     #[allow(dead_code)]
     pub fn add_edge(&mut self, (begin, end): (NodeId, NodeId), edge: E) -> EdgeId {
@@ -88,13 +104,13 @@ impl<N, E> Graph<N, E> {
     }
 
     #[allow(dead_code)]
-    pub fn front(&self, begin_id: NodeId) -> Vec<(&E, &N)> {
+    pub fn front(&self, begin_id: NodeId) -> Vec<(&E, NodeId)> {
         (0..self.nodes.len())
             .filter_map(|end: usize| {
                 let end_id = NodeId::from(end);
                 let edge_id = EdgeId::from((begin_id, end_id));
                 if let Some(edge) = self.edges.get(&edge_id) {
-                    Some((edge, &self[end_id]))
+                    Some((edge, end_id))
                 } else {
                     None
                 }
@@ -117,13 +133,13 @@ impl<N, E> Graph<N, E> {
             .collect()
     }
     #[allow(dead_code)]
-    pub fn back(&self, end_id: NodeId) -> Vec<(&E, &N)> {
+    pub fn back(&self, end_id: NodeId) -> Vec<(&E, NodeId)> {
         (0..self.nodes.len())
             .filter_map(|begin_id: usize| {
                 let begin_id = NodeId::from(begin_id);
                 let edge_id = EdgeId::from((begin_id, end_id));
                 if let Some(edge) = self.edges.get(&edge_id) {
-                    Some((edge, &self[begin_id]))
+                    Some((edge, begin_id))
                 } else {
                     None
                 }
@@ -143,6 +159,41 @@ impl<N, E> Graph<N, E> {
                 }
             })
             .collect()
+    }
+    #[allow(dead_code)]
+    pub fn size_nodes(&self) -> usize {
+        self.nodes.len()
+    }
+    #[allow(dead_code)]
+    pub fn size_edges(&self) -> usize {
+        self.edges.len()
+    }
+
+    #[allow(dead_code)]
+    pub fn dump(&self) -> String
+    where
+        N: Debug,
+        E: Debug,
+    {
+        let mut result = String::new();
+        writeln!(result, "#Nodes").unwrap();
+        for (index, value) in self.nodes.iter().enumerate() {
+            writeln!(result, "{}:{:?}", index, value).unwrap();
+        }
+        writeln!(result, "#Edges").unwrap();
+        for (key, value) in self.edges.iter() {
+            writeln!(
+                result,
+                "{}({:?})->{}({:?}):{:?}",
+                key.begin,
+                self[key.begin()],
+                key.end,
+                self[key.end()],
+                value
+            )
+            .unwrap();
+        }
+        result
     }
 }
 

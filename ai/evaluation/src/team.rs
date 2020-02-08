@@ -1,3 +1,4 @@
 pub mod space;
-pub mod triangle;
 pub use space::CellDomination;
+pub mod links;
+pub use links::LinkDomination;
