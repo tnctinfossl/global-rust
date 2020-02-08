@@ -16,9 +16,11 @@ fn main() {
     let yours: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
 
     let mut graph = ColorGraph::new();
+    let mut nodes = vec![];
     for point in mine.iter() {
-        graph.add_node((*point, color_graph::Color::Blue));
+        nodes.push(graph.add_node((*point, color_graph::Color::Blue)));
     }
+
     println!("{}", graph.dump());
     graph.show();
 }

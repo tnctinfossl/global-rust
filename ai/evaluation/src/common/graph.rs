@@ -160,6 +160,59 @@ impl<N, E> Graph<N, E> {
             })
             .collect()
     }
+
+    #[allow(dead_code)]
+    pub fn joint(&self, id: NodeId) -> Vec<(&E, NodeId)> {
+        let id = id.id;
+        let xs = (0..self.nodes.len()).filter_map(|end_id| {
+            let edge_id = EdgeId::from((id, end_id));
+            if let Some(edge) = self.edges.get(&edge_id) {
+                Some((edge, NodeId::from(end_id)))
+            } else {
+                None
+            }
+        });
+        let ys = (0..self.nodes.len()).filter_map(|begin_id| {
+            if begin_id == id {
+                None
+            } else {
+                let edge_id = EdgeId::from((begin_id, id));
+                if let Some(edge) = self.edges.get(&edge_id) {
+                    Some((edge, NodeId::from(begin_id)))
+                } else {
+                    None
+                }
+            }
+        });
+        xs.chain(ys).collect()
+    }
+
+    #[allow(dead_code)]
+    pub fn joint_id(&self, id: NodeId) -> Vec<(EdgeId, NodeId)> {
+        let id = id.id;
+        let xs = (0..self.nodes.len()).filter_map(|end_id| {
+            let edge_id = EdgeId::from((id, end_id));
+            if let Some(_) = self.edges.get(&edge_id) {
+                Some((edge_id, NodeId::from(end_id)))
+            } else {
+                None
+            }
+        });
+        let ys = (0..self.nodes.len()).filter_map(|begin_id| {
+            if begin_id == id {
+                None
+            } else {
+                let edge_id = EdgeId::from((begin_id, id));
+                if let Some(_) = self.edges.get(&edge_id) {
+                    Some((edge_id, NodeId::from(begin_id)))
+                } else {
+                    None
+                }
+            }
+        });
+        xs.chain(ys).collect()
+    }
+
     #[allow(dead_code)]
     pub fn size_nodes(&self) -> usize {
         self.nodes.len()
