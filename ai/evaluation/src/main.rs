@@ -2,6 +2,7 @@ mod common;
 mod team;
 use common::*;
 use glm::*;
+use std::rc::*;
 use std::time::Instant;
 use team::*;
 fn main() {
@@ -11,14 +12,27 @@ fn main() {
     let field = Rectangle::new(vec2(-64.0, 50.0), vec2(128.0, -100.0));
     let mine: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
 
-    let mut graph: Graph<i32, ()> = Graph::new();
-    let mut a = graph.add_node(0);
-    let mut b = graph.add_node(1);
-    let c = graph.add_node(2);
-    let d = graph.add_node(3);
+    let mut graph: Graph<i32, char> = Graph::new();
 
-    a.connect(b, ());
-    b.connect(c, ());
-    b.connect(d, ());
-    //let mut graph: Graph<Vec2, f32, bool> = Graph::new();
+    let na = graph.add_node(0);
+    let nb = graph.add_node(1);
+    let nc = graph.add_node(2);
+    let nd = graph.add_node(3);
+
+    let eab = graph.add_edge((na, nb), 'x');
+    let ebc = graph.add_edge((nb, nc), 'y');
+    let ebd = graph.add_edge((nb, nd), 'z');
+
+    show(&graph, na);
+}
+
+fn show(graph: &Graph<i32, char>, node: NodeId) {
+    fn inner(graph: &Graph<i32, char>, node: NodeId) {
+        println!("{}", graph[node]);
+        for edge in graph.begin(node).iter() {
+            println!("{}", graph[*edge]);
+            inner(graph, edge.end());
+        }
+    }
+    inner(graph, node);
 }
