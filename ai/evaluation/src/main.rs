@@ -27,11 +27,11 @@ fn main() {
 }
 
 fn show(graph: &Graph<i32, char>, node: NodeId) {
-    fn inner(graph: &Graph<i32, char>, node: NodeId) {
-        println!("{}", graph[node]);
-        for edge in graph.begin(node).iter() {
-            println!("{}", graph[*edge]);
-            inner(graph, edge.end());
+    fn inner(graph: &Graph<i32, char>, node_id: NodeId) {
+        println!("{}", graph[node_id]);
+        for (edge_id, node_id) in graph.front_id(node_id).iter() {
+            println!("{}", graph[*edge_id]);
+            inner(graph, *node_id);
         }
     }
     inner(graph, node);

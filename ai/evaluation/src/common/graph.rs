@@ -86,13 +86,15 @@ impl<N, E> Graph<N, E> {
     pub fn get_edge(&self, id: EdgeId) -> &E {
         &self.edges[&id]
     }
+
     #[allow(dead_code)]
-    pub fn begin(&self, begin: NodeId) -> Vec<EdgeId> {
+    pub fn front(&self, begin_id: NodeId) -> Vec<(&E, &N)> {
         (0..self.nodes.len())
             .filter_map(|end: usize| {
-                let id = EdgeId::from((begin.id, end));
-                if let Some(_) = self.edges.get(&id) {
-                    Some(id)
+                let end_id = NodeId::from(end);
+                let edge_id = EdgeId::from((begin_id, end_id));
+                if let Some(edge) = self.edges.get(&edge_id) {
+                    Some((edge, &self[end_id]))
                 } else {
                     None
                 }
@@ -101,12 +103,41 @@ impl<N, E> Graph<N, E> {
     }
 
     #[allow(dead_code)]
-    pub fn end(&self, end: NodeId) -> Vec<EdgeId> {
+    pub fn front_id(&self, begin_id: NodeId) -> Vec<(EdgeId, NodeId)> {
         (0..self.nodes.len())
-            .filter_map(|begin: usize| {
-                let id = EdgeId::from((begin, end.id));
-                if let Some(_) = self.edges.get(&id) {
-                    Some(id)
+            .filter_map(|end_id: usize| {
+                let end_id = NodeId::from(end_id);
+                let edge_id = EdgeId::from((begin_id, end_id));
+                if let Some(_) = self.edges.get(&edge_id) {
+                    Some((edge_id, end_id))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+    #[allow(dead_code)]
+    pub fn back(&self, end_id: NodeId) -> Vec<(&E, &N)> {
+        (0..self.nodes.len())
+            .filter_map(|begin_id: usize| {
+                let begin_id = NodeId::from(begin_id);
+                let edge_id = EdgeId::from((begin_id, end_id));
+                if let Some(edge) = self.edges.get(&edge_id) {
+                    Some((edge, &self[begin_id]))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+    #[allow(dead_code)]
+    pub fn back_id(&self, end_id: NodeId) -> Vec<(EdgeId, NodeId)> {
+        (0..self.nodes.len())
+            .filter_map(|begin_id: usize| {
+                let begin_id = NodeId::from(begin_id);
+                let edge_id = EdgeId::from((begin_id, end_id));
+                if let Some(_) = self.edges.get(&edge_id) {
+                    Some((edge_id, begin_id))
                 } else {
                     None
                 }
