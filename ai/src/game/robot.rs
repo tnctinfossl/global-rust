@@ -1,6 +1,7 @@
 pub use super::*;
 use serde_derive::*;
 use std::ops::Not;
+use glm::*;
 pub static DIAMETOR_ROBOT: f32 = 0.18; //[m]
 
 #[allow(dead_code)]
@@ -37,5 +38,11 @@ impl Robot {
 impl From<Robot> for Circle {
     fn from(robot: Robot) -> Circle {
         Circle::new(robot.position.into(), robot.diametor)
+    }
+}
+
+impl Overlap<Robot> for Robot{
+    fn overlap(&self,other:Robot)->bool{
+        distance(self.position.to_vec2(),other.position.to_vec2()) < self.diametor + other.diametor
     }
 }

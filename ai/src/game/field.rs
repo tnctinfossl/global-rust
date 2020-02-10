@@ -2,12 +2,15 @@ use super::*;
 use glm::*;
 use rand::*;
 use serde_derive::*;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+use std::cell::*;
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Field {
     pub infield: Vec2,
     pub outfield: Vec2,
     pub penalty_area_width: f32,
     pub penalty_area_depth: f32,
+    pub ok: Cell<i32>, //TODO あとで消す
+    pub ng: Cell<i32>, //TODO あとで消す
 }
 
 impl Default for Field {
@@ -18,6 +21,8 @@ impl Default for Field {
             outfield: vec2(13400.0, 10400.0),
             penalty_area_width: 2400.0,
             penalty_area_depth: 1200.0,
+            ok: Cell::new(0), //TODO 消す
+            ng: Cell::new(0),
         }
     }
 }
@@ -35,6 +40,8 @@ impl Field {
             outfield: outfield,
             penalty_area_width: penalty_area_width,
             penalty_area_depth: penalty_area_depth,
+            ok: Cell::new(0), //TODO 消す
+            ng: Cell::new(0),
         }
     }
 
@@ -85,14 +92,26 @@ impl Field {
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune(&self, scene: Scene) -> Option<Scene> {
+        let robots: Vec<_> = scene.robots.values().collect();
+        for (i, j) in (0..robots.len())
+            .map(|i| (0..i).map(move |j| (i, j)))
+            .flatten()
+        {
+            if robots[i].overlap(*robots[j]) {
+                self.ng.set(self.ng.get() + 1);
+                return None;
+            }
+        }
         if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
+            self.ng.set(self.ng.get() + 1);
             return None;
         }
         if !scene.ball.iter().all(|b: &Ball| self.overlap(*b)) {
+            self.ng.set(self.ng.get() + 1);
             return None;
         }
+        self.ok.set(self.ok.get() + 1);
         return Some(scene);
-        
     }
 }
 

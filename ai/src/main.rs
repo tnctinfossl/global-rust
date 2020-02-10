@@ -12,7 +12,7 @@ use std::rc::*;
 //use rand::SeedableRng;
 use crate::common::Rectangle;
 use std::collections::HashMap;
-use std::time::{Instant};
+use std::time::Instant;
 
 fn main() {
     //手動シチュエーション
@@ -87,6 +87,7 @@ fn main() {
     let before = my_score;
     println!("before:{}", my_score);
     println!("before{}", your_score);
+    print!("0,");
 
     let mut figure = gnuplot::Figure::new();
     scene.plot(&mut figure.axes2d());
@@ -97,15 +98,14 @@ fn main() {
         .unwrap();
 
     //実行時間計測
-    
     let sn = SceneNoise::default();
     let mut gen = rand::thread_rng();
     let field = Field::default();
     //let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, true); //親
     let scene0 = Rc::new(scene);
-    let scene1 = Rc::new(scene0.noise(&mut gen,0.125, &sn));
-    let scene2 = Rc::new(scene1.noise(&mut gen, 0.125, &sn));
-    let scene3 = Rc::new(scene2.noise(&mut gen, 0.125, &sn));
+    let scene1 = Rc::new(scene0.noise(&mut gen, 0.5, &sn));
+    let scene2 = Rc::new(scene1.noise(&mut gen, 0.5, &sn));
+    let scene3 = Rc::new(scene2.noise(&mut gen, 0.5, &sn));
     let scenes = [scene0, scene1, scene2, scene3];
     let history = History::new(1.0, scenes); //親History作
     let bitfield = Rectangle::new(vec2(-6000.0, 4500.0), vec2(12000.0, -9000.0));
@@ -129,11 +129,23 @@ fn main() {
 
     let sim = move |h: &History| {
         let mut gen_sim = rand::thread_rng();
-        h.simulate().noise(&mut gen_sim, 0.125, &sn)
+        h.simulate().noise(&mut gen_sim, 0.5, &sn)
     };
-   
     let start = Instant::now();
-    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s),3);
+    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 4);
+    let ok = field.ok.get();
+    let ng = field.ng.get();
+    let total = ok + ng;
+    let full = 10_i32.pow(5) - 1;
+    let rate = (1.0 - total as f32 / full as f32) * 100.0;
+    println!(
+        "ok={},ng={},total={},rate={}%,del-rate={}%",
+        ok,
+        ng,
+        total,
+        ng as f32 / total as f32 * 100.0,
+        rate
+    );
 
     println!("elapsed: {:?}", start.elapsed());
 

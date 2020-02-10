@@ -189,11 +189,7 @@ impl History {
 }
 
 #[allow(dead_code)]
-pub fn tree_plan<
-    G: Fn(&History) -> Scene,
-    SE: Fn(&Scene) -> f32,
-    P: Fn(Scene) -> Option<Scene>,
->(
+pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
     history: &History,
     generator: &G,
     static_evaluation: &SE,
@@ -207,12 +203,12 @@ pub fn tree_plan<
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..4)
-            .flat_map(|_| prune(generator(history)))//sceneのiter
+        let branches: Vec<_> = (0..10)
+            .flat_map(|_| prune(generator(history))) //sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
                 let scene = Rc::new(scene);
-                if depth == 0 {
+                if depth == 1 {
                     return (now_score, vec![scene]);
                 }
                 let fiture = history.push(scene.clone());
@@ -250,22 +246,19 @@ pub fn tree_plan<
 /*pub fn tree_plan<
     G: Fn(&History) -> Scene,
     SE: Fn(&Scene) -> f32,
-    
 >(
     history: &History,
     generator: &G,
     static_evaluation: &SE,
-    
     depth: u32,
 ) -> (f32, Vec<Rc<Scene>>) {
     fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, >(
         history: &History,
         generator: &G,
         static_evaluation: &SE,
-        
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..4)
+        let branches: Vec<_> = (0..1<<depth)
             .map(|_| generator(history))//sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
@@ -304,17 +297,6 @@ pub fn tree_plan<
     }
     inner(history, generator, static_evaluation,  depth)
 }*/
-
-
-
-
-
-
-
-
-
-
-
 
 /*#[cfg(test)]
 mod tests {
