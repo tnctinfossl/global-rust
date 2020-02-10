@@ -2,6 +2,7 @@ pub mod bitfield;
 pub mod geometry;
 pub mod rectangle;
 pub mod triangle;
+pub mod polygons;
 pub use bitfield::BitField;
 pub use geometry::*;
 pub use rectangle::Rectangle;
