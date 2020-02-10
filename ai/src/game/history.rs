@@ -207,7 +207,7 @@ pub fn tree_plan<
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..1 <<depth)
+        let branches: Vec<_> = (0..4)
             .flat_map(|_| prune(generator(history)))//sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
@@ -247,21 +247,26 @@ pub fn tree_plan<
     inner(history, generator, static_evaluation, prune, depth)
 }
 
-
-/*-> (f32, Vec<Rc<Scene>>) {
-    /*let mut vec = Vec::new();
-    vec.push(Rc::new(history.now().clone()));
-    (static_evaluation(history.now()),vec)*/
-    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
+/*pub fn tree_plan<
+    G: Fn(&History) -> Scene,
+    SE: Fn(&Scene) -> f32,
+    
+>(
+    history: &History,
+    generator: &G,
+    static_evaluation: &SE,
+    
+    depth: u32,
+) -> (f32, Vec<Rc<Scene>>) {
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, >(
         history: &History,
         generator: &G,
         static_evaluation: &SE,
-        prune: &P,
+        
         depth: u32,
-    )   -> (f32, Vec<Rc<Scene>>) {
-
-        let branches: Vec<_> = (0..1 << depth)
-            .flat_map(|_| prune(generator(history)))
+    ) -> (f32, Vec<Rc<Scene>>) {
+        let branches: Vec<_> = (0..4)
+            .map(|_| generator(history))//sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
                 let scene = Rc::new(scene);
@@ -270,7 +275,7 @@ pub fn tree_plan<
                 }
                 let fiture = history.push(scene.clone());
                 let (next_score, mut scenes) =
-                    inner(&fiture, generator, static_evaluation, prune, depth - 1);
+                    inner(&fiture, generator, static_evaluation, depth - 1);
 
                 let score = (now_score + next_score) / 2.0;
                 scenes.push(scene);
@@ -280,8 +285,9 @@ pub fn tree_plan<
         //find best snene
         let sum: f32 = branches.iter().map(|(score, _)| score).sum();
         let score = sum / (1 << depth) as f32;
-        if branches.len() == 0{
-            return (0.0,vec![]);
+
+        if branches.len() == 0 {
+            return (0.0, vec![]);
         }
         let (_, best_branch) = branches
             .into_iter()
@@ -296,8 +302,19 @@ pub fn tree_plan<
             .unwrap();
         (score, best_branch) //strub
     }
-    inner(history, generator, static_evaluation, prune, depth)
+    inner(history, generator, static_evaluation,  depth)
 }*/
+
+
+
+
+
+
+
+
+
+
+
 
 /*#[cfg(test)]
 mod tests {

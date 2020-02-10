@@ -5,6 +5,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 use std::collections::HashMap;
+pub static MOVEABLE_DISTANCE: f32 = 4000.0; //1秒間に移動可能な距離[mm]
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
     standard_deviation: f32,     //標準偏差[m]
@@ -14,7 +15,7 @@ pub struct SceneNoise {
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: 1200.0, //[mm]
+            standard_deviation: MOVEABLE_DISTANCE.sqrt(), //1秒間に移動可能な距離[mm]のルート
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -64,12 +65,12 @@ impl Scene {
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random) / period;
+                let noised = robot.position + sn.gen_vec2rad(random) * period;//経過時間[s]をかける
                 (*id, Robot::new(noised, robot.diametor))
             })
             .collect();
         if let Some(ball) = self.ball {
-            let ball = Ball::new(ball.position + sn.gen_vec2(random) / period);
+            let ball = Ball::new(ball.position + sn.gen_vec2(random) * period);
             Scene::new(robots, Some(ball))
         } else {
             Scene::new(robots, None)
@@ -116,8 +117,8 @@ impl Plotable<gnuplot::Axes2D> for Scene {
             ball_ys,
             &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
         );*/
-        let field_x = [-6000,6000].into_iter();
-        let field_y = [4500,-4500].into_iter();
+        let field_x = [-6000,6000].iter();
+        let field_y = [4500,-4500].iter();
         axes2d.points(
             field_x,
             field_y,

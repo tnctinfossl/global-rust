@@ -90,9 +90,9 @@ impl Field {
         }
         if !scene.ball.iter().all(|b: &Ball| self.overlap(*b)) {
             return None;
-        } else {
-            return Some(scene);
         }
+        return Some(scene);
+        
     }
 }
 
