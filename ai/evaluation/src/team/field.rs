@@ -1,6 +1,6 @@
 use crate::common::*;
+use bmp::*;
 use glm::*;
-use gnuplot::*;
 use rayon::prelude::*;
 use std::time::Instant;
 //存在場
@@ -32,72 +32,67 @@ impl FieldDomination {
 
     #[allow(dead_code)]
     fn field(&self, point: Vec2, rights: &[Vec2], lefts: &[Vec2]) -> f32 {
-        let l2 = length2(self.rect.size);
-        let f = |p: Vec2, q: Vec2| -> f32 {
-            let s2 = distance2(p, q) / l2;
-            1.0 / (s2 + 1.0)
-        };
-        let r = rights.iter().map(|r| f(point, *r));
-        let l = lefts.iter().map(|l| -f(point, *l));
-        let sum: f32 = r.chain(l).sum();
-        sum
+        let right: f32 = rights.iter().map(|q| exp(-distance2(point, *q))).sum();
+        let left: f32 = lefts.iter().map(|q| exp(-distance2(point, *q))).sum();
+        right - left
     }
 
     #[allow(dead_code)]
-    pub fn show(&self, rights: &[Vec2], lefts: &[Vec2]) {
+    pub fn save(&self, filename: &str, rights: &[Vec2], lefts: &[Vec2]) {
         //計算
         let x0 = self.rect.x0();
         let y0 = self.rect.y0();
         let dx = self.rect.sx() / self.n as f32;
         let dy = self.rect.sy() / self.m as f32;
-        let indexs: Vec<_> = (0..self.n)
-            .map(|i| (0..self.m).map(move |j| (i, j)))
-            .flatten()
-            .collect();
+
+        let mut img = Image::new(self.n as u32 + 1, self.m as u32 + 1);
+        //着色アルゴリズム
+        let color = |value: f32| {
+            //色
+            let red = vec3(255.0, 0.0, 0.0);
+            let blue = vec3(0.0, 0.0, 255.0);
+            let color = if value > 0.0 {
+                red * (1.0 - exp(-value))
+            } else {
+                blue * (1.0 - exp(value))
+            };
+            Pixel::new(color.x as u8, color.y as u8, color.z as u8)
+        };
+
+        let ij_xy = |i, j| {
+            let x = x0 + dx * i as f32;
+            let y = y0 + dy * j as f32;
+            vec2(x, y)
+        };
+        let mut sum = 0.0;
         let begin = Instant::now();
-        let graph: Vec<Vec3> = indexs
-            .par_iter()
-            .map(|(i, j)| {
-                let x = x0 + dx * (*j as f32);
-                let y = y0 + dy * (*i as f32);
-                (x, y)
-            })
-            .map(|(x, y)| vec3(x, y, self.field(vec2(x, y), &rights, &lefts)))
-            .collect();
-        let sum: f32 = graph.iter().map(|p| p.z).sum();
+        for (i, j) in img.coordinates() {
+            let z = self.field(ij_xy(i, j), rights, lefts);
+            img.set_pixel(i, j, color(z));
+            sum += z;
+        }
         let end = Instant::now();
-        println!("{:?}", end - begin);
-        println!("{}", sum / (self.n * self.m) as f32);
-        //描画
-        let mut figure = Figure::new();
-        let axe3d = figure.axes3d();
-        axe3d.set_view(0.0, 0.0);
-        axe3d.surface(
-            graph.iter().map(|p| p.z),
-            self.n,
-            self.m,
-            Some((
-                self.rect.x0() as f64,
-                self.rect.y0() as f64,
-                self.rect.x1() as f64,
-                self.rect.y1() as f64,
-            )),
-            &[],
-        );
+        println!("sum={}", sum / ((self.n + 1) * (self.m + 1)) as f32);
+        println!("time={:?}", end - begin);
+        let xy_ij = |x, y| {
+            let x = (x - x0) / self.rect.sx() * self.n as f32;
+            let y = (y - y0) / self.rect.sy() * self.m as f32;
+            (x as u32, y as u32)
+        };
 
-        axe3d.points(
-            rights.iter().map(|p| p.x as f64),
-            rights.iter().map(|p| p.y as f64),
-            Some(0.0).iter().cycle(),
-            &[PlotOption::Color("orange")],
-        );
+        for right in rights {
+            let ij = xy_ij(right.x, right.y);
+            img.set_pixel(ij.0, ij.1, px!(255, 0, 255));
+        }
 
-        axe3d.points(
-            lefts.iter().map(|p| p.x as f64),
-            lefts.iter().map(|p| p.y as f64),
-            Some(0.0).iter().cycle(),
-            &[PlotOption::Color("blue")],
-        );
-        figure.show().unwrap();
+        for left in lefts {
+            let ij = xy_ij(left.x, left.y);
+            img.set_pixel(ij.0, ij.1, px!(0, 255, 255));
+        }
+        img.save(filename).unwrap();
+    }
+
+    pub fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], balls: &[Vec2]) -> (f32, f32) {
+        (0.0, 0.0)
     }
 }
