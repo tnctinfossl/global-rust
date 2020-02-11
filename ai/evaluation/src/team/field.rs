@@ -32,8 +32,8 @@ impl FieldDomination {
 
     #[allow(dead_code)]
     fn field(&self, point: Vec2, rights: &[Vec2], lefts: &[Vec2]) -> f32 {
-        let right: f32 = rights.iter().map(|q| exp(-distance2(point, *q))).sum();
-        let left: f32 = lefts.iter().map(|q| exp(-distance2(point, *q))).sum();
+        let right: f32 = rights.into_iter().map(|q| 1.0 / distance2(point, *q)).sum();
+        let left: f32 = lefts.into_iter().map(|q| 1.0 / distance2(point, *q)).sum();
         right - left
     }
 

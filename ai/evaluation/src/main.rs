@@ -21,5 +21,6 @@ fn main() {
     let res = dominater.evaluate(&mine, &yours, &[]);
     let end = Instant::now();
     println!("{:?},{:?}", end - begin, res);
+
     // dominater.show(&[vec2(5.0, 0.0)], &[vec2(-5.0, 0.0)]);
 }
