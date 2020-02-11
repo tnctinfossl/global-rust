@@ -1,7 +1,7 @@
+use super::traits::*;
 use crate::common::*;
 use bmp::*;
 use glm::*;
-use rayon::prelude::*;
 use std::time::Instant;
 //存在場
 
@@ -32,8 +32,11 @@ impl FieldDomination {
 
     #[allow(dead_code)]
     fn field(&self, point: Vec2, rights: &[Vec2], lefts: &[Vec2]) -> f32 {
-        let right: f32 = rights.into_iter().map(|q| 1.0 / distance2(point, *q)).sum();
-        let left: f32 = lefts.into_iter().map(|q| 1.0 / distance2(point, *q)).sum();
+        let eps = std::f32::EPSILON;
+        let f = |p, q| 1.0 / (eps + distance2(p, q));
+
+        let right: f32 = rights.into_iter().map(|q| f(point, *q)).sum();
+        let left: f32 = lefts.into_iter().map(|q| f(point, *q)).sum();
         right - left
     }
 
@@ -91,8 +94,10 @@ impl FieldDomination {
         }
         img.save(filename).unwrap();
     }
+}
 
-    pub fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], _balls: &[Vec2]) -> (f32, f32) {
+impl TeamEvaluater for FieldDomination {
+    fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], _balls: &[Vec2]) -> (f32, f32) {
         //計算
         let x0 = self.rect.x0();
         let y0 = self.rect.y0();
