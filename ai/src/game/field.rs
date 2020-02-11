@@ -2,6 +2,7 @@ use super::*;
 use glm::*;
 use rand::*;
 use serde_derive::*;
+use std::collections::BTreeMap;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Field {
     pub infield: Vec2,
@@ -42,9 +43,9 @@ impl Field {
     pub fn ramdon_scene<R: Rng + ?Sized>(
         &self,
         random: &mut R,
-        blues: u32,
-        yellows: u32,
-        ball: bool,
+        right: u32,
+        left: u32,
+        ball_flag: bool,
     ) -> Scene {
         //Scene::default()
 
@@ -66,26 +67,30 @@ impl Field {
             ))
         };
 
-        let robots = (0..blues)
-            .map(|id| RobotID::Blue(id))
-            .chain((0..yellows).map(|id| RobotID::Yellow(id)))
-            .map(|id| (id, random_robot(random)))
+        let rights: BTreeMap<RobotID, Robot> = (0..right)
+            .map(|id| (RobotID::Blue(id), random_robot(random)))
             .collect();
-        let ball = if ball {
-            Some(random_ball(random))
-        } else {
-            None
-        };
+        let lefts: BTreeMap<RobotID, Robot> = (0..left)
+            .map(|id| (RobotID::Yellow(id), random_robot(random)))
+            .collect();
+        let mut ball = None;
+        if ball_flag {
+            ball = Some(random_ball(random));
+        }
         Scene {
+            rights: rights,
+            lefts: lefts,
             ball: ball,
-            robots: robots,
         }
     }
 
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune(&self, scene: Scene) -> Option<Scene> {
-        if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
+        if !scene.rights.values().all(|r: &Robot| self.overlap(*r)) {
+            return None;
+        }
+        if !scene.lefts.values().all(|r: &Robot| self.overlap(*r)) {
             return None;
         }
         if !scene.ball.iter().all(|b: &Ball| self.overlap(*b)) {

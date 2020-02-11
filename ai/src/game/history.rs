@@ -189,11 +189,7 @@ impl History {
 }
 
 #[allow(dead_code)]
-pub fn tree_plan<
-    G: Fn(&History) -> Scene,
-    SE: Fn(&Scene) -> f32,
-    P: Fn(Scene) -> Option<Scene>,
->(
+pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
     history: &History,
     generator: &G,
     static_evaluation: &SE,
@@ -246,7 +242,6 @@ pub fn tree_plan<
     }
     inner(history, generator, static_evaluation, prune, depth)
 }
-
 
 /*-> (f32, Vec<Rc<Scene>>) {
     /*let mut vec = Vec::new();

@@ -4,7 +4,7 @@ use gnuplot::*;
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
     standard_deviation: f32,     //標準偏差[m]
@@ -46,33 +46,52 @@ impl SceneNoise {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
-    pub robots: HashMap<RobotID, Robot>,
+    //pub robots: HashMap<RobotID, Robot>,
+    pub rights: BTreeMap<RobotID, Robot>,
+    pub lefts: BTreeMap<RobotID, Robot>,
     pub ball: Option<Ball>,
 }
 
 impl Scene {
     #[allow(dead_code)]
-    pub fn new(robots: HashMap<RobotID, Robot>, ball: Option<Ball>) -> Scene {
+    pub fn new<I: Iterator<Item = (RobotID, Robot)>>(
+        rights: I,
+        lefts: I,
+        ball: Option<Ball>,
+    ) -> Scene {
         Scene {
-            robots: robots,
+            rights: rights.collect(),
+            lefts: lefts.collect(),
             ball: ball,
         }
     }
     #[allow(dead_code)]
     pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
-        let robots: HashMap<RobotID, Robot> = self
-            .robots
+        let rights: BTreeMap<RobotID, Robot> = self
+            .rights
             .iter()
-            .map(|(id, robot): (&RobotID, &Robot)| {
+            .map(|(id, robot)| {
                 let noised = robot.position + sn.gen_vec2rad(random) / period;
                 (*id, Robot::new(noised, robot.diametor))
             })
             .collect();
-        if let Some(ball) = self.ball {
-            let ball = Ball::new(ball.position + sn.gen_vec2(random) / period);
-            Scene::new(robots, Some(ball))
-        } else {
-            Scene::new(robots, None)
+        let lefts: BTreeMap<RobotID, Robot> = self
+            .lefts
+            .iter()
+            .map(|(id, robot)| {
+                let noised = robot.position + sn.gen_vec2rad(random) / period;
+                (*id, Robot::new(noised, robot.diametor))
+            })
+            .collect();
+        let mut ball = None;
+        if let Some(b) = self.ball {
+            ball = Some(Ball::new(b.position + sn.gen_vec2(random) / period));
+        }
+
+        Scene {
+            rights: rights,
+            lefts: lefts,
+            ball: ball,
         }
     }
 }
@@ -81,7 +100,8 @@ impl Default for Scene {
     #[allow(dead_code)]
     fn default() -> Scene {
         Scene {
-            robots: HashMap::new(),
+            rights: BTreeMap::new(),
+            lefts: BTreeMap::new(),
             ball: None,
         }
     }
@@ -91,30 +111,40 @@ impl Plotable<gnuplot::Axes2D> for Scene {
     fn plot<'a>(&self, axes2d: &'a mut Axes2D) {
         //let axes2d: &mut Axes2D = figure.axes2d();
         //blue,yellowに分類する
-        let mut blue_points: Vec<_> = Vec::new();
-        let mut yellow_points: Vec<_> = Vec::new();
-        for (id, robot) in &self.robots {
-            match id {
-                RobotID::Blue(_) => blue_points.push(robot.position),
-                RobotID::Yellow(_) => yellow_points.push(robot.position),
-            }
-        }
+
         //iteratorとして分解する
-        let blue_xs = blue_points.iter().map(|p| p.x);
-        let blue_ys = blue_points.iter().map(|p| p.y);
+        let blue_xs = self.rights.values().map(|r| r.position.x);
+        let blue_ys = self.rights.values().map(|r| r.position.y);
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);
-        let yellow_xs = yellow_points.iter().map(|p| p.x);
-        let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
+            &[
+                PlotOption::Color("blue"),
+                PlotOption::PointSize(15.0),
+                PlotOption::PointSymbol('O'),
+            ],
+        );
+        let yellow_xs = self.lefts.values().map(|r| r.position.x);
+        let yellow_ys = self.lefts.values().map(|r| r.position.y);
+        axes2d.points(
+            yellow_xs,
+            yellow_ys,
+            &[
+                PlotOption::Color("orange"),
+                PlotOption::PointSize(15.0),
+                PlotOption::PointSymbol('O'),
+            ],
+        ); //見やすいように一時的オレンジにした
         let ball_xs = self.ball.iter().map(|b| b.position.x);
         let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
             ball_xs,
             ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(15.0),PlotOption::PointSymbol('O')],
+            &[
+                PlotOption::Color("red"),
+                PlotOption::PointSize(15.0),
+                PlotOption::PointSymbol('O'),
+            ],
         );
     }
 }
@@ -132,7 +162,7 @@ mod tests {
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
 
-        scene.noise(&mut rand::thread_rng(),16.66, &sn);
+        scene.noise(&mut rand::thread_rng(), 16.66, &sn);
         scene.plot(&mut figure.axes2d());
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();

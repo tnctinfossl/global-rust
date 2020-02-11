@@ -24,7 +24,7 @@ mod tests {
     use std::borrow::Borrow;
     use std::collections::HashMap;
     use std::rc::*;
-
+    /*
     #[test]
     fn function_evalution() {
         let mut robots: HashMap<RobotID, Robot> = HashMap::new();
@@ -121,13 +121,12 @@ mod tests {
         }
         let (my_score, your_score) =
             space_domination(&mine[..], &yours[..], &model::Field::new_large()); //TODO fieldを統一する
-        
         let score = my_score - your_score;
         println!("{}",score);
-        
 
 
     }
+    */
 }
 
 /*fn plot() {
