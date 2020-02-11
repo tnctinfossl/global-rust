@@ -10,11 +10,10 @@ const HISTORY_DEPTH: usize = 4;
 #[derive(Debug, Clone)]
 pub struct History {
     pub period: f32, //非ゼロかつ正の値を保証すること
-
-    rights: BTreeMap<RobotID, [Option<Robot>; HISTORY_DEPTH]>,
-    lefts: BTreeMap<RobotID, [Option<Robot>; HISTORY_DEPTH]>,
-    ball: [Option<Ball>; HISTORY_DEPTH],
-    //pub scenes: [Rc<Scene>; HISTORY_DEPTH],
+    //過去{HISTORY_DEPTH}分のデータを持っていることが保証される
+    rights: BTreeMap<RobotID, [Robot; HISTORY_DEPTH]>,
+    lefts: BTreeMap<RobotID, [Robot; HISTORY_DEPTH]>,
+    ball: Option<[Ball; HISTORY_DEPTH]>,
 }
 
 impl History {
@@ -24,9 +23,49 @@ impl History {
             panic!();
         }
 
-        let mut rights: BTreeMap<RobotID, [Option<Robot>; HISTORY_DEPTH]> = BTreeMap::new();
-        let mut lefts: BTreeMap<RobotID, [Option<Robot>; HISTORY_DEPTH]> = BTreeMap::new();
-        let mut ball = [None; HISTORY_DEPTH];
+        //過去{HISTORY_DEPTH}分のデーターを持っていたら、抽出する
+        let first: &Scene = scenes[0];
+        let rights: BTreeMap<_, _> = first
+            .rights
+            .keys()
+            .filter_map(|key| {
+                let mut robots = [Robot::default(); HISTORY_DEPTH];
+                for i in 0..HISTORY_DEPTH {
+                    if let Some(robot) = scenes[i].rights.get(key) {
+                        robots[i] = *robot;
+                    } else {
+                        return None;
+                    }
+                }
+                Some((*key, robots))
+            })
+            .collect();
+        let lefts: BTreeMap<_, _> = first
+            .lefts
+            .keys()
+            .filter_map(|key| {
+                let mut robots = [Robot::default(); HISTORY_DEPTH];
+                for i in 0..HISTORY_DEPTH {
+                    if let Some(robot) = scenes[i].lefts.get(key) {
+                        robots[i] = *robot;
+                    } else {
+                        return None;
+                    }
+                }
+                Some((*key, robots))
+            })
+            .collect();
+        let ball: Option<_> = (|| {
+            let mut history = [Ball::default(); HISTORY_DEPTH];
+            for i in 0..HISTORY_DEPTH {
+                if let Some(ball) = scenes[i].ball {
+                    history[i] = ball;
+                } else {
+                    return None;
+                }
+            }
+            Some(history)
+        })();
         History {
             period: period,
             rights: rights,
@@ -36,24 +75,22 @@ impl History {
     }
 
     /*
-    #[allow(dead_code)]
-    pub fn push(&self, inserter: Rc<Scene>) -> History {
-        History {
-            period: self.period,
-            scenes: [
-                inserter,
-                self.scenes[0].clone(),
-                self.scenes[1].clone(),
-                self.scenes[2].clone(),
-            ],
+        #[allow(dead_code)]
+        pub fn push(&self, inserter: &Scene) -> History {
+            History {
+                period: self.period,
+                scenes: [
+                    inserter,
+                    self.scenes[0].clone(),
+                    self.scenes[1].clone(),
+                    self.scenes[2].clone(),
+                ],
+            }
         }
-    }
-
+    */
     #[inline(always)]
-    pub fn now<'a>(&'a self) -> &'a Scene {
-        &self.scenes[0]
-    }
-
+    pub fn scene_nth(&self, n: usize) -> Option<Scene> {}
+    /*
     pub fn robot_find(&self, era: usize, id: RobotID) -> Option<Robot> {
         if era < HISTORY_DEPTH {
             if let Some(&r) = self.scenes[era].robots.get(&id) {
