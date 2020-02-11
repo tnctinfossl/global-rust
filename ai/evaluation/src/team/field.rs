@@ -92,7 +92,29 @@ impl FieldDomination {
         img.save(filename).unwrap();
     }
 
-    pub fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], balls: &[Vec2]) -> (f32, f32) {
-        (0.0, 0.0)
+    pub fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], _balls: &[Vec2]) -> (f32, f32) {
+        //計算
+        let x0 = self.rect.x0();
+        let y0 = self.rect.y0();
+        let dx = self.rect.sx() / self.n as f32;
+        let dy = self.rect.sy() / self.m as f32;
+        let ij_xy = |i, j| {
+            let x = x0 + dx * i as f32;
+            let y = y0 + dy * j as f32;
+            vec2(x, y)
+        };
+        //let mut sum = 0.0;
+        let area = ((self.n + 1) * (self.m + 1)) as f32;
+        let sum: f32 = (0..self.n + 1)
+            .into_iter()
+            .map(|i: usize| {
+                let s: f32 = (0..self.m + 1)
+                    .into_iter()
+                    .map(|j: usize| self.field(ij_xy(i, j), rights, lefts))
+                    .sum();
+                s
+            })
+            .sum();
+        (sum / area, -sum / area)
     }
 }

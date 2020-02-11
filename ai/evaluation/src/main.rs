@@ -15,7 +15,11 @@ fn main() {
     let mine: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
     let yours: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
 
-    let dominater = FieldDomination::new(field, (640, 500));
+    let dominater = FieldDomination::new(field, (64, 50));
     dominater.save("test.bmp", &mine, &yours);
+    let begin = Instant::now();
+    let res = dominater.evaluate(&mine, &yours, &[]);
+    let end = Instant::now();
+    println!("{:?},{:?}", end - begin, res);
     // dominater.show(&[vec2(5.0, 0.0)], &[vec2(-5.0, 0.0)]);
 }
