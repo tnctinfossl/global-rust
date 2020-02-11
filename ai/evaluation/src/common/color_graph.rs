@@ -1,11 +1,11 @@
-use super::Graph;
+use super::{EdgeId, Graph, NodeId};
 use glm::*;
 use gnuplot::*;
 use std::cell::*;
 use std::collections::*;
 #[derive(Clone, Debug, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub enum Color {
-    White,
+    Black,
     Blue,
     Yellow,
 }
@@ -15,24 +15,47 @@ pub type ColorGraph = Graph<(Vec2, Color), f32>;
 
 impl ColorGraph {
     #[allow(dead_code)]
+    pub fn add_with_color(&mut self, point: Vec2, color: Color) -> NodeId {
+        self.add_node((point, color))
+    }
+
+    #[allow(dead_code)]
+    pub fn connect_filter_map<F: Fn(&[(Vec2, Color)], usize, usize) -> Option<f32>>(
+        &mut self,
+        filter: F,
+    ) {
+        let nodes = self.get_nodes().to_vec();
+        let size = self.size_nodes();
+        //O(n^2)　すべての取りうるノードを検査する
+        for (i, j) in (0..size)
+            .map(|i| (0..i).chain(i + 1..size).map(move |j| (i, j)))
+            .flatten()
+        {
+            if let Some(edge) = filter(&nodes, i, j) {
+                self.add_edge((NodeId::from(i), NodeId::from(j)), edge);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn show(&self) {
         let mut figure = Figure::new();
         let axes2d = figure.axes2d();
         //点の描画
-        let mut white_points = vec![];
+        let mut black_points = vec![];
         let mut blue_points = vec![];
         let mut yellow_points = vec![];
         for (point, color) in self.get_nodes().iter() {
             match color {
-                Color::White => white_points.push(point),
+                Color::Black => black_points.push(point),
                 Color::Blue => blue_points.push(point),
                 Color::Yellow => yellow_points.push(point),
             }
         }
-        if white_points.len() > 0 {
+        if black_points.len() > 0 {
             axes2d.points(
-                white_points.iter().map(|p| p.x),
-                white_points.iter().map(|p| p.y),
+                black_points.iter().map(|p| p.x),
+                black_points.iter().map(|p| p.y),
                 &[], //&[PlotOption::Color("white")],
             );
         }

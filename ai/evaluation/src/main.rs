@@ -15,12 +15,6 @@ fn main() {
     let mine: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
     let yours: Vec<_> = (0..10).map(|_| field.sample(&mut gen)).collect();
 
-    let mut graph = ColorGraph::new();
-    let mut nodes = vec![];
-    for point in mine.iter() {
-        nodes.push(graph.add_node((*point, color_graph::Color::Blue)));
-    }
-
-    println!("{}", graph.dump());
-    graph.show();
+    let dominater = FieldDomination::new(field, (640, 500));
+    dominater.show(&mine, &yours);
 }

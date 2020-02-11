@@ -61,6 +61,36 @@ impl Rectangle {
         let y = rand.gen_range(y_min, y_max);
         vec2(x, y)
     }
+
+    #[allow(dead_code)]
+    pub fn x0(&self) -> f32 {
+        self.point.x
+    }
+
+    #[allow(dead_code)]
+    pub fn x1(&self) -> f32 {
+        self.point.x + self.size.x
+    }
+
+    #[allow(dead_code)]
+    pub fn y0(&self) -> f32 {
+        self.point.y
+    }
+
+    #[allow(dead_code)]
+    pub fn y1(&self) -> f32 {
+        self.point.y + self.size.y
+    }
+
+    #[allow(dead_code)]
+    pub fn sx(&self) -> f32 {
+        self.size.x
+    }
+
+    #[allow(dead_code)]
+    pub fn sy(&self) -> f32 {
+        self.size.y
+    }
 }
 
 pub fn rectangle(point: Vec2, size: Vec2) -> Rectangle {

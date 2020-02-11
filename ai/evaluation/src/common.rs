@@ -10,7 +10,7 @@ pub mod triangle;
 pub use bitfield::BitField;
 pub use color_graph::ColorGraph;
 pub use geometry::*;
-pub use graph::*;
+pub use graph::{EdgeId, Graph, NodeId};
 pub use rectangle::{rectangle, Rectangle};
 pub use triangle::Triangle;
 //pub mod mattrix::Mattrix;

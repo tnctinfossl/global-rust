@@ -1,3 +1,4 @@
+use super::traits::*;
 use crate::common::BitField;
 use crate::common::Rectangle;
 use glm::*;
@@ -41,9 +42,10 @@ impl CellDomination {
         );
         (resized.x as usize, resized.y as usize)
     }
+}
 
-    #[allow(dead_code)]
-    pub fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2]) -> (f32, f32) {
+impl TeamEvaluater for CellDomination {
+    fn evaluate(&self, rights: &[Vec2], lefts: &[Vec2], balls: &[Vec2]) -> (f32, f32) {
         let rights: Vec<_> = rights.iter().map(|p: &Vec2| self.encode(*p)).collect();
         let lefts: Vec<_> = lefts.iter().map(|p: &Vec2| self.encode(*p)).collect();
         let merge = |points: &[(usize, usize)], size: usize| -> BitField {
