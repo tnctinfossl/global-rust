@@ -7,7 +7,7 @@ use rand::*;
 use std::collections::{BTreeMap, HashMap};
 use std::rc::Rc;
 const HISTORY_DEPTH: usize = 4;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct History {
     pub period: f32, //非ゼロかつ正の値を保証すること
     //過去{HISTORY_DEPTH}分のデータを持っていることが保証される
@@ -74,34 +74,64 @@ impl History {
         }
     }
 
-    /*
-        #[allow(dead_code)]
-        pub fn push(&self, inserter: &Scene) -> History {
-            History {
-                period: self.period,
-                scenes: [
-                    inserter,
-                    self.scenes[0].clone(),
-                    self.scenes[1].clone(),
-                    self.scenes[2].clone(),
-                ],
-            }
+    pub fn scene_nth(&self, n: usize) -> Option<Scene> {
+        if n < 0 || HISTORY_DEPTH <= n {
+            return None;
         }
-    */
-    #[inline(always)]
-    pub fn scene_nth(&self, n: usize) -> Option<Scene> {}
-    /*
-    pub fn robot_find(&self, era: usize, id: RobotID) -> Option<Robot> {
-        if era < HISTORY_DEPTH {
-            if let Some(&r) = self.scenes[era].robots.get(&id) {
-                Some(r)
-            } else {
-                None
-            }
+
+        let rights_iter = self.rights.iter().map(|(key, history)| (*key, history[n]));
+        let lefts_iter = self.lefts.iter().map(|(key, history)| (*key, history[n]));
+        let ball: Option<Ball> = if let Some(history) = self.ball {
+            Some(history[n])
         } else {
             None
+        };
+        Some(Scene::from_iter(rights_iter, lefts_iter, ball))
+    }
+
+    #[inline(always)]
+    pub fn scene_now(&self, n: usize) -> Scene {
+        self.scene_nth(0).unwrap()
+    }
+
+    pub fn simulate<
+        RS: FnMut(&[Robot; HISTORY_DEPTH]) -> Robot,
+        BS: FnMut(&[Ball; HISTORY_DEPTH]) -> Ball,
+    >(
+        &self,
+        robot_simulate: RS,
+        ball_simulate: BS,
+    ) -> History {
+        let rights: BTreeMap<_, _> = self
+            .rights
+            .iter()
+            .map(|(key, robots)| {
+                let new_robot = robot_simulate(robots);
+                (key, [new_robot, robots[0], robots[1], robots[2]])
+            })
+            .collect();
+        let lefts: BTreeMap<_, _> = self
+            .lefts
+            .iter()
+            .map(|(key, robots)| {
+                let new_robot = robot_simulate(robots);
+                (key, [new_robot, robots[0], robots[1], robots[2]])
+            })
+            .collect();
+        let ball = if let Some(balls) = self.ball {
+            let new_ball = ball_simulate(&balls);
+            Some([new_ball, balls[0], balls[1], balls[2]])
+        } else {
+            None
+        };
+        History {
+            rights: rights,
+            lefts: lefts,
+            ball: ball,
         }
     }
+
+    /*
     #[allow(dead_code)]
     pub fn robot_position(&self, id: RobotID) -> Option<Vec2Rad> {
         if let Some(r) = self.robot_find(0, id) {

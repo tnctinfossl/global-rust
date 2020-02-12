@@ -54,9 +54,24 @@ pub struct Scene {
 
 impl Scene {
     #[allow(dead_code)]
-    pub fn new<I: Iterator<Item = (RobotID, Robot)>>(
-        rights: I,
-        lefts: I,
+    pub fn new(
+        rights: BTreeMap<RobotID, Robot>,
+        lefts: BTreeMap<RobotID, Robot>,
+        ball: Option<Ball>,
+    ) -> Scene {
+        Scene {
+            rights: rights,
+            lefts: lefts,
+            ball: ball,
+        }
+    }
+    #[allow(dead_code)]
+    pub fn from_iter<
+        IR: Iterator<Item = (RobotID, Robot)>,
+        IL: Iterator<Item = (RobotID, Robot)>,
+    >(
+        rights: IR,
+        lefts: IL,
         ball: Option<Ball>,
     ) -> Scene {
         Scene {
@@ -65,6 +80,7 @@ impl Scene {
             ball: ball,
         }
     }
+
     #[allow(dead_code)]
     pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
         let rights: BTreeMap<RobotID, Robot> = self
