@@ -92,7 +92,7 @@ impl Field {
     //枝刈りメソッド
     #[allow(dead_code)]
     pub fn prune(&self, scene: Scene) -> Option<Scene> {
-        let robots: Vec<_> = scene.robots.values().collect();
+        /*let robots: Vec<_> = scene.robots.values().collect();
         for (i, j) in (0..robots.len())
             .map(|i| (0..i).map(move |j| (i, j)))
             .flatten()
@@ -101,7 +101,7 @@ impl Field {
                 self.ng.set(self.ng.get() + 1);
                 return None;
             }
-        }
+        }*/
         if !scene.robots.values().all(|r: &Robot| self.overlap(*r)) {
             self.ng.set(self.ng.get() + 1);
             return None;

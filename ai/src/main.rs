@@ -37,10 +37,7 @@ fn main() {
         RobotID::Blue(4),
         Robot::new(vec2rad(-3000.0, -2500.0, 0.0), 0.1),
     );
-    robots.insert(
-        RobotID::Blue(5),
-        Robot::new(vec2rad(-3500.0, 0.0, 0.0), 0.1),
-    );
+    robots.insert(RobotID::Blue(5), Robot::new(vec2rad(2500.0, 0.0, 0.0), 0.1));
 
     robots.insert(
         RobotID::Yellow(0),
@@ -48,11 +45,11 @@ fn main() {
     );
     robots.insert(
         RobotID::Yellow(1),
-        Robot::new(vec2rad(0.0, 3000.0, 0.0), 0.1),
+        Robot::new(vec2rad(-3300.0, 3800.0, 0.0), 0.1),
     );
     robots.insert(
         RobotID::Yellow(2),
-        Robot::new(vec2rad(0.0, -3000.0, 0.0), 0.1),
+        Robot::new(vec2rad(-3300.0, -3800.0, 0.0), 0.1),
     );
     robots.insert(
         RobotID::Yellow(3),
@@ -64,7 +61,7 @@ fn main() {
     );
     robots.insert(
         RobotID::Yellow(5),
-        Robot::new(vec2rad(-1500.0, 0.0, 0.0), 0.1),
+        Robot::new(vec2rad(-2500.0, 0.0, 0.0), 0.1),
     );
 
     let ball = Ball::new(vec2(0.0, 0.0));
@@ -129,15 +126,17 @@ fn main() {
 
     let sim = move |h: &History| {
         let mut gen_sim = rand::thread_rng();
-        h.simulate().noise(&mut gen_sim, 0.5, &sn)
+        h.simulate().noise(&mut gen_sim, 1.0, &sn)
     };
     let start = Instant::now();
-    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 4);
+    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 6);
+
+    println!("elapsed: {:?}", start.elapsed());
     let ok = field.ok.get();
     let ng = field.ng.get();
     let total = ok + ng;
-    let full = 10_i32.pow(5) - 1;
-    let rate = (1.0 - total as f32 / full as f32) * 100.0;
+    let full = 50_i32.pow(5) - 1;
+    let rate = (total as f32 / full as f32) * 100.0;
     println!(
         "ok={},ng={},total={},rate={}%,del-rate={}%",
         ok,
@@ -146,8 +145,6 @@ fn main() {
         ng as f32 / total as f32 * 100.0,
         rate
     );
-
-    println!("elapsed: {:?}", start.elapsed());
 
     for (number, s) in best_scenes.iter().enumerate() {
         let mut figure = gnuplot::Figure::new();

@@ -243,23 +243,20 @@ pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -
     inner(history, generator, static_evaluation, prune, depth)
 }
 
-/*pub fn tree_plan<
-    G: Fn(&History) -> Scene,
-    SE: Fn(&Scene) -> f32,
->(
+/*pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32>(
     history: &History,
     generator: &G,
     static_evaluation: &SE,
     depth: u32,
 ) -> (f32, Vec<Rc<Scene>>) {
-    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, >(
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32>(
         history: &History,
         generator: &G,
         static_evaluation: &SE,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..1<<depth)
-            .map(|_| generator(history))//sceneのiter
+        let branches: Vec<_> = (0..1 << depth)
+            .map(|_| generator(history)) //sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);
                 let scene = Rc::new(scene);
@@ -295,7 +292,7 @@ pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -
             .unwrap();
         (score, best_branch) //strub
     }
-    inner(history, generator, static_evaluation,  depth)
+    inner(history, generator, static_evaluation, depth)
 }*/
 
 /*#[cfg(test)]

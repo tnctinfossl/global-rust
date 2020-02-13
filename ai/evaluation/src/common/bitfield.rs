@@ -1,9 +1,9 @@
 use std::cmp::{max, min};
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Fn, Not,Index,IndexMut};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Fn, Index, IndexMut, Not};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BitField {
-    pub field: Vec<u32>, //メモ 縦*横
+    pub field: Vec<u64>, //メモ 縦*横
 }
 
 impl Default for BitField {
@@ -17,11 +17,11 @@ impl Default for BitField {
 #[allow(dead_code)]
 impl BitField {
     pub fn width() -> usize {
-        std::mem::size_of::<u32>() * 8
+        std::mem::size_of::<u64>() * 8
     }
 
     pub const fn height() -> usize {
-        25
+        50
     }
 
     pub fn area() -> usize {
@@ -46,7 +46,7 @@ impl BitField {
     pub fn new_points(points: &[(usize, usize)]) -> BitField {
         let mut field = Self::default();
         for (i, j) in points {
-            field.field[*j] |= 1u32 << i;
+            field.field[*j] |= 1u64 << i;
         }
         field
     }
@@ -57,7 +57,7 @@ impl BitField {
         let j = j as isize;
         let k = k as isize;
 
-        let masker = |n: isize| -> u32 {
+        let masker = |n: isize| -> u64 {
             match n {
                 n if n < 0 => 0,
                 n if n >= (Self::width() - 1) as isize => !0,
@@ -66,7 +66,7 @@ impl BitField {
         };
 
         let (high, low) = (masker(i + k + 1), masker(i - k));
-        let line: u32 = high ^ low;
+        let line: u64 = high ^ low;
         for l in max(j - k, 0)..min(j + k + 1, (Self::height() - 1) as isize) {
             let l = l as usize;
             field[l] |= line;
@@ -74,12 +74,11 @@ impl BitField {
         BitField { field: field }
     }
 
-    pub fn clear(&mut self){
-        for i in 0..Self::height(){
-            self.field[i]=0;
+    pub fn clear(&mut self) {
+        for i in 0..Self::height() {
+            self.field[i] = 0;
         }
     }
-
 
     pub fn dump(&self) -> String {
         self.field
@@ -122,7 +121,7 @@ impl BitField {
 
     fn op_double<F>(&self, rhs: &BitField, f: F) -> BitField
     where
-        F: Fn(u32, u32) -> u32,
+        F: Fn(u64, u64) -> u64,
     {
         let mut result = BitField::new();
         for i in 0..Self::height() {
@@ -133,7 +132,7 @@ impl BitField {
 
     fn op_single<F>(&self, f: F) -> BitField
     where
-        F: Fn(u32) -> u32,
+        F: Fn(u64) -> u64,
     {
         let mut result = BitField::new();
         for i in 0..Self::height() {
@@ -144,7 +143,7 @@ impl BitField {
 
     fn op_assign<F>(&mut self, rhs: &BitField, f: F)
     where
-        F: Fn(&mut u32, u32),
+        F: Fn(&mut u64, u64),
     {
         self.field
             .iter_mut()
@@ -160,12 +159,12 @@ impl BitField {
         self.field.iter().map(|x| x.count_zeros()).sum()
     }
 
-    pub fn move_right(&mut self, i: u32) -> &mut Self {
+    pub fn move_right(&mut self, i: u64) -> &mut Self {
         self.field.iter_mut().for_each(|x| *x >>= i);
         self
     }
 
-    pub fn move_left(&mut self, i: u32) -> &mut Self {
+    pub fn move_left(&mut self, i: u64) -> &mut Self {
         self.field.iter_mut().for_each(|x| *x <<= i);
         self
     }
@@ -197,7 +196,7 @@ impl BitField {
         let j = j as isize;
         let k = k as isize;
 
-        let masker = |n: isize| -> u32 {
+        let masker = |n: isize| -> u64 {
             match n {
                 n if n < 0 => 0,
                 n if n >= (Self::width() - 1) as isize => !0,
@@ -206,7 +205,7 @@ impl BitField {
         };
 
         let (high, low) = (masker(i + k + 1), masker(i - k));
-        let line: u32 = high ^ low;
+        let line: u64 = high ^ low;
         for l in max(j - k, 0)..min(j + k + 1, (Self::height() - 1) as isize) {
             let l = l as usize;
             self.field[l] |= line;
@@ -217,10 +216,9 @@ impl BitField {
         self.count_ones() as f32 / Self::area() as f32
     }
 
-    //膨張処理 
+    //膨張処理
     #[allow(dead_code)]
-    pub fn expand9<'a>(dest:&'a mut Self,src:&Self) ->&'a mut Self {
-        
+    pub fn expand9<'a>(dest: &'a mut Self, src: &Self) -> &'a mut Self {
         let field = &src.field;
 
         dest.field[0] =
@@ -243,10 +241,8 @@ impl BitField {
             | field[end - 1] << 1
             | field[end - 1]
             | field[end - 1] >> 4;
-  
         dest
     }
-   
 }
 
 impl BitAnd<&BitField> for &BitField {
@@ -289,16 +285,15 @@ impl BitOrAssign<&BitField> for BitField {
     }
 }
 
-impl Index<usize> for BitField{
-    type Output = u32;
-    fn index(&self,index:usize)->&u32{
+impl Index<usize> for BitField {
+    type Output = u64;
+    fn index(&self, index: usize) -> &u64 {
         &self.field[index]
     }
 }
 
-
-impl IndexMut<usize> for BitField{
-    fn index_mut(&mut self,index:usize)->&mut u32{
+impl IndexMut<usize> for BitField {
+    fn index_mut(&mut self, index: usize) -> &mut u64 {
         &mut self.field[index]
     }
 }
@@ -313,4 +308,3 @@ fn bitfield_and() {
     and.write((0, 0), true);
     assert_eq!(&a & &b, and);
 }
-

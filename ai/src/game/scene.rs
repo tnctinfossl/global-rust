@@ -65,7 +65,7 @@ impl Scene {
             .robots
             .iter()
             .map(|(id, robot): (&RobotID, &Robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random) * period;//経過時間[s]をかける
+                let noised = robot.position + sn.gen_vec2rad(random) * period; //経過時間[s]をかける
                 (*id, Robot::new(noised, robot.diametor))
             })
             .collect();
@@ -106,23 +106,40 @@ impl Plotable<gnuplot::Axes2D> for Scene {
         axes2d.points(
             blue_xs,
             blue_ys,
-            &[PlotOption::Color("blue"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')]);
+            &[
+                PlotOption::Color("blue"),
+                PlotOption::PointSize(10.0),
+                PlotOption::PointSymbol('O'),
+            ],
+        );
         let yellow_xs = yellow_points.iter().map(|p| p.x);
         let yellow_ys = yellow_points.iter().map(|p| p.y);
-        axes2d.points(yellow_xs,yellow_ys ,&[PlotOption::Color("orange"),PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')]);//見やすいように一時的オレンジにした
-        /*let ball_xs = self.ball.iter().map(|b| b.position.x);
-        let ball_ys = self.ball.iter().map(|b| b.position.y);
         axes2d.points(
-            ball_xs,
-            ball_ys,
-            &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
-        );*/
-        let field_x = [-6000,6000].iter();
-        let field_y = [4500,-4500].iter();
+            yellow_xs,
+            yellow_ys,
+            &[
+                PlotOption::Color("#000000"),
+                PlotOption::PointSize(10.0),
+                PlotOption::PointSymbol('o'),
+            ],
+        ); //見やすいように一時的オレンジにした
+           /*let ball_xs = self.ball.iter().map(|b| b.position.x);
+           let ball_ys = self.ball.iter().map(|b| b.position.y);
+           axes2d.points(
+               ball_xs,
+               ball_ys,
+               &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
+           );*/
+        let field_x = [-6000, 6000].iter();
+        let field_y = [4500, -4500].iter();
         axes2d.points(
             field_x,
             field_y,
-            &[PlotOption::Color("#FFFFFF"), PlotOption::PointSize(1.0),PlotOption::PointSymbol('o')],
+            &[
+                PlotOption::Color("#FFFFFF"),
+                PlotOption::PointSize(1.0),
+                PlotOption::PointSymbol('o'),
+            ],
         );
     }
 }
@@ -140,7 +157,7 @@ mod tests {
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
 
-        scene.noise(&mut rand::thread_rng(),16.66, &sn);
+        scene.noise(&mut rand::thread_rng(), 16.66, &sn);
         scene.plot(&mut figure.axes2d());
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();
