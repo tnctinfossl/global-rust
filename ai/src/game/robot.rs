@@ -2,7 +2,7 @@ pub use super::*;
 use glm::*;
 use serde_derive::*;
 use std::ops::Not;
-pub static DIAMETOR_ROBOT: f32 = 0.18; //[m]
+pub static DIAMETOR_ROBOT: f32 = 180.0; //[mm]
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]

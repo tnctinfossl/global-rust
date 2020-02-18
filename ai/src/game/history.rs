@@ -203,7 +203,7 @@ pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -
         prune: &P,
         depth: u32,
     ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..10)
+        let branches: Vec<_> = (0..20)
             .flat_map(|_| prune(generator(history))) //sceneのiter
             .map(|scene: Scene| {
                 let now_score = static_evaluation(&scene);

@@ -19,49 +19,52 @@ fn main() {
     let mut robots: HashMap<RobotID, Robot> = HashMap::new();
     robots.insert(
         RobotID::Blue(0),
-        Robot::new(vec2rad(-5500.0, 0.0, 0.0), 0.1),
+        Robot::new(vec2rad(-5500.0, 0.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Blue(1),
-        Robot::new(vec2rad(-4000.0, 3500.0, 0.0), 0.1),
+        Robot::new(vec2rad(-1000.0, 3000.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Blue(2),
-        Robot::new(vec2rad(-4000.0, -3500.0, 0.0), 0.1),
+        Robot::new(vec2rad(-1000.0, -3000.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Blue(3),
-        Robot::new(vec2rad(-3000.0, 2500.0, 0.0), 0.1),
+        Robot::new(vec2rad(-3500.0, 1500.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Blue(4),
-        Robot::new(vec2rad(-3000.0, -2500.0, 0.0), 0.1),
+        Robot::new(vec2rad(-3500.0, -1500.0, 0.0), 180.0),
     );
-    robots.insert(RobotID::Blue(5), Robot::new(vec2rad(2500.0, 0.0, 0.0), 0.1));
+    robots.insert(
+        RobotID::Blue(5),
+        Robot::new(vec2rad(-1750.0, 0.0, 0.0), 180.0),
+    );
 
     robots.insert(
         RobotID::Yellow(0),
-        Robot::new(vec2rad(5500.0, 0.0, 0.0), 0.1),
+        Robot::new(vec2rad(5500.0, 0.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Yellow(1),
-        Robot::new(vec2rad(-3300.0, 3800.0, 0.0), 0.1),
+        Robot::new(vec2rad(1000.0, 3000.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Yellow(2),
-        Robot::new(vec2rad(-3300.0, -3800.0, 0.0), 0.1),
+        Robot::new(vec2rad(1000.0, -3000.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Yellow(3),
-        Robot::new(vec2rad(-2000.0, 3500.0, 0.0), 0.1),
+        Robot::new(vec2rad(3500.0, 1500.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Yellow(4),
-        Robot::new(vec2rad(-2000.0, -3500.0, 0.0), 0.1),
+        Robot::new(vec2rad(3500.0, -1500.0, 0.0), 180.0),
     );
     robots.insert(
         RobotID::Yellow(5),
-        Robot::new(vec2rad(-2500.0, 0.0, 0.0), 0.1),
+        Robot::new(vec2rad(1750.0, 0.0, 0.0), 180.0),
     );
 
     let ball = Ball::new(vec2(0.0, 0.0));
@@ -83,7 +86,7 @@ fn main() {
     let (my_score, your_score) = cell.evaluate(&mine[..], &yours[..]);
     let before = my_score;
     println!("before:{}", my_score);
-    println!("before{}", your_score);
+    println!("before:{}", your_score);
     print!("0,");
 
     let mut figure = gnuplot::Figure::new();
@@ -129,7 +132,7 @@ fn main() {
         h.simulate().noise(&mut gen_sim, 1.0, &sn)
     };
     let start = Instant::now();
-    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 6);
+    let (_score, best_scenes) = tree_plan(&history, &sim, &snap, &|s| field.prune(s), 4);
 
     println!("elapsed: {:?}", start.elapsed());
     let ok = field.ok.get();

@@ -5,17 +5,18 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 use std::collections::HashMap;
-pub static MOVEABLE_DISTANCE: f32 = 4000.0; //1秒間に移動可能な距離[mm]
+pub static MOVEABLE_DISTANCE: f32 = 200.0; //[mm]
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
-    standard_deviation: f32,     //標準偏差[m]
+    standard_deviation: f32,     //標準偏差[mm]
     standard_deviation_rad: f32, //標準偏差[rad]
 }
 
 impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
-            standard_deviation: MOVEABLE_DISTANCE.sqrt(), //1秒間に移動可能な距離[mm]のルート
+            standard_deviation: MOVEABLE_DISTANCE,
+            //1秒間に移動可能な距離[mm]のルート
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
