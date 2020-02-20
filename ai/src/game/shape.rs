@@ -39,7 +39,7 @@ impl Rectangle {
         ]
     }
 }
-
+//重複判定
 impl Overlap<Rectangle> for Rectangle {
     fn overlap(&self, rhs: Rectangle) -> bool {
         let check_x = abs(self.center().x - rhs.center().x) < self.size.x / 2.0 + rhs.size.x / 2.0;

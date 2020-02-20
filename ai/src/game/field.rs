@@ -47,6 +47,7 @@ impl Field {
 
     #[allow(dead_code)]
     pub fn ramdon_scene<R: Rng + ?Sized>(
+        //ロボット、ボールをランダムに配置
         &self,
         random: &mut R,
         blues: u32,
@@ -120,6 +121,7 @@ where
     T: Into<Circle>,
 {
     fn overlap(&self, rhs: T) -> bool {
+        //重複判定
         let circle = rhs.into();
         let infield = self.infield / 2.0;
         let check_x = -infield.x < circle.center.x && circle.center.x < infield.x;

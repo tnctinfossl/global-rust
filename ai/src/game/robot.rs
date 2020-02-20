@@ -2,8 +2,9 @@ pub use super::*;
 use glm::*;
 use serde_derive::*;
 use std::ops::Not;
-pub static DIAMETOR_ROBOT: f32 = 180.0; //[mm]
+pub static DIAMETOR_ROBOT: f32 = 180.0; //ロボットの直径[mm]
 
+//enum型チームとid,個々のロボット識別のため
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Hash, Eq, Ord, Serialize, Deserialize)]
 pub enum RobotID {

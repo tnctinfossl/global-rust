@@ -10,6 +10,7 @@ pub struct Ball {
 impl Default for Ball {
     #[allow(dead_code)]
     fn default() -> Ball {
+        //デフォルト値のインスタンス生成
         Ball {
             position: vec2(0.0, 0.0),
         }
@@ -19,12 +20,14 @@ impl Default for Ball {
 impl Ball {
     #[allow(dead_code)]
     pub fn new(position: Vec2) -> Ball {
+        //インスタンス生成
         Ball { position: position }
     }
 }
 
 impl From<Ball> for Circle {
     fn from(ball: Ball) -> Self {
+        //ball->Circle
         Circle::new(ball.position, BALL_RADIUS)
     }
 }

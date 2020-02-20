@@ -4,6 +4,9 @@ use serde_derive::*;
 use std::collections::HashMap;
 use std::ops::*;
 use std::time::{Duration, Instant};
+
+//TODO aiのmodelと共通化する
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Robot {
     pub id: u32,

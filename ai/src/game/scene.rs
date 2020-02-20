@@ -5,7 +5,7 @@ use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
 use std::collections::HashMap;
-pub static MOVEABLE_DISTANCE: f32 = 200.0; //[mm]
+pub static MOVEABLE_DISTANCE: f32 = 200.0; //[mm]要調整
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SceneNoise {
     standard_deviation: f32,     //標準偏差[mm]
@@ -16,7 +16,6 @@ impl Default for SceneNoise {
     fn default() -> SceneNoise {
         SceneNoise {
             standard_deviation: MOVEABLE_DISTANCE,
-            //1秒間に移動可能な距離[mm]のルート
             standard_deviation_rad: std::f32::consts::PI,
         }
     }
@@ -30,11 +29,12 @@ impl SceneNoise {
             standard_deviation_rad: standard_deviation_rad,
         }
     }
+    //乱数vec2(x,y)
     pub fn gen_vec2<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2 {
         let normal = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
         vec2(normal.sample(ramdom), normal.sample(ramdom))
     }
-
+    //乱数vec2rad(x,y,rad)
     pub fn gen_vec2rad<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2Rad {
         let normal_xy = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
         let normal_theta = Normal::new(0.0 as f32, self.standard_deviation_rad as f32).unwrap();
@@ -60,6 +60,7 @@ impl Scene {
             ball: ball,
         }
     }
+    //疑似乱数でずらす
     #[allow(dead_code)]
     pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
         let robots: HashMap<RobotID, Robot> = self
@@ -88,7 +89,7 @@ impl Default for Scene {
         }
     }
 }
-
+//ロボット、ボールの位置出力gnuplot
 impl Plotable<gnuplot::Axes2D> for Scene {
     fn plot<'a>(&self, axes2d: &'a mut Axes2D) {
         //let axes2d: &mut Axes2D = figure.axes2d();
@@ -119,18 +120,22 @@ impl Plotable<gnuplot::Axes2D> for Scene {
             yellow_xs,
             yellow_ys,
             &[
-                PlotOption::Color("#000000"),
+                PlotOption::Color("yellow"),
                 PlotOption::PointSize(10.0),
-                PlotOption::PointSymbol('o'),
+                PlotOption::PointSymbol('O'),
             ],
-        ); //見やすいように一時的オレンジにした
-           /*let ball_xs = self.ball.iter().map(|b| b.position.x);
-           let ball_ys = self.ball.iter().map(|b| b.position.y);
-           axes2d.points(
-               ball_xs,
-               ball_ys,
-               &[PlotOption::Color("red"), PlotOption::PointSize(5.0),PlotOption::PointSymbol('O')],
-           );*/
+        );
+        let ball_xs = self.ball.iter().map(|b| b.position.x);
+        let ball_ys = self.ball.iter().map(|b| b.position.y);
+        axes2d.points(
+            ball_xs,
+            ball_ys,
+            &[
+                PlotOption::Color("red"),
+                PlotOption::PointSize(5.0),
+                PlotOption::PointSymbol('O'),
+            ],
+        );
         let field_x = [-6000, 6000].iter();
         let field_y = [4500, -4500].iter();
         axes2d.points(
@@ -141,7 +146,7 @@ impl Plotable<gnuplot::Axes2D> for Scene {
                 PlotOption::PointSize(1.0),
                 PlotOption::PointSymbol('o'),
             ],
-        );
+        ); //fieldの大きさに広げる
     }
 }
 
