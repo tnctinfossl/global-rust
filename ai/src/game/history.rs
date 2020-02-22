@@ -3,6 +3,7 @@ extern crate serde;
 extern crate serde_derive;
 use super::*;
 use glm::*;
+use rand::Rng;
 use rand::*;
 use std::collections::{BTreeMap, HashMap};
 use std::rc::Rc;
@@ -90,214 +91,137 @@ impl History {
     }
 
     #[inline(always)]
-    pub fn scene_now(&self, n: usize) -> Scene {
+    pub fn scene_now(&self) -> Scene {
         self.scene_nth(0).unwrap()
     }
-
-    pub fn simulate<
-        RS: FnMut(&[Robot; HISTORY_DEPTH]) -> Robot,
-        BS: FnMut(&[Ball; HISTORY_DEPTH]) -> Ball,
+    #[allow(dead_code)]
+    pub fn generate<
+        RS: FnMut(&[Robot; HISTORY_DEPTH]) -> Option<Robot>,
+        BS: FnMut(&[Ball; HISTORY_DEPTH]) -> Option<Ball>,
     >(
         &self,
-        robot_simulate: RS,
-        ball_simulate: BS,
+        mut robot_simulate: RS,
+        mut ball_simulate: BS,
     ) -> History {
         let rights: BTreeMap<_, _> = self
             .rights
             .iter()
-            .map(|(key, robots)| {
-                let new_robot = robot_simulate(robots);
-                (key, [new_robot, robots[0], robots[1], robots[2]])
+            .flat_map(|(key, robots)| {
+                robot_simulate(robots)
+                    .map(|new_robot| (*key, [new_robot, robots[0], robots[1], robots[2]]))
             })
             .collect();
         let lefts: BTreeMap<_, _> = self
             .lefts
             .iter()
-            .map(|(key, robots)| {
-                let new_robot = robot_simulate(robots);
-                (key, [new_robot, robots[0], robots[1], robots[2]])
+            .flat_map(|(key, robots)| {
+                robot_simulate(robots)
+                    .map(|new_robot| (*key, [new_robot, robots[0], robots[1], robots[2]]))
             })
             .collect();
-        let ball = if let Some(balls) = self.ball {
-            let new_ball = ball_simulate(&balls);
-            Some([new_ball, balls[0], balls[1], balls[2]])
+
+        let ball = if let Some(ball_history) = self.ball {
+            ball_simulate(&ball_history)
+                .map(|new_ball| [new_ball, ball_history[0], ball_history[1], ball_history[2]])
         } else {
             None
         };
         History {
+            period: self.period,
             rights: rights,
             lefts: lefts,
             ball: ball,
         }
     }
-
-    /*
-    #[allow(dead_code)]
-    pub fn robot_position(&self, id: RobotID) -> Option<Vec2Rad> {
-        if let Some(r) = self.robot_find(0, id) {
-            Some(r.position)
-        } else {
-            None
-        }
-    }
-
-    pub fn robot_velocity(&self, id: RobotID) -> Option<Vec2Rad> {
-        //データの取得//use super::*;
-        let now = self.robot_find(0, id)?;
-        let last = self.robot_find(1, id)?;
-        //計算する
-        Some(Vec2Rad::diff(self.period, now.position, last.position))
-    }
-
-    pub fn robot_acceleration(&self, id: RobotID) -> Option<Vec2Rad> {
-        //データの取得
-        let first = self.robot_find(0, id)?;
-        let second = self.robot_find(1, id)?;
-        let third = self.robot_find(2, id)?;
-        //差分方程式を計算する
-        Some(Vec2Rad::diff3(
-            self.period,
-            first.position,
-            second.position,
-            third.position,
-        ))
-    }
-
-    pub fn robot_jerk(&self, id: RobotID) -> Option<Vec2Rad> {
-        //データの取得
-        let first = self.robot_find(0, id)?;
-        let second = self.robot_find(1, id)?;
-        let third = self.robot_find(2, id)?;
-        let forth = self.robot_find(3, id)?;
-        //差分方程式を解く
-        Some(Vec2Rad::diff4(
-            self.period,
-            first.position,
-            second.position,
-            third.position,
-            forth.position,
-        ))
-    }
-
-    pub fn ball_find(&self, era: usize) -> Option<Ball> {
-        if era < HISTORY_DEPTH {
-            self.scenes[era].ball
-        } else {
-            None
-        }
-    }
-    #[allow(dead_code)]
-    pub fn ball_position(&self) -> Option<Vec2> {
-        let first = self.ball_find(0)?;
-        Some(first.position)
-    }
-
-    pub fn ball_velocity(&self) -> Option<Vec2> {
-        let first = self.ball_find(0)?;
-        let second = self.ball_find(1)?;
-        //差分方程式を解く (x0 - x1)/t
-        let velocity = (first.position - second.position) / self.period;
-        Some(velocity)
-    }
-
-    pub fn ball_acceleration(&self) -> Option<Vec2> {
-        let first = self.ball_find(0)?;
-        let second = self.ball_find(1)?;
-        let third = self.ball_find(2)?;
-        //差分方程式を解く (x0 - 2x1 + x2)/t^2
-        let acceleration =
-            (first.position - second.position * 2.0 + third.position) / self.period.powi(2);
-        Some(acceleration)
-    }
-
-    pub fn ball_jerk(&self) -> Option<Vec2> {
-        let first = self.ball_find(0)?;
-        let second = self.ball_find(1)?;
-        let third = self.ball_find(2)?;
-        let forth = self.ball_find(3)?;
-        //差分方程式を解く (x0 - 3x1 + 3x2 - x3)/t^3
-        let jerk = (first.position - second.position * 3.0 + third.position * 3.0 - forth.position)
-            / self.period.powi(3);
-        Some(jerk)
-    }
-
-    //x+vt+1/2*at^2+1/6*yt^3を求めることで次のシーンを予想する
-    #[allow(dead_code)]
-    pub fn simulate(&self) -> Scene {
-        let robots: HashMap<RobotID, Robot> = self
-            .now()
-            .robots
-            .iter()
-            .map(|(id, robot): (&RobotID, &Robot)| {
-                //変数
-                let position = robot.position;
-                let velocity = self.robot_velocity(*id).unwrap_or_default();
-                let acceleration = self.robot_acceleration(*id).unwrap_or_default();
-                let jerk = self.robot_jerk(*id).unwrap_or_default();
-                let period = self.period;
-                //計算 x+vt+1/2*at^2+1/6*yt^3
-                let mut result = position;
-                result += velocity * period;
-                result += acceleration * period.powi(2) / 2.0;
-                result += jerk * period.powi(3) / 6.0;
-                (*id, Robot::new(result, robot.diametor))
-            })
-            .collect();
-
-        let ball = if let Some(ball) = self.now().ball {
-            //変数
-            let default = vec2(0.0, 0.0);
-            let position = ball.position;
-            let velocity = self.ball_velocity().unwrap_or(default);
-            let acceleration = self.ball_acceleration().unwrap_or(default);
-            let jerk = self.ball_jerk().unwrap_or(default);
-            let period = self.period;
-            //計算 x+vt+1/2*at^2+1/6*yt^3
-            let result = position
-                + velocity * period
-                + acceleration * period.powi(2) / 2.0
-                + jerk * period.powi(3) / 6.0;
-            Some(Ball::new(result))
-        } else {
-            None
+    //物理シミュレーション
+    pub fn simulate_physics(&self) -> History {
+        let t1 = self.period;
+        let t2 = self.period.powi(2);
+        let t3 = self.period.powi(3);
+        let rs = |robots: &[Robot; HISTORY_DEPTH]| -> Option<Robot> {
+            //物理シミュレーション
+            let p0 = robots[0].position;
+            let v = (robots[0].position - robots[1].position) / self.period;
+            let a = (robots[0].position - 2.0 * robots[1].position + robots[2].position)
+                / (self.period * 2.0);
+            let j = (robots[0].position - 3.0 * robots[1].position + 3.0 * robots[2].position
+                - robots[3].position)
+                / (self.period * 3.0);
+            let p = j / 6.0 * t3 + a / 2.0 * t2 + v * t1 + p0;
+            //ノイズ付与
+            Some(robots[0].replace(p))
         };
-        Scene::new(robots, ball)
+        let bs = |balls: &[Ball; HISTORY_DEPTH]| -> Option<Ball> {
+            //物理シミュレーション
+            let p0 = balls[0].position;
+            let v = (balls[0].position - balls[1].position) / self.period;
+            let a = (balls[0].position - balls[1].position * 2.0 + balls[2].position)
+                / (self.period * 2.0);
+            let j = (balls[0].position - balls[1].position * 3.0 + balls[2].position * 3.0
+                - balls[3].position)
+                / (self.period * 3.0);
+            let p = j / 6.0 * t3 + a / 2.0 * t2 + v * t1 + p0;
+            //fin
+            Some(balls[0].replace(p))
+        };
+        self.generate(rs, bs)
     }
-     */
+
+    //現在の位置にノイズを与える。
+    pub fn noise<R: Rng>(&self, sn: &mut SceneNoise<R>) -> History {
+        let mut history = self.clone();
+        for right in history.rights.values_mut() {
+            right[0] = right[0].replace(right[0].position + sn.gen_vec2rad(self.period));
+        }
+
+        for left in history.lefts.values_mut() {
+            left[0] = left[0].replace(left[0].position + sn.gen_vec2rad(self.period));
+        }
+
+        if let Some(ball) = history.ball {
+            history.ball.unwrap()[0] = ball[0].replace(ball[0].position + sn.gen_vec2(self.period));
+        }
+        history
+    }
 }
 
 #[allow(dead_code)]
-pub fn tree_plan<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
+pub fn tree_plan<
+    G: Fn(&History) -> Scene,
+    SE: Fn(&Scene) -> f32,
+    P: Fn(&Scene) -> Option<Scene>,
+>(
     history: &History,
     generator: &G,
     static_evaluation: &SE,
     prune: &P,
     depth: u32,
-) -> (f32, Vec<Rc<Scene>>) {
-    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(Scene) -> Option<Scene>>(
+) -> (f32, Vec<Scene>) {
+    fn inner<G: Fn(&History) -> Scene, SE: Fn(&Scene) -> f32, P: Fn(&Scene) -> Option<Scene>>(
         history: &History,
         generator: &G,
         static_evaluation: &SE,
         prune: &P,
         depth: u32,
-    ) -> (f32, Vec<Rc<Scene>>) {
-        let branches: Vec<_> = (0..2)
-            .flat_map(|_| prune(generator(history)))
-            .map(|scene: Scene| {
-                let now_score = static_evaluation(&scene);
-                let scene = Rc::new(scene);
-                if depth == 0 {
-                    return (now_score, vec![scene]);
-                }
-                let fiture = history.push(scene.clone());
-                let (next_score, mut scenes) =
-                    inner(&fiture, generator, static_evaluation, prune, depth - 1);
+    ) -> (f32, Vec<Scene>) {
+        const n: usize = 2;
+        let mut branches = Vec::with_capacity(n);
+        let mut scene_noise = SceneNoise::default(); //あとで解決する
+        let physics = history.simulate_physics();
+        for _ in 0..n {
+            let noised = physics.noise(&mut scene_noise);
+            let now = noised.scene_now();
+            if prune(&now).is_none() {
+                continue;
+            }
+            let (fiture_score, mut scenes) =
+                inner(&noised, generator, static_evaluation, prune, depth - 1);
 
-                let score = (now_score + next_score) / 2.0;
-                scenes.push(scene);
-                (score, scenes)
-            })
-            .collect();
+            let score = (fiture_score + static_evaluation(&now)) / 2.0;
+            scenes.push(now);
+            branches.push((score, scenes));
+        }
+
         //find best snene
         let sum: f32 = branches.iter().map(|(score, _)| score).sum();
         let score = sum / (1 << depth) as f32;

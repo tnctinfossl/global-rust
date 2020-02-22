@@ -21,6 +21,10 @@ impl Ball {
     pub fn new(position: Vec2) -> Ball {
         Ball { position: position }
     }
+    #[allow(dead_code)]
+    pub fn replace(&self, position: Vec2) -> Ball {
+        Ball { position: position }
+    }
 }
 
 impl From<Ball> for Circle {

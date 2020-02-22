@@ -32,6 +32,14 @@ impl Robot {
     pub fn new(position: Vec2Rad, diametor: f32) -> Robot {
         Robot { position, diametor }
     }
+
+    #[allow(dead_code)]
+    pub fn replace(&self, position: Vec2Rad) -> Robot {
+        Robot {
+            position: position,
+            diametor: self.diametor,
+        }
+    }
 }
 
 impl From<Robot> for Circle {

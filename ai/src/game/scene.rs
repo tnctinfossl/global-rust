@@ -1,48 +1,11 @@
 use super::*;
 use glm::*;
 use gnuplot::*;
+use rand::prelude::ThreadRng;
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use serde_derive::*;
-use std::collections::{BTreeMap, HashMap};
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct SceneNoise {
-    standard_deviation: f32,     //標準偏差[m]
-    standard_deviation_rad: f32, //標準偏差[rad]
-}
-
-impl Default for SceneNoise {
-    fn default() -> SceneNoise {
-        SceneNoise {
-            standard_deviation: 1200.0, //[mm]
-            standard_deviation_rad: std::f32::consts::PI,
-        }
-    }
-}
-
-impl SceneNoise {
-    #[allow(dead_code)]
-    pub fn new(standard_deviation: f32, standard_deviation_rad: f32) -> SceneNoise {
-        SceneNoise {
-            standard_deviation: standard_deviation,
-            standard_deviation_rad: standard_deviation_rad,
-        }
-    }
-    pub fn gen_vec2<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2 {
-        let normal = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
-        vec2(normal.sample(ramdom), normal.sample(ramdom))
-    }
-
-    pub fn gen_vec2rad<R: Rng + ?Sized>(&self, ramdom: &mut R) -> Vec2Rad {
-        let normal_xy = Normal::new(0.0 as f32, self.standard_deviation as f32).unwrap();
-        let normal_theta = Normal::new(0.0 as f32, self.standard_deviation_rad as f32).unwrap();
-        vec2rad(
-            normal_xy.sample(ramdom),
-            normal_xy.sample(ramdom),
-            normal_theta.sample(ramdom),
-        )
-    }
-}
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
@@ -80,36 +43,6 @@ impl Scene {
             ball: ball,
         }
     }
-
-    #[allow(dead_code)]
-    pub fn noise<R: Rng + ?Sized>(&self, random: &mut R, period: f32, sn: &SceneNoise) -> Scene {
-        let rights: BTreeMap<RobotID, Robot> = self
-            .rights
-            .iter()
-            .map(|(id, robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random) / period;
-                (*id, Robot::new(noised, robot.diametor))
-            })
-            .collect();
-        let lefts: BTreeMap<RobotID, Robot> = self
-            .lefts
-            .iter()
-            .map(|(id, robot)| {
-                let noised = robot.position + sn.gen_vec2rad(random) / period;
-                (*id, Robot::new(noised, robot.diametor))
-            })
-            .collect();
-        let mut ball = None;
-        if let Some(b) = self.ball {
-            ball = Some(Ball::new(b.position + sn.gen_vec2(random) / period));
-        }
-
-        Scene {
-            rights: rights,
-            lefts: lefts,
-            ball: ball,
-        }
-    }
 }
 
 impl Default for Scene {
@@ -120,6 +53,92 @@ impl Default for Scene {
             lefts: BTreeMap::new(),
             ball: None,
         }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct SceneNoise<R> {
+    random: R,
+    standard_deviation: f32,     //標準偏差[m/s]
+    standard_deviation_rad: f32, //標準偏差[rad/s]
+}
+/*
+impl Default for SceneNoise {
+    fn default() -> SceneNoise<R: Rng + ?Sized> {
+        SceneNoise {
+            standard_deviation: 1.2,                      //[m/s]
+            standard_deviation_rad: std::f32::consts::PI, //[rad/s]
+        }
+    }
+}*/
+
+impl SceneNoise<ThreadRng> {
+    pub fn default() -> SceneNoise<ThreadRng> {
+        SceneNoise {
+            random: rand::thread_rng(),
+            standard_deviation: 1.2,                      //[m/s]
+            standard_deviation_rad: std::f32::consts::PI, //[rad/s]
+        }
+    }
+}
+
+impl<R> SceneNoise<R>
+where
+    R: Rng,
+{
+    #[allow(dead_code)]
+    pub fn new(random: R, standard_deviation: f32, standard_deviation_rad: f32) -> SceneNoise<R> {
+        SceneNoise {
+            random: random,
+            standard_deviation: standard_deviation,
+            standard_deviation_rad: standard_deviation_rad,
+        }
+    }
+
+    pub fn gen_vec2(&mut self, period: f32) -> Vec2 {
+        let normal = Normal::new(0.0 as f32, self.standard_deviation as f32 / period).unwrap();
+        vec2(
+            normal.sample(&mut self.random),
+            normal.sample(&mut self.random),
+        )
+    }
+
+    pub fn gen_vec2rad(&mut self, period: f32) -> Vec2Rad {
+        let normal_xy = Normal::new(0.0 as f32, self.standard_deviation as f32 / period).unwrap();
+        let normal_theta =
+            Normal::new(0.0 as f32, self.standard_deviation_rad as f32 / period).unwrap();
+        vec2rad(
+            normal_xy.sample(&mut self.random),
+            normal_xy.sample(&mut self.random),
+            normal_theta.sample(&mut self.random),
+        )
+    }
+
+    pub fn noise(&mut self, scene: &Scene, period: f32) -> Scene {
+        let rights: BTreeMap<RobotID, Robot> = scene
+            .rights
+            .iter()
+            .map(|(key, robot)| {
+                (
+                    *key,
+                    robot.replace(robot.position + self.gen_vec2rad(period)),
+                )
+            })
+            .collect();
+        let lefts: BTreeMap<RobotID, Robot> = scene
+            .lefts
+            .iter()
+            .map(|(key, robot)| {
+                (
+                    *key,
+                    robot.replace(robot.position + self.gen_vec2rad(period)),
+                )
+            })
+            .collect();
+        let ball = scene
+            .ball
+            .map(|ball| ball.replace(ball.position + self.gen_vec2(period)));
+        Scene::new(rights, lefts, ball)
     }
 }
 
@@ -177,9 +196,9 @@ mod tests {
 
         std::fs::create_dir_all("img").unwrap();
         figure.save_to_png("img/test_plot.png", 1000, 1000).unwrap();
-
-        scene.noise(&mut rand::thread_rng(), 16.66, &sn);
-        scene.plot(&mut figure.axes2d());
+        let noised_scene = sn.noise(&scene, 16.66);
+        //scene.noise(&mut rand::thread_rng(), 16.66, &sn);
+        noised_scene.plot(&mut figure.axes2d());
         let mut figure = gnuplot::Figure::new();
         std::fs::create_dir_all("img").unwrap();
         figure
