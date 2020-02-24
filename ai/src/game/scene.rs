@@ -189,7 +189,7 @@ mod tests {
     use super::*;
     #[test]
     fn plot_scene() {
-        let sn = SceneNoise::default();
+        let mut sn = SceneNoise::default();
         let mut figure = gnuplot::Figure::new();
         let scene = Field::default().ramdon_scene(&mut rand::thread_rng(), 10, 10, true);
         scene.plot(&mut figure.axes2d());
